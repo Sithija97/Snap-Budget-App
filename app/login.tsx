@@ -28,9 +28,7 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {/* Logo */}
-          <View className="w-13 h-13 bg-brand-green rounded-2xl items-center justify-center mt-4">
-            {/* <Receipt size={28} color="#fff" /> */}
-          </View>
+          <View className="w-13 h-13 bg-brand-green rounded-2xl items-center justify-center mt-4"></View>
 
           {/* Title */}
           <Text className="text-white text-3xl font-medium leading-tight mt-6">

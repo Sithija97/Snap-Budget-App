@@ -104,7 +104,11 @@ export default function TransactionsScreen() {
         renderSectionHeader={({ section }) => (
           <SectionTitle title={section.title} />
         )}
-        renderItem={({ item }) => <TransactionItem {...item} />}
+        renderItem={({ item }) => (
+          <View className="bg-white rounded-2xl border border-brand-border px-3 mb-2">
+            <TransactionItem {...item} />
+          </View>
+        )}
         showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>

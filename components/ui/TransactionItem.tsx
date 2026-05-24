@@ -41,25 +41,27 @@ export default function TransactionItem({
   const formatted = `${isPositive ? "+ " : "- "}Rs ${Math.abs(amount).toLocaleString()}`;
 
   return (
-    <View className="flex-row items-center gap-3 py-2 border-b border-brand-border">
+    <View className="flex-row items-center gap-3 py-3">
       {/* Icon box */}
       <View
-        className="w-[34px] h-[34px] rounded-xl items-center justify-center"
+        className="w-[44px] h-[44px] rounded-2xl items-center justify-center"
         style={{ backgroundColor: iconBg }}
       >
-        <IconComponent size={16} color={iconColor} />
+        <IconComponent size={20} color={iconColor} />
       </View>
 
       {/* Middle */}
       <View className="flex-1">
-        <Text className="text-slate-900 text-sm font-medium">{merchant}</Text>
+        <Text className="text-slate-900 text-[15px] font-semibold">
+          {merchant}
+        </Text>
         <Text className="text-brand-muted text-xs mt-0.5">{category}</Text>
       </View>
 
       {/* Right */}
       <View className="items-end">
         <Text
-          className={`text-sm font-mono ${isPositive ? "text-brand-green" : "text-brand-red"}`}
+          className={`text-[15px] font-semibold ${isPositive ? "text-brand-green" : "text-brand-red"}`}
         >
           {formatted}
         </Text>

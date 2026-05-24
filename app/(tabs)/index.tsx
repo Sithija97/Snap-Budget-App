@@ -1,5 +1,6 @@
 import { ScrollView, View, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { TrendingDown, Target } from "lucide-react-native";
 import {
   MOCK_USER,
@@ -7,7 +8,6 @@ import {
   TOTAL_SPENT,
   REMAINING,
 } from "../../constants/mockData";
-import SectionTitle from "../../components/ui/SectionTitle";
 import StatChip from "../../components/ui/StatChip";
 import TransactionItem from "../../components/ui/TransactionItem";
 
@@ -46,8 +46,20 @@ export default function HomeScreen() {
               </View>
             </View>
 
+            {/* Card number */}
+            {/* <View className="flex-row items-center gap-3 mt-5">
+              {["••••", "••••", "••••", "4821"].map((group, i) => (
+                <Text
+                  key={i}
+                  className="text-white font-mono tracking-[2px] text-sm opacity-[0.45]"
+                >
+                  {group}
+                </Text>
+              ))}
+            </View> */}
+
             {/* Amount */}
-            <Text className="text-white font-mono text-[34px] font-semibold mt-7">
+            <Text className="text-white font-mono text-[34px] font-semibold mt-4">
               Rs {TOTAL_SPENT.toLocaleString()}
             </Text>
             <Text className="text-brand-muted text-[11px] mt-0.5">
@@ -94,21 +106,40 @@ export default function HomeScreen() {
 
         {/* Stat chips grid */}
         <View className="flex-row gap-2 mx-4 mt-4">
-          <StatChip label="Income" value="Rs 50k" sub="this month" />
+          <StatChip label="Income" value="Rs 50k" sub="this month" trend="up" />
           <StatChip
             label="Saved"
             value={`Rs ${REMAINING.toLocaleString()}`}
             sub="14.3% of income"
             valueColor="#1D9E75"
+            trend="up"
           />
         </View>
 
         {/* Recent transactions */}
         <View className="mx-4 mt-4 pb-6">
-          <SectionTitle title="Recent transactions" />
-          {recentFour.map((tx) => (
-            <TransactionItem key={tx.id} {...tx} />
-          ))}
+          <View className="flex-row items-center justify-between mb-3 mt-0.5">
+            <Text className="text-brand-muted text-[11px] font-medium uppercase tracking-widest">
+              Recent transactions
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.push("/(tabs)/transactions")}
+            >
+              <Text className="text-brand-green text-xs font-medium">
+                See all
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View className="gap-2">
+            {recentFour.map((tx) => (
+              <View
+                key={tx.id}
+                className="bg-white rounded-2xl border border-brand-border px-3"
+              >
+                <TransactionItem {...tx} />
+              </View>
+            ))}
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
