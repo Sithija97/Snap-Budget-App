@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Snapbudget",
+    "name": "SnapBudget",
     "slug": "Snapbudget",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -18,8 +18,14 @@
       },
       "predictiveBackGestureEnabled": false
     },
+    "scheme": "snapbudget",
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "experiments": {
+      "typedRoutes": true
+    },
+    "plugins": ["expo-router", "expo-font", "expo-splash-screen"]
   }
 }
