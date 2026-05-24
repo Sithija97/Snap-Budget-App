@@ -68,7 +68,7 @@ export default function ScanScreen() {
         </View>
 
         {/* Detected result card */}
-        <View className="bg-white border border-brand-border rounded-2xl mx-3 p-3 mt-4">
+        <View className="bg-white rounded-2xl mx-3 p-3 mt-4">
           {/* Card header */}
           <View className="flex-row items-center gap-2 mb-2">
             <CheckCircle2 size={16} color="#1D9E75" />

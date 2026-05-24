@@ -132,10 +132,7 @@ export default function HomeScreen() {
           </View>
           <View className="gap-2">
             {recentFour.map((tx) => (
-              <View
-                key={tx.id}
-                className="bg-white rounded-2xl border border-brand-border px-3"
-              >
+              <View key={tx.id} className="bg-white rounded-2xl px-3">
                 <TransactionItem {...tx} />
               </View>
             ))}

@@ -65,7 +65,7 @@ export default function TransactionsScreen() {
         <Text className="text-xl font-medium text-slate-900">Transactions</Text>
 
         {/* Search bar */}
-        <View className="flex-row items-center bg-white border border-brand-border rounded-xl px-3 h-10 mt-3 gap-2">
+        <View className="flex-row items-center bg-white rounded-xl px-3 h-10 mt-3 gap-2">
           <Search size={16} color="#94A3B8" />
           <TextInput
             className="flex-1 text-xs text-slate-900"
@@ -85,7 +85,7 @@ export default function TransactionsScreen() {
             <TouchableOpacity
               key={f}
               onPress={() => setActiveFilter(f)}
-              className={`rounded-full px-4 py-2 border ${activeFilter === f ? "bg-brand-black border-brand-black" : "bg-white border-brand-border"}`}
+              className={`rounded-full px-4 py-2 ${activeFilter === f ? "bg-brand-black" : "bg-white"}`}
             >
               <Text
                 className={`text-sm ${activeFilter === f ? "text-white" : "text-brand-muted"}`}
@@ -105,7 +105,7 @@ export default function TransactionsScreen() {
           <SectionTitle title={section.title} />
         )}
         renderItem={({ item }) => (
-          <View className="bg-white rounded-2xl border border-brand-border px-3 mb-2">
+          <View className="bg-white rounded-2xl px-3 mb-2">
             <TransactionItem {...item} />
           </View>
         )}

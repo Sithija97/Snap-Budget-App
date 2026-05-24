@@ -39,7 +39,7 @@ export default function AnalyticsScreen() {
         </View>
 
         {/* Bar chart card */}
-        <View className="bg-white border border-brand-border rounded-2xl p-4 mb-3">
+        <View className="bg-white rounded-2xl p-4 mb-3">
           <Text className="text-brand-muted text-xs mb-3">
             Spending last 6 months
           </Text>
@@ -47,7 +47,7 @@ export default function AnalyticsScreen() {
         </View>
 
         {/* Breakdown card */}
-        <View className="bg-white border border-brand-border rounded-2xl p-4">
+        <View className="bg-white rounded-2xl p-4">
           <SectionTitle title="Spending breakdown — May" />
           <DonutChart data={MOCK_CATEGORY_BREAKDOWN} size={140} />
         </View>

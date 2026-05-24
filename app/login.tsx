@@ -41,7 +41,7 @@ export default function LoginScreen() {
           <View className="mt-8 gap-3">
             {/* Email input */}
             <TextInput
-              className="h-12 rounded-xl px-4 text-white text-sm bg-[#1e293b] border border-[#334155]"
+              className="h-12 rounded-xl px-4 text-white text-sm bg-[#1e293b]"
               placeholder="Email address"
               placeholderTextColor="#64748b"
               value={email}
@@ -52,7 +52,7 @@ export default function LoginScreen() {
 
             {/* Password input */}
             <TextInput
-              className="h-12 rounded-xl px-4 text-white text-sm bg-[#1e293b] border border-[#334155]"
+              className="h-12 rounded-xl px-4 text-white text-sm bg-[#1e293b]"
               placeholder="Password"
               placeholderTextColor="#64748b"
               value={password}
@@ -78,7 +78,7 @@ export default function LoginScreen() {
 
             {/* Google button */}
             <TouchableOpacity
-              className="h-12 rounded-xl flex-row items-center justify-center gap-2 bg-[#1e293b] border border-[#334155]"
+              className="h-12 rounded-xl flex-row items-center justify-center gap-2 bg-[#1e293b]"
               activeOpacity={0.8}
             >
               <Globe size={18} color="#94A3B8" />

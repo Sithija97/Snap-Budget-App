@@ -51,7 +51,7 @@ export default function BudgetScreen() {
         </View>
 
         {/* Category progress bars */}
-        <View className="bg-white border border-brand-border rounded-2xl p-4">
+        <View className="bg-white rounded-2xl p-4">
           {MOCK_BUDGETS.map((budget) => (
             <CategoryProgressBar key={budget.category} {...budget} />
           ))}

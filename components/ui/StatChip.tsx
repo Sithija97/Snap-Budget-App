@@ -17,7 +17,7 @@ export default function StatChip({
   trend,
 }: Props) {
   return (
-    <View className="flex-1 bg-white border border-brand-border rounded-2xl p-3">
+    <View className="flex-1 bg-white rounded-2xl p-3">
       <View className="flex-row items-center justify-between mb-1">
         <Text className="text-brand-muted text-[10px] uppercase tracking-wide">
           {label}

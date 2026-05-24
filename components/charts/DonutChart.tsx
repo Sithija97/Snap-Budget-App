@@ -7,7 +7,7 @@ interface Props {
   size?: number;
 }
 
-const STROKE_WIDTH = 14;
+const STROKE_WIDTH = 25;
 
 export default function DonutChart({ data, size = 110 }: Props) {
   const radius = (size - STROKE_WIDTH) / 2;
