@@ -49,7 +49,7 @@ export default function AnalyticsScreen() {
         {/* Breakdown card */}
         <View className="bg-white border border-brand-border rounded-2xl p-4">
           <SectionTitle title="Spending breakdown — May" />
-          <DonutChart data={MOCK_CATEGORY_BREAKDOWN} size={110} />
+          <DonutChart data={MOCK_CATEGORY_BREAKDOWN} size={140} />
         </View>
       </ScrollView>
     </SafeAreaView>

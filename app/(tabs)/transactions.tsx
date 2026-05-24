@@ -85,10 +85,10 @@ export default function TransactionsScreen() {
             <TouchableOpacity
               key={f}
               onPress={() => setActiveFilter(f)}
-              className={`rounded-full px-3 py-1 border ${activeFilter === f ? "bg-brand-black border-brand-black" : "bg-white border-brand-border"}`}
+              className={`rounded-full px-4 py-2 border ${activeFilter === f ? "bg-brand-black border-brand-black" : "bg-white border-brand-border"}`}
             >
               <Text
-                className={`text-xs ${activeFilter === f ? "text-white" : "text-brand-muted"}`}
+                className={`text-sm ${activeFilter === f ? "text-white" : "text-brand-muted"}`}
               >
                 {f}
               </Text>
