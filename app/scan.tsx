@@ -35,47 +35,11 @@ export default function ScanScreen() {
         </View>
 
         {/* Camera finder box */}
-        <View
-          className="mx-3 rounded-3xl items-center justify-center"
-          style={{ backgroundColor: "#0F1117", height: 220 }}
-        >
-          {/* Corner brackets */}
-          <View
-            className="absolute top-3 left-3 w-6 h-6"
-            style={{
-              borderTopWidth: 2,
-              borderLeftWidth: 2,
-              borderColor: "#1D9E75",
-              borderRadius: 2,
-            }}
-          />
-          <View
-            className="absolute top-3 right-3 w-6 h-6"
-            style={{
-              borderTopWidth: 2,
-              borderRightWidth: 2,
-              borderColor: "#1D9E75",
-              borderRadius: 2,
-            }}
-          />
-          <View
-            className="absolute bottom-3 left-3 w-6 h-6"
-            style={{
-              borderBottomWidth: 2,
-              borderLeftWidth: 2,
-              borderColor: "#1D9E75",
-              borderRadius: 2,
-            }}
-          />
-          <View
-            className="absolute bottom-3 right-3 w-6 h-6"
-            style={{
-              borderBottomWidth: 2,
-              borderRightWidth: 2,
-              borderColor: "#1D9E75",
-              borderRadius: 2,
-            }}
-          />
+        <View className="mx-3 rounded-3xl items-center justify-center bg-brand-black h-[220px]">
+          <View className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-brand-green rounded-[2px]" />
+          <View className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-brand-green rounded-[2px]" />
+          <View className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-brand-green rounded-[2px]" />
+          <View className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-brand-green rounded-[2px]" />
 
           {/* Center content */}
           <Receipt size={32} color="#94A3B8" />
@@ -84,15 +48,7 @@ export default function ScanScreen() {
           </Text>
 
           {/* Scan line */}
-          <View
-            className="absolute rounded-full"
-            style={{
-              height: 1.5,
-              width: "80%",
-              backgroundColor: "#1D9E75",
-              opacity: 0.7,
-            }}
-          />
+          <View className="absolute rounded-full bg-brand-green opacity-70 h-[1.5px] w-4/5" />
         </View>
 
         {/* Tip text */}
@@ -103,12 +59,9 @@ export default function ScanScreen() {
 
         {/* AI badge */}
         <View className="items-center mt-3">
-          <View
-            className="flex-row items-center gap-1.5 rounded-full px-3 py-1.5"
-            style={{ backgroundColor: "#E1F5EE" }}
-          >
+          <View className="flex-row items-center gap-1.5 rounded-full px-3 py-1.5 bg-[#E1F5EE]">
             <Sparkles size={12} color="#085041" />
-            <Text className="text-xs" style={{ color: "#085041" }}>
+            <Text className="text-xs text-[#085041]">
               AI-powered categorization
             </Text>
           </View>
@@ -143,13 +96,8 @@ export default function ScanScreen() {
           {/* Category row with pill */}
           <View className="flex-row justify-between items-center py-1.5 border-b border-brand-surface">
             <Text className="text-xs text-brand-muted">Category</Text>
-            <View
-              className="rounded-full px-2 py-0.5"
-              style={{ backgroundColor: "#E1F5EE" }}
-            >
-              <Text className="text-xs" style={{ color: "#085041" }}>
-                Groceries
-              </Text>
+            <View className="rounded-full px-2 py-0.5 bg-[#E1F5EE]">
+              <Text className="text-xs text-[#085041]">Groceries</Text>
             </View>
           </View>
 

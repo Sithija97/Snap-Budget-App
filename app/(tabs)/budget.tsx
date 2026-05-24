@@ -39,10 +39,7 @@ export default function BudgetScreen() {
           </View>
 
           {/* Progress bar */}
-          <View
-            className="mt-3 h-1 rounded-full"
-            style={{ backgroundColor: "#1e293b" }}
-          >
+          <View className="mt-3 h-1 rounded-full bg-[#1e293b]">
             <View
               className="h-1 rounded-full bg-brand-green"
               style={{ width: `${PCT_USED}%` as any }}

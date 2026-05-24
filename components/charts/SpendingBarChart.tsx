@@ -13,22 +13,15 @@ export default function SpendingBarChart({ data, activeMonth = "May" }: Props) {
 
   return (
     <View>
-      <View className="flex-row items-end gap-2" style={{ height: MAX_HEIGHT }}>
+      <View className="flex-row items-end gap-2 h-[72px]">
         {data.map((item) => {
           const barHeight = Math.max((item.amount / maxAmount) * MAX_HEIGHT, 6);
           const isActive = item.month === activeMonth;
           return (
-            <View
-              key={item.month}
-              className="flex-1 items-center"
-              style={{ justifyContent: "flex-end" }}
-            >
+            <View key={item.month} className="flex-1 items-center justify-end">
               <View
-                className="w-full rounded-t-md"
-                style={{
-                  height: barHeight,
-                  backgroundColor: isActive ? "#1D9E75" : "#E2E8F0",
-                }}
+                className={`w-full rounded-t-md ${isActive ? "bg-brand-green" : "bg-slate-200"}`}
+                style={{ height: barHeight }}
               />
             </View>
           );

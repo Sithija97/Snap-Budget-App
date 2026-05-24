@@ -18,156 +18,53 @@ export default function HomeScreen() {
     <SafeAreaView className="flex-1 bg-brand-surface" edges={["top"]}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Debit card header */}
-        <View
-          className="mx-4 mt-0 rounded-3xl overflow-hidden"
-          style={{ backgroundColor: "#0F1117" }}
-        >
+        <View className="mx-4 mt-0 rounded-3xl overflow-hidden bg-brand-black">
           {/* Background glow circles */}
-          <View
-            style={{
-              position: "absolute",
-              top: -55,
-              right: -55,
-              width: 210,
-              height: 210,
-              borderRadius: 105,
-              backgroundColor: "#1D9E75",
-              opacity: 0.13,
-            }}
-          />
-          <View
-            style={{
-              position: "absolute",
-              bottom: -70,
-              right: 5,
-              width: 250,
-              height: 250,
-              borderRadius: 125,
-              backgroundColor: "#1D9E75",
-              opacity: 0.07,
-            }}
-          />
+          <View className="absolute -top-[55px] -right-[55px] w-[210px] h-[210px] rounded-[105px] bg-brand-green opacity-[0.13]" />
+          <View className="absolute -bottom-[70px] right-[5px] w-[250px] h-[250px] rounded-[125px] bg-brand-green opacity-[0.07]" />
 
-          <View style={{ padding: 20 }}>
+          <View className="p-5">
             {/* Row 1: chip + logo */}
             <View className="flex-row items-center justify-between">
               {/* EMV chip */}
-              <View
-                style={{
-                  width: 38,
-                  height: 28,
-                  borderRadius: 6,
-                  backgroundColor: "#B8892A",
-                  overflow: "hidden",
-                }}
-              >
-                <View
-                  style={{
-                    position: "absolute",
-                    height: 1,
-                    left: 0,
-                    right: 0,
-                    top: 9,
-                    backgroundColor: "rgba(0,0,0,0.3)",
-                  }}
-                />
-                <View
-                  style={{
-                    position: "absolute",
-                    height: 1,
-                    left: 0,
-                    right: 0,
-                    bottom: 9,
-                    backgroundColor: "rgba(0,0,0,0.3)",
-                  }}
-                />
-                <View
-                  style={{
-                    position: "absolute",
-                    width: 1,
-                    top: 0,
-                    bottom: 0,
-                    left: 13,
-                    backgroundColor: "rgba(0,0,0,0.25)",
-                  }}
-                />
-                <View
-                  style={{
-                    position: "absolute",
-                    width: 1,
-                    top: 0,
-                    bottom: 0,
-                    right: 13,
-                    backgroundColor: "rgba(0,0,0,0.25)",
-                  }}
-                />
+              <View className="w-[38px] h-[28px] rounded bg-[#B8892A] overflow-hidden">
+                <View className="absolute h-px left-0 right-0 top-[9px] bg-black/30" />
+                <View className="absolute h-px left-0 right-0 bottom-[9px] bg-black/30" />
+                <View className="absolute w-px top-0 bottom-0 left-[13px] bg-black/25" />
+                <View className="absolute w-px top-0 bottom-0 right-[13px] bg-black/25" />
               </View>
 
               {/* Logo area */}
               <View className="flex-row items-center gap-2">
-                <Text
-                  style={{
-                    color: "white",
-                    fontSize: 13,
-                    fontWeight: "500",
-                    opacity: 0.55,
-                    letterSpacing: 0.5,
-                  }}
-                >
+                <Text className="text-white text-[13px] font-medium opacity-[0.55] tracking-[0.5px]">
                   SnapBudget
                 </Text>
-                <View style={{ flexDirection: "row" }}>
-                  <View
-                    style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: 11,
-                      backgroundColor: "#E24B4A",
-                      opacity: 0.85,
-                    }}
-                  />
-                  <View
-                    style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: 11,
-                      backgroundColor: "#EF9F27",
-                      opacity: 0.85,
-                      marginLeft: -8,
-                    }}
-                  />
+                <View className="flex-row">
+                  <View className="w-[22px] h-[22px] rounded-[11px] bg-brand-red opacity-[0.85]" />
+                  <View className="w-[22px] h-[22px] rounded-[11px] bg-brand-amber opacity-[0.85] -ml-2" />
                 </View>
               </View>
             </View>
 
             {/* Amount */}
-            <Text
-              className="text-white font-mono"
-              style={{ fontSize: 34, fontWeight: "600", marginTop: 28 }}
-            >
+            <Text className="text-white font-mono text-[34px] font-semibold mt-7">
               Rs {TOTAL_SPENT.toLocaleString()}
             </Text>
-            <Text style={{ color: "#94A3B8", fontSize: 11, marginTop: 2 }}>
+            <Text className="text-brand-muted text-[11px] mt-0.5">
               spent this month
             </Text>
 
             {/* Trend badges */}
             <View className="flex-row gap-2 mt-3">
-              <View
-                className="flex-row items-center gap-1 rounded-full px-2.5 py-1"
-                style={{ backgroundColor: "rgba(226,75,74,0.15)" }}
-              >
+              <View className="flex-row items-center gap-1 rounded-full px-2.5 py-1 bg-[rgba(226,75,74,0.15)]">
                 <TrendingDown size={11} color="#E24B4A" />
-                <Text style={{ color: "#E24B4A", fontSize: 11 }}>
+                <Text className="text-brand-red text-[11px]">
                   12% vs last month
                 </Text>
               </View>
-              <View
-                className="flex-row items-center gap-1 rounded-full px-2.5 py-1"
-                style={{ backgroundColor: "rgba(29,158,117,0.15)" }}
-              >
+              <View className="flex-row items-center gap-1 rounded-full px-2.5 py-1 bg-[rgba(29,158,117,0.15)]">
                 <Target size={11} color="#1D9E75" />
-                <Text style={{ color: "#1D9E75", fontSize: 11 }}>
+                <Text className="text-brand-green text-[11px]">
                   Rs {REMAINING.toLocaleString()} left
                 </Text>
               </View>
@@ -176,48 +73,18 @@ export default function HomeScreen() {
             {/* Bottom row: holder + period */}
             <View className="flex-row items-end justify-between mt-5">
               <View>
-                <Text
-                  style={{
-                    color: "#475569",
-                    fontSize: 9,
-                    letterSpacing: 1,
-                    textTransform: "uppercase",
-                  }}
-                >
+                <Text className="text-[#475569] text-[9px] tracking-[1px] uppercase">
                   Card Holder
                 </Text>
-                <Text
-                  style={{
-                    color: "white",
-                    fontSize: 13,
-                    fontWeight: "500",
-                    marginTop: 3,
-                    letterSpacing: 0.5,
-                    textTransform: "uppercase",
-                  }}
-                >
+                <Text className="text-white text-[13px] font-medium mt-[3px] tracking-[0.5px] uppercase">
                   {MOCK_USER.name}
                 </Text>
               </View>
               <View>
-                <Text
-                  style={{
-                    color: "#475569",
-                    fontSize: 9,
-                    letterSpacing: 1,
-                    textTransform: "uppercase",
-                  }}
-                >
+                <Text className="text-[#475569] text-[9px] tracking-[1px] uppercase">
                   Period
                 </Text>
-                <Text
-                  style={{
-                    color: "white",
-                    fontSize: 13,
-                    fontWeight: "500",
-                    marginTop: 3,
-                  }}
-                >
+                <Text className="text-white text-[13px] font-medium mt-[3px]">
                   05 / 2026
                 </Text>
               </View>

@@ -60,8 +60,8 @@ export default function DonutChart({ data, size = 72 }: Props) {
         {data.map((item) => (
           <View key={item.category} className="flex-row items-center gap-2">
             <View
-              className="rounded-full"
-              style={{ width: 8, height: 8, backgroundColor: item.color }}
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: item.color }}
             />
             <Text className="text-xs text-slate-900">
               {item.category} — {item.pct}%

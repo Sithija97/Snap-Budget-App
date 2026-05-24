@@ -44,8 +44,8 @@ export default function TransactionItem({
     <View className="flex-row items-center gap-3 py-2 border-b border-brand-border">
       {/* Icon box */}
       <View
-        className="rounded-xl items-center justify-center"
-        style={{ width: 34, height: 34, backgroundColor: iconBg }}
+        className="w-[34px] h-[34px] rounded-xl items-center justify-center"
+        style={{ backgroundColor: iconBg }}
       >
         <IconComponent size={16} color={iconColor} />
       </View>
@@ -59,8 +59,7 @@ export default function TransactionItem({
       {/* Right */}
       <View className="items-end">
         <Text
-          className="text-sm font-mono"
-          style={{ color: isPositive ? "#1D9E75" : "#E24B4A" }}
+          className={`text-sm font-mono ${isPositive ? "text-brand-green" : "text-brand-red"}`}
         >
           {formatted}
         </Text>

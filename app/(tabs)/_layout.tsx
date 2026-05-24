@@ -23,30 +23,18 @@ function CustomTabBar({
 
   return (
     <View
-      className="flex-row bg-white border-t border-brand-border"
-      style={{ paddingBottom: bottomPad, paddingTop: 8 }}
+      className="flex-row bg-white border-t border-brand-border pt-2"
+      style={{ paddingBottom: bottomPad }}
     >
       {TAB_ITEMS.map((item, index) => {
         if (!item) {
           return (
-            <View
-              key="scan"
-              className="flex-1 items-center justify-end"
-              style={{ marginBottom: 4 }}
-            >
+            <View key="scan" className="flex-1 items-center justify-end mb-1">
               <TouchableOpacity
                 onPress={() => router.push("/scan")}
                 activeOpacity={0.85}
+                className="w-[46px] h-[46px] rounded-[23px] bg-brand-green items-center justify-center mb-4 border-[3px] border-white"
                 style={{
-                  width: 46,
-                  height: 46,
-                  borderRadius: 23,
-                  backgroundColor: "#1D9E75",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: 16,
-                  borderWidth: 3,
-                  borderColor: "#fff",
                   shadowColor: "#1D9E75",
                   shadowOffset: { width: 0, height: 4 },
                   shadowOpacity: 0.35,
@@ -75,8 +63,7 @@ function CustomTabBar({
               color={isFocused ? "#0F1117" : "#94A3B8"}
             />
             <Text
-              className="text-[10px]"
-              style={{ color: isFocused ? "#0F1117" : "#94A3B8" }}
+              className={`text-[10px] ${isFocused ? "text-brand-black" : "text-brand-muted"}`}
             >
               {item.label}
             </Text>

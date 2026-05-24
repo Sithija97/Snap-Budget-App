@@ -25,10 +25,7 @@ export default function CategoryProgressBar({
       </View>
 
       {/* Progress track */}
-      <View
-        className="h-1.5 rounded-full"
-        style={{ backgroundColor: "#F1F5F9" }}
-      >
+      <View className="h-1.5 rounded-full bg-[#F1F5F9]">
         <View
           className="h-1.5 rounded-full"
           style={{ width: `${pct.toFixed(1)}%` as any, backgroundColor: color }}

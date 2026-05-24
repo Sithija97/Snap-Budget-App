@@ -43,12 +43,7 @@ export default function LoginScreen() {
           <View className="mt-8 gap-3">
             {/* Email input */}
             <TextInput
-              className="h-12 rounded-xl px-4 text-white text-sm"
-              style={{
-                backgroundColor: "#1e293b",
-                borderColor: "#334155",
-                borderWidth: 1,
-              }}
+              className="h-12 rounded-xl px-4 text-white text-sm bg-[#1e293b] border border-[#334155]"
               placeholder="Email address"
               placeholderTextColor="#64748b"
               value={email}
@@ -59,12 +54,7 @@ export default function LoginScreen() {
 
             {/* Password input */}
             <TextInput
-              className="h-12 rounded-xl px-4 text-white text-sm"
-              style={{
-                backgroundColor: "#1e293b",
-                borderColor: "#334155",
-                borderWidth: 1,
-              }}
+              className="h-12 rounded-xl px-4 text-white text-sm bg-[#1e293b] border border-[#334155]"
               placeholder="Password"
               placeholderTextColor="#64748b"
               value={password}
@@ -83,25 +73,14 @@ export default function LoginScreen() {
 
             {/* OR divider */}
             <View className="flex-row items-center gap-3 my-1">
-              <View
-                className="flex-1 h-px"
-                style={{ backgroundColor: "#334155" }}
-              />
+              <View className="flex-1 h-px bg-[#334155]" />
               <Text className="text-brand-muted text-xs">or</Text>
-              <View
-                className="flex-1 h-px"
-                style={{ backgroundColor: "#334155" }}
-              />
+              <View className="flex-1 h-px bg-[#334155]" />
             </View>
 
             {/* Google button */}
             <TouchableOpacity
-              className="h-12 rounded-xl flex-row items-center justify-center gap-2"
-              style={{
-                backgroundColor: "#1e293b",
-                borderColor: "#334155",
-                borderWidth: 1,
-              }}
+              className="h-12 rounded-xl flex-row items-center justify-center gap-2 bg-[#1e293b] border border-[#334155]"
               activeOpacity={0.8}
             >
               <Globe size={18} color="#94A3B8" />

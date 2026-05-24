@@ -21,22 +21,15 @@ export default function AnalyticsScreen() {
         {/* Header */}
         <View className="flex-row items-center justify-between mb-4">
           <Text className="text-xl font-medium text-slate-900">Analytics</Text>
-          <View
-            className="flex-row rounded-full p-0.5"
-            style={{ backgroundColor: "#E8EDF2" }}
-          >
+          <View className="flex-row rounded-full p-0.5 bg-brand-border">
             {(["Monthly", "Weekly"] as const).map((p) => (
               <TouchableOpacity
                 key={p}
                 onPress={() => setPeriod(p)}
-                className="px-3 py-1 rounded-full"
-                style={{
-                  backgroundColor: period === p ? "#0F1117" : "transparent",
-                }}
+                className={`px-3 py-1 rounded-full ${period === p ? "bg-brand-black" : "bg-transparent"}`}
               >
                 <Text
-                  className="text-xs"
-                  style={{ color: period === p ? "#fff" : "#94A3B8" }}
+                  className={`text-xs ${period === p ? "text-white" : "text-brand-muted"}`}
                 >
                   {p}
                 </Text>
