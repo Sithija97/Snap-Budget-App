@@ -20,38 +20,88 @@ export default function BudgetScreen() {
       >
         {/* Header */}
         <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-xl font-medium text-slate-900">Budget</Text>
-          <TouchableOpacity>
-            <Text className="text-brand-green text-xs">Edit limits</Text>
+          <View>
+            <Text className="text-xl font-semibold text-slate-900">Budget</Text>
+            <Text className="text-brand-muted text-xs mt-0.5">May 2026</Text>
+          </View>
+          <TouchableOpacity className="bg-white rounded-full px-3 py-1.5">
+            <Text className="text-brand-green text-xs font-medium">
+              Edit limits
+            </Text>
           </TouchableOpacity>
         </View>
 
         {/* Total budget card */}
-        <View className="bg-brand-black rounded-2xl p-4 mb-4">
-          <Text className="text-brand-muted text-xs">Monthly budget</Text>
-          <View className="flex-row items-end justify-between mt-1">
-            <Text className="text-white text-2xl font-mono font-medium">
-              Rs {MOCK_USER.monthlyBudget.toLocaleString()}
+        <View className="bg-brand-black rounded-3xl p-5 mb-5 overflow-hidden">
+          {/* Background glow */}
+          <View className="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-brand-green opacity-[0.07]" />
+          <View className="absolute -bottom-16 -left-8 w-40 h-40 rounded-full bg-brand-green opacity-[0.04]" />
+
+          {/* Top row: label + days badge */}
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-[#94A3B8] text-xs uppercase tracking-widest">
+              Monthly budget
             </Text>
-            <Text className="text-brand-muted text-xs">
-              Rs {REMAINING.toLocaleString()} remaining
-            </Text>
+            <View className="rounded-full px-2.5 py-1 bg-[rgba(255,255,255,0.08)]">
+              <Text className="text-white text-[10px]">
+                {DAYS_LEFT} days left
+              </Text>
+            </View>
+          </View>
+
+          {/* Budget amount */}
+          <Text className="text-white text-[32px] font-bold font-mono leading-none">
+            Rs {MOCK_USER.monthlyBudget.toLocaleString()}
+          </Text>
+
+          {/* Spent / Remaining columns */}
+          <View className="flex-row items-center gap-5 mt-4">
+            <View>
+              <Text className="text-[#64748B] text-[9px] uppercase tracking-wider">
+                Spent
+              </Text>
+              <Text className="text-brand-red text-sm font-semibold mt-0.5">
+                Rs {TOTAL_SPENT.toLocaleString()}
+              </Text>
+            </View>
+            <View className="w-px h-7 bg-[#1e293b]" />
+            <View>
+              <Text className="text-[#64748B] text-[9px] uppercase tracking-wider">
+                Remaining
+              </Text>
+              <Text className="text-brand-green text-sm font-semibold mt-0.5">
+                Rs {REMAINING.toLocaleString()}
+              </Text>
+            </View>
           </View>
 
           {/* Progress bar */}
-          <View className="mt-3 h-1 rounded-full bg-[#1e293b]">
-            <View
-              className="h-1 rounded-full bg-brand-green"
-              style={{ width: `${PCT_USED}%` as any }}
-            />
+          <View className="mt-5">
+            <View className="h-2 rounded-full bg-[#1e293b]">
+              <View
+                className="h-2 rounded-full bg-brand-green"
+                style={{ width: `${PCT_USED}%` as any }}
+              />
+            </View>
+            <View className="flex-row justify-between mt-1.5">
+              <Text className="text-[#475569] text-[9px]">Rs 0</Text>
+              <Text className="text-brand-green text-[9px] font-semibold">
+                {PCT_USED}% used
+              </Text>
+              <Text className="text-[#475569] text-[9px]">
+                Rs {MOCK_USER.monthlyBudget.toLocaleString()}
+              </Text>
+            </View>
           </View>
-          <Text className="text-brand-muted text-xs mt-1">
-            {PCT_USED}% used · {DAYS_LEFT} days left
-          </Text>
         </View>
 
-        {/* Category progress bars */}
-        <View className="bg-white rounded-2xl p-4">
+        {/* Categories label */}
+        <Text className="text-brand-muted text-[11px] font-medium uppercase tracking-widest mb-3">
+          Categories
+        </Text>
+
+        {/* Category cards */}
+        <View className="gap-3">
           {MOCK_BUDGETS.map((budget) => (
             <CategoryProgressBar key={budget.category} {...budget} />
           ))}

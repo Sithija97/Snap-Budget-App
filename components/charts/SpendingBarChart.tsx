@@ -13,7 +13,7 @@ export default function SpendingBarChart({ data, activeMonth = "May" }: Props) {
 
   return (
     <View>
-      <View className="flex-row gap-1.5" style={{ height: MAX_HEIGHT + 24 }}>
+      <View className="flex-row gap-2" style={{ height: MAX_HEIGHT + 24 }}>
         {data.map((item) => {
           const barHeight = Math.max((item.amount / maxAmount) * MAX_HEIGHT, 6);
           const isActive = item.month === activeMonth;
@@ -23,12 +23,19 @@ export default function SpendingBarChart({ data, activeMonth = "May" }: Props) {
               className="flex-1 items-center justify-end"
               style={{ position: "relative" }}
             >
-              {isActive && (
+              {isActive ? (
                 <Text
-                  className="text-[9px] font-semibold text-brand-green absolute left-0 right-0 text-center"
+                  className="text-[9px] font-bold text-brand-green absolute left-0 right-0 text-center"
                   style={{ top: 0 }}
                 >
                   Rs {(item.amount / 1000).toFixed(0)}k
+                </Text>
+              ) : (
+                <Text
+                  className="text-[8px] text-brand-muted absolute left-0 right-0 text-center"
+                  style={{ top: 2 }}
+                >
+                  {(item.amount / 1000).toFixed(0)}k
                 </Text>
               )}
               <View
@@ -45,7 +52,7 @@ export default function SpendingBarChart({ data, activeMonth = "May" }: Props) {
       </View>
 
       {/* Month labels */}
-      <View className="flex-row gap-1.5 mt-2">
+      <View className="flex-row gap-2 mt-2">
         {data.map((item) => {
           const isActive = item.month === activeMonth;
           return (

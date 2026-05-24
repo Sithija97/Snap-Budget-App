@@ -1,7 +1,7 @@
 import { ScrollView, View, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { TrendingDown, Target } from "lucide-react-native";
+import { TrendingDown, Target, Wallet } from "lucide-react-native";
 import {
   MOCK_USER,
   MOCK_TRANSACTIONS,
@@ -106,13 +106,20 @@ export default function HomeScreen() {
 
         {/* Stat chips grid */}
         <View className="flex-row gap-2 mx-4 mt-4">
-          <StatChip label="Income" value="Rs 50k" sub="this month" trend="up" />
+          <StatChip
+            label="Income"
+            value="Rs 50k"
+            sub="this month"
+            trend="up"
+            Icon={Wallet}
+          />
           <StatChip
             label="Saved"
             value={`Rs ${REMAINING.toLocaleString()}`}
             sub="14.3% of income"
             valueColor="#1D9E75"
             trend="up"
+            Icon={Target}
           />
         </View>
 
