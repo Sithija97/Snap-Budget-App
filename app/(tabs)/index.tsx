@@ -1,7 +1,8 @@
-import { ScrollView, View, Text, TouchableOpacity } from "react-native";
+import { useState } from "react";
+import { ScrollView, View, Text, TouchableOpacity, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { TrendingDown, Target, Wallet } from "lucide-react-native";
+import { TrendingDown, Target, Wallet, LogOut } from "lucide-react-native";
 import {
   MOCK_USER,
   MOCK_TRANSACTIONS,
@@ -12,11 +13,34 @@ import StatChip from "../../components/ui/StatChip";
 import TransactionItem from "../../components/ui/TransactionItem";
 
 export default function HomeScreen() {
+  const [menuOpen, setMenuOpen] = useState(false);
   const recentFour = MOCK_TRANSACTIONS.slice(0, 4);
+  const initials = MOCK_USER.name
+    .split(" ")
+    .map((w: string) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <SafeAreaView className="flex-1 bg-brand-surface" edges={["top"]}>
       <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Greeting + Avatar */}
+        <View className="flex-row items-center justify-between mx-4 mt-4 mb-3">
+          <View>
+            <Text className="text-brand-muted text-xs">Good morning,</Text>
+            <Text className="text-slate-900 text-lg font-semibold">
+              {MOCK_USER.name} 👋
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => setMenuOpen(true)}
+            className="w-10 h-10 rounded-full bg-brand-green items-center justify-center"
+          >
+            <Text className="text-white text-sm font-bold">{initials}</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Debit card header */}
         <View className="mx-4 mt-0 rounded-3xl overflow-hidden bg-brand-black">
           {/* Background glow circles */}
@@ -146,6 +170,58 @@ export default function HomeScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* User menu modal */}
+      <Modal
+        visible={menuOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuOpen(false)}
+      >
+        <TouchableOpacity
+          className="flex-1"
+          activeOpacity={1}
+          onPress={() => setMenuOpen(false)}
+          style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
+        >
+          <View
+            className="absolute right-4 bg-white rounded-2xl p-4"
+            style={{ top: 60, width: 200 }}
+          >
+            {/* User info */}
+            <View className="flex-row items-center gap-3 mb-3">
+              <View className="w-10 h-10 rounded-full bg-brand-green items-center justify-center">
+                <Text className="text-white font-bold text-sm">{initials}</Text>
+              </View>
+              <View>
+                <Text className="text-slate-900 font-semibold text-sm">
+                  {MOCK_USER.name}
+                </Text>
+                <Text className="text-brand-muted text-xs">
+                  Personal account
+                </Text>
+              </View>
+            </View>
+
+            {/* Divider */}
+            <View className="h-px bg-brand-border mb-3" />
+
+            {/* Sign out */}
+            <TouchableOpacity
+              className="flex-row items-center gap-2"
+              onPress={() => {
+                setMenuOpen(false);
+                router.replace("/login");
+              }}
+            >
+              <LogOut size={16} color="#E24B4A" />
+              <Text className="text-brand-red font-medium text-sm">
+                Sign out
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
