@@ -1,227 +1,436 @@
 import { useState } from "react";
-import { ScrollView, View, Text, TouchableOpacity, Modal } from "react-native";
+import { ScrollView, View, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { TrendingDown, Target, Wallet, LogOut } from "lucide-react-native";
 import {
-  MOCK_USER,
+  WALLETS,
   MOCK_TRANSACTIONS,
+  MOCK_MONTHLY_SPENDING,
+  TOTAL_INCOME,
   TOTAL_SPENT,
-  REMAINING,
 } from "../../constants/mockData";
-import StatChip from "../../components/ui/StatChip";
-import TransactionItem from "../../components/ui/TransactionItem";
+
+const C = {
+  green: "#00C170",
+  greenBg: "#E6FAF4",
+  red: "#FF5A5F",
+  blue: "#4A7AFF",
+  amber: "#FF9F40",
+  purple: "#9B6BFF",
+  text: "#1A1D23",
+  sub: "#8A94A6",
+  border: "#F0F2F7",
+  bg: "#F5F7FC",
+  card: "#FFFFFF",
+};
+
+const fmt = (n: number) => `Rs ${n.toLocaleString()}`;
 
 export default function HomeScreen() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const recentFour = MOCK_TRANSACTIONS.slice(0, 4);
-  const initials = MOCK_USER.name
-    .split(" ")
-    .map((w: string) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+  const [walletIdx, setWalletIdx] = useState(0);
+  const w = WALLETS[walletIdx];
 
   return (
-    <SafeAreaView className="flex-1 bg-brand-surface" edges={["top"]}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Greeting + Avatar */}
-        <View className="flex-row items-center justify-between mx-4 mt-4 mb-3">
-          <View>
-            <Text className="text-brand-muted text-xs">Good morning,</Text>
-            <Text className="text-slate-900 text-lg font-semibold">
-              {MOCK_USER.name} 👋
-            </Text>
-          </View>
-          <TouchableOpacity
-            onPress={() => setMenuOpen(true)}
-            className="w-10 h-10 rounded-full bg-brand-green items-center justify-center"
+    <SafeAreaView style={{ flex: 1, backgroundColor: w.color }} edges={["top"]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={{ flex: 1, backgroundColor: C.bg }}
+      >
+        {/* ── Wallet card ── */}
+        <View
+          style={{
+            backgroundColor: w.color,
+            paddingHorizontal: 20,
+            paddingTop: 16,
+            paddingBottom: 28,
+            borderBottomLeftRadius: 28,
+            borderBottomRightRadius: 28,
+            overflow: "hidden",
+          }}
+        >
+          {/* Decorative circles */}
+          <View
+            style={{
+              position: "absolute",
+              top: -40,
+              right: -40,
+              width: 130,
+              height: 130,
+              borderRadius: 65,
+              backgroundColor: "rgba(255,255,255,0.08)",
+            }}
+          />
+          <View
+            style={{
+              position: "absolute",
+              bottom: -30,
+              left: -20,
+              width: 100,
+              height: 100,
+              borderRadius: 50,
+              backgroundColor: "rgba(255,255,255,0.06)",
+            }}
+          />
+
+          {/* Header row */}
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 18,
+            }}
           >
-            <Text className="text-white text-sm font-bold">{initials}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Debit card header */}
-        <View className="mx-4 mt-0 rounded-3xl overflow-hidden bg-brand-black">
-          {/* Background glow circles */}
-          <View className="absolute -top-[55px] -right-[55px] w-[210px] h-[210px] rounded-[105px] bg-brand-green opacity-[0.13]" />
-          <View className="absolute -bottom-[70px] right-[5px] w-[250px] h-[250px] rounded-[125px] bg-brand-green opacity-[0.07]" />
-
-          <View className="p-5">
-            {/* Row 1: chip + logo */}
-            <View className="flex-row items-center justify-between">
-              {/* EMV chip */}
-              <View className="w-[38px] h-[28px] rounded bg-[#B8892A] overflow-hidden">
-                <View className="absolute h-px left-0 right-0 top-[9px] bg-black/30" />
-                <View className="absolute h-px left-0 right-0 bottom-[9px] bg-black/30" />
-                <View className="absolute w-px top-0 bottom-0 left-[13px] bg-black/25" />
-                <View className="absolute w-px top-0 bottom-0 right-[13px] bg-black/25" />
-              </View>
-
-              {/* Logo area */}
-              <View className="flex-row items-center gap-2">
-                <Text className="text-white text-[13px] font-medium opacity-[0.55] tracking-[0.5px]">
-                  SnapBudget
-                </Text>
-                <View className="flex-row">
-                  <View className="w-[22px] h-[22px] rounded-[11px] bg-brand-red opacity-[0.85]" />
-                  <View className="w-[22px] h-[22px] rounded-[11px] bg-brand-amber opacity-[0.85] -ml-2" />
-                </View>
-              </View>
+            <View>
+              <Text
+                style={{
+                  fontSize: 11,
+                  color: "rgba(255,255,255,0.7)",
+                  marginBottom: 2,
+                }}
+              >
+                May 2026
+              </Text>
+              <Text style={{ fontSize: 15, fontWeight: "600", color: "#fff" }}>
+                {w.name}
+              </Text>
             </View>
-
-            {/* Card number */}
-            {/* <View className="flex-row items-center gap-3 mt-5">
-              {["••••", "••••", "••••", "4821"].map((group, i) => (
-                <Text
-                  key={i}
-                  className="text-white font-mono tracking-[2px] text-sm opacity-[0.45]"
-                >
-                  {group}
-                </Text>
-              ))}
-            </View> */}
-
-            {/* Amount */}
-            <Text className="text-white font-mono text-[34px] font-semibold mt-4">
-              Rs {TOTAL_SPENT.toLocaleString()}
-            </Text>
-            <Text className="text-brand-muted text-[11px] mt-0.5">
-              spent this month
-            </Text>
-
-            {/* Trend badges */}
-            <View className="flex-row gap-2 mt-3">
-              <View className="flex-row items-center gap-1 rounded-full px-2.5 py-1 bg-[rgba(226,75,74,0.15)]">
-                <TrendingDown size={11} color="#E24B4A" />
-                <Text className="text-brand-red text-[11px]">
-                  12% vs last month
-                </Text>
-              </View>
-              <View className="flex-row items-center gap-1 rounded-full px-2.5 py-1 bg-[rgba(29,158,117,0.15)]">
-                <Target size={11} color="#1D9E75" />
-                <Text className="text-brand-green text-[11px]">
-                  Rs {REMAINING.toLocaleString()} left
-                </Text>
-              </View>
-            </View>
-
-            {/* Bottom row: holder + period */}
-            <View className="flex-row items-end justify-between mt-5">
-              <View>
-                <Text className="text-[#475569] text-[9px] tracking-[1px] uppercase">
-                  Card Holder
-                </Text>
-                <Text className="text-white text-[13px] font-medium mt-[3px] tracking-[0.5px] uppercase">
-                  {MOCK_USER.name}
-                </Text>
-              </View>
-              <View>
-                <Text className="text-[#475569] text-[9px] tracking-[1px] uppercase">
-                  Period
-                </Text>
-                <Text className="text-white text-[13px] font-medium mt-[3px]">
-                  05 / 2026
-                </Text>
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <TouchableOpacity
+                onPress={() => setWalletIdx((walletIdx + 1) % WALLETS.length)}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: "rgba(255,255,255,0.2)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text style={{ fontSize: 16 }}>👛</Text>
+              </TouchableOpacity>
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: "rgba(255,255,255,0.2)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text style={{ fontSize: 14 }}>🔔</Text>
               </View>
             </View>
           </View>
+
+          {/* Balance */}
+          <View style={{ alignItems: "center", marginBottom: 20 }}>
+            <Text
+              style={{
+                fontSize: 11,
+                color: "rgba(255,255,255,0.7)",
+                marginBottom: 4,
+              }}
+            >
+              Total Balance
+            </Text>
+            <Text
+              style={{
+                fontSize: 32,
+                fontWeight: "700",
+                color: "#fff",
+                fontFamily: "DMMono_400Regular",
+                letterSpacing: -1,
+              }}
+            >
+              {fmt(w.balance)}
+            </Text>
+          </View>
+
+          {/* Inc / Exp chips */}
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            {[
+              {
+                label: "Income",
+                val: TOTAL_INCOME,
+                icon: "⬇️",
+                bg: "rgba(255,255,255,0.2)",
+              },
+              {
+                label: "Expense",
+                val: TOTAL_SPENT,
+                icon: "⬆️",
+                bg: "rgba(255,255,255,0.15)",
+              },
+            ].map((chip) => (
+              <View
+                key={chip.label}
+                style={{
+                  flex: 1,
+                  backgroundColor: chip.bg,
+                  borderRadius: 14,
+                  padding: 10,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 5,
+                    marginBottom: 4,
+                  }}
+                >
+                  <Text style={{ fontSize: 11 }}>{chip.icon}</Text>
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      color: "rgba(255,255,255,0.75)",
+                      fontWeight: "500",
+                    }}
+                  >
+                    {chip.label}
+                  </Text>
+                </View>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "700",
+                    color: "#fff",
+                    fontFamily: "DMMono_400Regular",
+                  }}
+                >
+                  {fmt(chip.val)}
+                </Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Wallet dots */}
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "center",
+              gap: 5,
+              marginTop: 14,
+            }}
+          >
+            {WALLETS.map((_, i) => (
+              <View
+                key={i}
+                style={{
+                  width: i === walletIdx ? 18 : 5,
+                  height: 5,
+                  borderRadius: 99,
+                  backgroundColor:
+                    i === walletIdx ? "#fff" : "rgba(255,255,255,0.4)",
+                }}
+              />
+            ))}
+          </View>
         </View>
 
-        {/* Stat chips grid */}
-        <View className="flex-row gap-2 mx-4 mt-4">
-          <StatChip
-            label="Income"
-            value="Rs 50k"
-            sub="this month"
-            trend="up"
-            Icon={Wallet}
-          />
-          <StatChip
-            label="Saved"
-            value={`Rs ${REMAINING.toLocaleString()}`}
-            sub="14.3% of income"
-            valueColor="#1D9E75"
-            trend="up"
-            Icon={Target}
-          />
+        {/* ── Quick actions ── */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-around",
+            paddingHorizontal: 12,
+            paddingTop: 18,
+            paddingBottom: 8,
+          }}
+        >
+          {[
+            { label: "Add", icon: "➕", bg: C.greenBg, color: C.green },
+            { label: "Transfer", icon: "🔄", bg: "#EEF2FF", color: C.blue },
+            { label: "Budget", icon: "📊", bg: "#F3EEFF", color: C.purple },
+            { label: "Report", icon: "📈", bg: "#FFF4E5", color: C.amber },
+          ].map((a) => (
+            <TouchableOpacity
+              key={a.label}
+              style={{ alignItems: "center", gap: 6 }}
+            >
+              <View
+                style={{
+                  width: 46,
+                  height: 46,
+                  borderRadius: 14,
+                  backgroundColor: a.bg,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text style={{ fontSize: 20 }}>{a.icon}</Text>
+              </View>
+              <Text style={{ fontSize: 10, fontWeight: "500", color: C.sub }}>
+                {a.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
-        {/* Recent transactions */}
-        <View className="mx-4 mt-4 pb-6">
-          <View className="flex-row items-center justify-between mb-3 mt-0.5">
-            <Text className="text-brand-muted text-[11px] font-medium uppercase tracking-widest">
+        {/* ── Recent transactions ── */}
+        <View
+          style={{
+            marginHorizontal: 12,
+            marginTop: 8,
+            backgroundColor: C.card,
+            borderRadius: 18,
+            overflow: "hidden",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.05,
+            shadowRadius: 12,
+            elevation: 3,
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: 16,
+              paddingBottom: 6,
+            }}
+          >
+            <Text style={{ fontSize: 13, fontWeight: "600", color: C.text }}>
               Recent transactions
             </Text>
             <TouchableOpacity
               onPress={() => router.push("/(tabs)/transactions")}
             >
-              <Text className="text-brand-green text-xs font-medium">
-                See all
+              <Text style={{ fontSize: 11, color: C.green, fontWeight: "500" }}>
+                See all →
               </Text>
             </TouchableOpacity>
           </View>
-          <View className="gap-2">
-            {recentFour.map((tx) => (
-              <View key={tx.id} className="bg-white rounded-2xl px-3">
-                <TransactionItem {...tx} />
+          {MOCK_TRANSACTIONS.slice(0, 4).map((tx, i) => (
+            <View
+              key={tx.id}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 11,
+                paddingVertical: 9,
+                paddingHorizontal: 16,
+                borderBottomWidth: i < 3 ? 1 : 0,
+                borderBottomColor: C.border,
+              }}
+            >
+              <View
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 13,
+                  backgroundColor: tx.iconBg,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text style={{ fontSize: 18 }}>{tx.emoji}</Text>
               </View>
-            ))}
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{ fontSize: 13.5, fontWeight: "500", color: C.text }}
+                >
+                  {tx.merchant}
+                </Text>
+                <Text style={{ fontSize: 11, color: C.sub, marginTop: 1 }}>
+                  {tx.category} · {tx.time}
+                </Text>
+              </View>
+              <Text
+                style={{
+                  fontSize: 13.5,
+                  fontWeight: "600",
+                  color: tx.txType === "inc" ? C.green : C.red,
+                  fontFamily: "DMMono_400Regular",
+                }}
+              >
+                {tx.txType === "inc" ? "+" : "\u2212"}
+                {fmt(tx.amount)}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        {/* ── 6-month spending bar chart ── */}
+        <View
+          style={{
+            marginHorizontal: 12,
+            marginTop: 12,
+            marginBottom: 16,
+            backgroundColor: C.card,
+            borderRadius: 18,
+            padding: 16,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.05,
+            shadowRadius: 12,
+            elevation: 3,
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 14,
+            }}
+          >
+            <Text style={{ fontSize: 13, fontWeight: "600", color: C.text }}>
+              6-month spending
+            </Text>
+            <Text style={{ fontSize: 11, color: C.sub }}>May 2026</Text>
+          </View>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "flex-end",
+              height: 80,
+              gap: 6,
+            }}
+          >
+            {MOCK_MONTHLY_SPENDING.map((item, i) => {
+              const max = Math.max(
+                ...MOCK_MONTHLY_SPENDING.map((s) => s.amount),
+              );
+              const h = Math.round((item.amount / max) * 68) + 8;
+              const isActive = i === MOCK_MONTHLY_SPENDING.length - 1;
+              return (
+                <View
+                  key={i}
+                  style={{
+                    flex: 1,
+                    alignItems: "center",
+                    justifyContent: "flex-end",
+                    gap: 4,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: "100%",
+                      height: h,
+                      borderTopLeftRadius: 6,
+                      borderTopRightRadius: 6,
+                      backgroundColor: isActive ? C.green : C.border,
+                    }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 9,
+                      fontWeight: isActive ? "600" : "400",
+                      color: isActive ? C.green : C.sub,
+                    }}
+                  >
+                    {item.month}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
         </View>
       </ScrollView>
-
-      {/* User menu modal */}
-      <Modal
-        visible={menuOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setMenuOpen(false)}
-      >
-        <TouchableOpacity
-          className="flex-1"
-          activeOpacity={1}
-          onPress={() => setMenuOpen(false)}
-          style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
-        >
-          <View
-            className="absolute right-4 bg-white rounded-2xl p-4"
-            style={{ top: 60, width: 200 }}
-          >
-            {/* User info */}
-            <View className="flex-row items-center gap-3 mb-3">
-              <View className="w-10 h-10 rounded-full bg-brand-green items-center justify-center">
-                <Text className="text-white font-bold text-sm">{initials}</Text>
-              </View>
-              <View>
-                <Text className="text-slate-900 font-semibold text-sm">
-                  {MOCK_USER.name}
-                </Text>
-                <Text className="text-brand-muted text-xs">
-                  Personal account
-                </Text>
-              </View>
-            </View>
-
-            {/* Divider */}
-            <View className="h-px bg-brand-border mb-3" />
-
-            {/* Sign out */}
-            <TouchableOpacity
-              className="flex-row items-center gap-2"
-              onPress={() => {
-                setMenuOpen(false);
-                router.replace("/login");
-              }}
-            >
-              <LogOut size={16} color="#E24B4A" />
-              <Text className="text-brand-red font-medium text-sm">
-                Sign out
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
     </SafeAreaView>
   );
 }

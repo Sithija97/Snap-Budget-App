@@ -5,7 +5,7 @@ export default function CategoryProgressBar({
   category,
   spent,
   limit,
-  icon,
+  emoji,
   color,
 }: Budget) {
   const pct = Math.min((spent / limit) * 100, 100);
@@ -21,7 +21,7 @@ export default function CategoryProgressBar({
           className="w-11 h-11 rounded-2xl items-center justify-center"
           style={{ backgroundColor: barColor + "18" }}
         >
-          <Text className="text-xl">{icon}</Text>
+          <Text className="text-xl">{emoji}</Text>
         </View>
 
         {/* Name + remaining */}

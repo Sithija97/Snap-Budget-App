@@ -1,14 +1,18 @@
-import { View, TouchableOpacity, Platform } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { Tabs, router } from "expo-router";
-import { Home, List, ScanLine, PieChart, BarChart2 } from "lucide-react-native";
+
+const GREEN = "#00C170";
+const SUB = "#8A94A6";
+const BORDER = "#F0F2F7";
+const CARD = "#FFFFFF";
 
 const TAB_ITEMS = [
-  { name: "index", icon: Home, routeIndex: 0 },
-  { name: "transactions", icon: List, routeIndex: 1 },
+  { name: "index", emoji: "🏠", label: "Home", routeIndex: 0 },
+  { name: "transactions", emoji: "📋", label: "Records", routeIndex: 1 },
   null,
-  { name: "budget", icon: PieChart, routeIndex: 2 },
-  { name: "analytics", icon: BarChart2, routeIndex: 3 },
-] as const;
+  { name: "budget", emoji: "📊", label: "Budget", routeIndex: 2 },
+  { name: "analytics", emoji: "📈", label: "Reports", routeIndex: 3 },
+];
 
 function CustomTabBar({
   state,
@@ -22,67 +26,89 @@ function CustomTabBar({
 }) {
   return (
     <View
-      className="bg-brand-surface px-5"
-      style={{ paddingBottom: Math.max(insets.bottom, 12), paddingTop: 8 }}
+      style={{
+        backgroundColor: CARD,
+        borderTopWidth: 1,
+        borderTopColor: BORDER,
+        paddingBottom: Math.max(insets.bottom, 10),
+        paddingTop: 6,
+        flexDirection: "row",
+      }}
     >
-      <View
-        className="flex-row rounded-full bg-brand-black items-center"
-        style={{
-          height: 64,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.2,
-          shadowRadius: 16,
-          elevation: 12,
-        }}
-      >
-        {TAB_ITEMS.map((item, index) => {
-          if (!item) {
-            return (
-              <View key="scan" className="flex-1 items-center justify-center">
-                <TouchableOpacity
-                  onPress={() => router.push("/scan")}
-                  activeOpacity={0.85}
-                  className="w-[50px] h-[50px] rounded-full bg-brand-green items-center justify-center"
-                  style={{
-                    shadowColor: "#1D9E75",
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.45,
-                    shadowRadius: 8,
-                    elevation: 8,
-                  }}
-                >
-                  <ScanLine size={22} color="#fff" />
-                </TouchableOpacity>
-              </View>
-            );
-          }
-
-          const isFocused = state.index === item.routeIndex;
-          const IconComponent = item.icon;
-
+      {TAB_ITEMS.map((item, index) => {
+        if (!item) {
           return (
-            <TouchableOpacity
-              key={item.name}
-              className="flex-1 items-center justify-center gap-1"
-              onPress={() => navigation.navigate(item.name)}
-              activeOpacity={0.7}
+            <View
+              key="scan"
+              style={{
+                flex: 1,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
             >
-              <IconComponent
-                size={22}
-                color={isFocused ? "#1D9E75" : "rgba(255,255,255,0.4)"}
-              />
-              {isFocused && (
-                <View className="w-1 h-1 rounded-full bg-brand-green" />
-              )}
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push("/scan")}
+                activeOpacity={0.85}
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 25,
+                  backgroundColor: GREEN,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginTop: -20,
+                  shadowColor: GREEN,
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.5,
+                  shadowRadius: 8,
+                  elevation: 8,
+                }}
+              >
+                <Text style={{ fontSize: 22 }}>➕</Text>
+              </TouchableOpacity>
+            </View>
           );
-        })}
-      </View>
+        }
+
+        const isFocused = state.index === item.routeIndex;
+
+        return (
+          <TouchableOpacity
+            key={item.name}
+            style={{ flex: 1, alignItems: "center", paddingVertical: 2 }}
+            onPress={() => navigation.navigate(item.name)}
+            activeOpacity={0.7}
+          >
+            <Text style={{ fontSize: 17, opacity: isFocused ? 1 : 0.45 }}>
+              {item.emoji}
+            </Text>
+            <Text
+              style={{
+                fontSize: 9,
+                fontWeight: "500",
+                color: isFocused ? GREEN : SUB,
+                marginTop: 2,
+              }}
+            >
+              {item.label}
+            </Text>
+            {isFocused && (
+              <View
+                style={{
+                  width: 4,
+                  height: 4,
+                  borderRadius: 2,
+                  backgroundColor: GREEN,
+                  marginTop: 1,
+                }}
+              />
+            )}
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 }
-
 export default function TabLayout() {
   return (
     <Tabs
