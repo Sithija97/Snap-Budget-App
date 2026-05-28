@@ -1,112 +1,312 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  MOCK_BUDGETS,
-  MOCK_USER,
-  TOTAL_SPENT,
-  REMAINING,
-} from "../../constants/mockData";
-import CategoryProgressBar from "../../components/ui/CategoryProgressBar";
+import Svg, { Circle } from "react-native-svg";
+import { MOCK_BUDGETS, TOTAL_SPENT, REMAINING } from "../../constants/mockData";
 
-const DAYS_LEFT = 12;
-const PCT_USED = ((TOTAL_SPENT / MOCK_USER.monthlyBudget) * 100).toFixed(1);
+const C = {
+  green: "#00C170",
+  greenBg: "#E6FAF4",
+  red: "#FF5A5F",
+  redBg: "#FFF0F1",
+  blue: "#4A7AFF",
+  blueBg: "#EEF2FF",
+  amber: "#FF9F40",
+  amberBg: "#FFF4E5",
+  purple: "#9B6BFF",
+  purpleBg: "#F3EEFF",
+  teal: "#00B8D9",
+  tealBg: "#E5F8FC",
+  text: "#1A1D23",
+  sub: "#8A94A6",
+  border: "#F0F2F7",
+  bg: "#F5F7FC",
+  card: "#FFFFFF",
+};
+
+const fmt = (n: number) => `Rs ${n.toLocaleString()}`;
+
+const RING_SIZE = 92;
+const RING_R = 36;
+const RING_CX = RING_SIZE / 2;
+const RING_CY = RING_SIZE / 2;
+const RING_CIRC = 2 * Math.PI * RING_R;
+const TOTAL_LIMIT = MOCK_BUDGETS.reduce((a, b) => a + b.limit, 0);
 
 export default function BudgetScreen() {
+  const pctUsed = TOTAL_SPENT / TOTAL_LIMIT;
+  const dash = pctUsed * RING_CIRC;
+
   return (
-    <SafeAreaView className="flex-1 bg-brand-surface" edges={["top"]}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
-      >
-        {/* Header */}
-        <View className="flex-row items-center justify-between mb-4">
-          <View>
-            <Text className="text-xl font-semibold text-slate-900">Budget</Text>
-            <Text className="text-brand-muted text-xs mt-0.5">May 2026</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={["top"]}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* ── Header ── */}
+        <View
+          style={{
+            backgroundColor: C.card,
+            paddingHorizontal: 16,
+            paddingTop: 14,
+            paddingBottom: 14,
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.04,
+            shadowRadius: 4,
+            elevation: 2,
+          }}
+        >
+          <Text style={{ fontSize: 17, fontWeight: "700", color: C.text }}>
+            Budget
+          </Text>
+          <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+            <View style={{ flexDirection: "row", gap: 6 }}>
+              <Text style={{ fontSize: 11, color: C.sub }}>‹ May 2026 ›</Text>
+            </View>
+            <TouchableOpacity
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 4,
+                backgroundColor: C.greenBg,
+                borderRadius: 8,
+                paddingHorizontal: 10,
+                paddingVertical: 5,
+              }}
+            >
+              <Text style={{ fontSize: 13 }}>＋</Text>
+              <Text style={{ fontSize: 11, fontWeight: "600", color: C.green }}>
+                Add budget
+              </Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity className="bg-white rounded-full px-3 py-1.5">
-            <Text className="text-brand-green text-xs font-medium">
-              Edit limits
-            </Text>
-          </TouchableOpacity>
         </View>
 
-        {/* Total budget card */}
-        <View className="bg-brand-black rounded-3xl p-5 mb-5 overflow-hidden">
-          {/* Background glow */}
-          <View className="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-brand-green opacity-[0.07]" />
-          <View className="absolute -bottom-16 -left-8 w-40 h-40 rounded-full bg-brand-green opacity-[0.04]" />
-
-          {/* Top row: label + days badge */}
-          <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-[#94A3B8] text-xs uppercase tracking-widest">
-              Monthly budget
-            </Text>
-            <View className="rounded-full px-2.5 py-1 bg-[rgba(255,255,255,0.08)]">
-              <Text className="text-white text-[10px]">
-                {DAYS_LEFT} days left
+        {/* ── Ring chart card ── */}
+        <View
+          style={{
+            marginHorizontal: 12,
+            marginTop: 12,
+            backgroundColor: C.card,
+            borderRadius: 18,
+            padding: 20,
+            alignItems: "center",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.05,
+            shadowRadius: 12,
+            elevation: 3,
+          }}
+        >
+          <View
+            style={{
+              position: "relative",
+              width: RING_SIZE,
+              height: RING_SIZE,
+              marginBottom: 12,
+            }}
+          >
+            <Svg width={RING_SIZE} height={RING_SIZE}>
+              {/* Track */}
+              <Circle
+                cx={RING_CX}
+                cy={RING_CY}
+                r={RING_R}
+                stroke={C.border}
+                strokeWidth={10}
+                fill="none"
+              />
+              {/* Progress */}
+              <Circle
+                cx={RING_CX}
+                cy={RING_CY}
+                r={RING_R}
+                stroke={C.green}
+                strokeWidth={10}
+                fill="none"
+                strokeDasharray={`${dash} ${RING_CIRC}`}
+                strokeDashoffset={RING_CIRC / 4}
+                strokeLinecap="round"
+              />
+            </Svg>
+            {/* Center label */}
+            <View
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: "700",
+                  color: C.text,
+                  fontFamily: "DMMono_400Regular",
+                }}
+              >
+                {Math.round(pctUsed * 100)}%
               </Text>
             </View>
           </View>
 
-          {/* Budget amount */}
-          <Text className="text-white text-[32px] font-bold font-mono leading-none">
-            Rs {MOCK_USER.monthlyBudget.toLocaleString()}
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: "700",
+              color: C.text,
+              fontFamily: "DMMono_400Regular",
+            }}
+          >
+            {fmt(TOTAL_SPENT)}
+            <Text style={{ fontSize: 12, fontWeight: "400", color: C.sub }}>
+              {" "}
+              / {fmt(TOTAL_LIMIT)}
+            </Text>
+          </Text>
+          <Text style={{ fontSize: 11, color: C.sub, marginTop: 2 }}>
+            spent this month
           </Text>
 
-          {/* Spent / Remaining columns */}
-          <View className="flex-row items-center gap-5 mt-4">
-            <View>
-              <Text className="text-[#64748B] text-[9px] uppercase tracking-wider">
-                Spent
-              </Text>
-              <Text className="text-brand-red text-sm font-semibold mt-0.5">
-                Rs {TOTAL_SPENT.toLocaleString()}
-              </Text>
-            </View>
-            <View className="w-px h-7 bg-[#1e293b]" />
-            <View>
-              <Text className="text-[#64748B] text-[9px] uppercase tracking-wider">
-                Remaining
-              </Text>
-              <Text className="text-brand-green text-sm font-semibold mt-0.5">
-                Rs {REMAINING.toLocaleString()}
-              </Text>
-            </View>
-          </View>
-
-          {/* Progress bar */}
-          <View className="mt-5">
-            <View className="h-2 rounded-full bg-[#1e293b]">
-              <View
-                className="h-2 rounded-full bg-brand-green"
-                style={{ width: `${PCT_USED}%` as any }}
-              />
-            </View>
-            <View className="flex-row justify-between mt-1.5">
-              <Text className="text-[#475569] text-[9px]">Rs 0</Text>
-              <Text className="text-brand-green text-[9px] font-semibold">
-                {PCT_USED}% used
-              </Text>
-              <Text className="text-[#475569] text-[9px]">
-                Rs {MOCK_USER.monthlyBudget.toLocaleString()}
-              </Text>
-            </View>
+          {/* Remaining chip */}
+          <View
+            style={{
+              marginTop: 10,
+              paddingHorizontal: 12,
+              paddingVertical: 5,
+              borderRadius: 99,
+              backgroundColor: C.greenBg,
+            }}
+          >
+            <Text style={{ fontSize: 11, fontWeight: "600", color: C.green }}>
+              {fmt(REMAINING)} remaining
+            </Text>
           </View>
         </View>
 
-        {/* Categories label */}
-        <Text className="text-brand-muted text-[11px] font-medium uppercase tracking-widest mb-3">
-          Categories
-        </Text>
+        {/* ── Category cards ── */}
+        <View style={{ marginHorizontal: 12, marginTop: 12, marginBottom: 20 }}>
+          {MOCK_BUDGETS.map((b) => {
+            const pct = Math.min(b.spent / b.limit, 1);
+            const isOver = b.spent > b.limit;
+            return (
+              <View
+                key={b.category}
+                style={{
+                  backgroundColor: C.card,
+                  borderRadius: 18,
+                  padding: 16,
+                  marginBottom: 8,
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.04,
+                  shadowRadius: 8,
+                  elevation: 2,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 10,
+                    marginBottom: 10,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: 12,
+                      backgroundColor: b.color + "22",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Text style={{ fontSize: 20 }}>{b.emoji}</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={{ fontSize: 13, fontWeight: "600", color: C.text }}
+                    >
+                      {b.category}
+                    </Text>
+                    <Text style={{ fontSize: 11, color: C.sub }}>
+                      {fmt(b.spent)} of {fmt(b.limit)}
+                    </Text>
+                  </View>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: "600",
+                      fontFamily: "DMMono_400Regular",
+                      color: isOver ? C.red : C.text,
+                    }}
+                  >
+                    {fmt(
+                      b.limit - b.spent > 0
+                        ? b.limit - b.spent
+                        : b.spent - b.limit,
+                    )}
+                    <Text
+                      style={{ fontSize: 10, fontWeight: "400", color: C.sub }}
+                    >
+                      {" "}
+                      {isOver ? "over" : "left"}
+                    </Text>
+                  </Text>
+                </View>
 
-        {/* Category cards */}
-        <View className="gap-3">
-          {MOCK_BUDGETS.map((budget) => (
-            <CategoryProgressBar key={budget.category} {...budget} />
-          ))}
+                {/* Progress bar */}
+                <View
+                  style={{
+                    height: 6,
+                    backgroundColor: C.border,
+                    borderRadius: 99,
+                    overflow: "hidden",
+                  }}
+                >
+                  <View
+                    style={{
+                      width: `${pct * 100}%` as any,
+                      height: "100%",
+                      backgroundColor: isOver ? C.red : b.color,
+                      borderRadius: 99,
+                    }}
+                  />
+                </View>
+
+                {isOver && (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 5,
+                      marginTop: 8,
+                      backgroundColor: C.redBg,
+                      borderRadius: 8,
+                      padding: 8,
+                    }}
+                  >
+                    <Text style={{ fontSize: 12 }}>⚠️</Text>
+                    <Text
+                      style={{ fontSize: 11, color: C.red, fontWeight: "500" }}
+                    >
+                      Over budget by {fmt(b.spent - b.limit)}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            );
+          })}
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+// const DAYS_LEFT = 12;
+// const PCT_USED = ((TOTAL_SPENT / MOCK_USER.monthlyBudget) * 100).toFixed(1);

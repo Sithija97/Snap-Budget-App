@@ -1,74 +1,73 @@
 import { View, Text } from "react-native";
-import {
-  ShoppingCart,
-  Car,
-  Smartphone,
-  ShoppingBag,
-  Coffee,
-  ArrowDownCircle,
-  LucideProps,
-} from "lucide-react-native";
 import { Transaction } from "../../types";
 
-const iconMap: Record<string, React.ComponentType<LucideProps>> = {
-  "shopping-cart": ShoppingCart,
-  car: Car,
-  smartphone: Smartphone,
-  "shopping-bag": ShoppingBag,
-  coffee: Coffee,
-  "arrow-down-circle": ArrowDownCircle,
-};
+const GREEN = "#00C170";
+const RED = "#FF5A5F";
+const TEXT = "#1A1D23";
+const SUB = "#8A94A6";
+const BORDER = "#F0F2F7";
 
 type Props = Pick<
   Transaction,
-  "merchant" | "category" | "amount" | "time" | "iconBg" | "iconColor" | "icon"
+  "merchant" | "category" | "txType" | "amount" | "time" | "emoji" | "iconBg"
 > & {
-  dateOrTime?: string;
+  showBorder?: boolean;
 };
 
 export default function TransactionItem({
   merchant,
   category,
+  txType,
   amount,
   time,
+  emoji,
   iconBg,
-  iconColor,
-  icon,
-  dateOrTime,
+  showBorder = true,
 }: Props) {
-  const IconComponent = iconMap[icon] ?? ShoppingCart;
-  const isPositive = amount > 0;
-  const formatted = `${isPositive ? "+ " : "- "}Rs ${Math.abs(amount).toLocaleString()}`;
+  const isIncome = txType === "inc";
+  const formatted = `${isIncome ? "+" : "\u2212"}Rs ${amount.toLocaleString()}`;
 
   return (
-    <View className="flex-row items-center gap-3 py-3">
-      {/* Icon box */}
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 11,
+        paddingVertical: 9,
+        borderBottomWidth: showBorder ? 1 : 0,
+        borderBottomColor: BORDER,
+      }}
+    >
       <View
-        className="w-[44px] h-[44px] rounded-2xl items-center justify-center"
-        style={{ backgroundColor: iconBg }}
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: 13,
+          backgroundColor: iconBg,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
       >
-        <IconComponent size={20} color={iconColor} />
+        <Text style={{ fontSize: 18 }}>{emoji}</Text>
       </View>
-
-      {/* Middle */}
-      <View className="flex-1">
-        <Text className="text-slate-900 text-[15px] font-semibold">
+      <View style={{ flex: 1 }}>
+        <Text style={{ fontSize: 13.5, fontWeight: "500", color: TEXT }}>
           {merchant}
         </Text>
-        <Text className="text-brand-muted text-xs mt-0.5">{category}</Text>
-      </View>
-
-      {/* Right */}
-      <View className="items-end">
-        <Text
-          className={`text-[15px] font-semibold ${isPositive ? "text-brand-green" : "text-brand-red"}`}
-        >
-          {formatted}
-        </Text>
-        <Text className="text-brand-muted text-xs mt-0.5">
-          {dateOrTime ?? time}
+        <Text style={{ fontSize: 11, color: SUB, marginTop: 1 }}>
+          {category} · {time}
         </Text>
       </View>
+      <Text
+        style={{
+          fontSize: 13.5,
+          fontWeight: "600",
+          color: isIncome ? GREEN : RED,
+          fontFamily: "DMMono_400Regular",
+        }}
+      >
+        {formatted}
+      </Text>
     </View>
   );
 }
