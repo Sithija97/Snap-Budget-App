@@ -22,7 +22,7 @@ export default function TransactionItem({
   time,
   emoji,
   iconBg,
-  showBorder = true,
+  showBorder = false,
 }: Props) {
   const isIncome = txType === "inc";
   const formatted = `${isIncome ? "+" : "\u2212"}Rs ${amount.toLocaleString()}`;
@@ -34,8 +34,7 @@ export default function TransactionItem({
         alignItems: "center",
         gap: 11,
         paddingVertical: 9,
-        borderBottomWidth: showBorder ? 1 : 0,
-        borderBottomColor: BORDER,
+        borderBottomWidth: 0,
       }}
     >
       <View

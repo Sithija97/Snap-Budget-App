@@ -2,7 +2,6 @@ import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
 import { MOCK_BUDGETS, TOTAL_SPENT, REMAINING } from "../../constants/mockData";
-
 const C = {
   green: "#00C170",
   greenBg: "#E6FAF4",
@@ -24,7 +23,6 @@ const C = {
 };
 
 const fmt = (n: number) => `Rs ${n.toLocaleString()}`;
-
 const RING_SIZE = 92;
 const RING_R = 36;
 const RING_CX = RING_SIZE / 2;
@@ -39,50 +37,7 @@ export default function BudgetScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={["top"]}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* ── Header ── */}
-        <View
-          style={{
-            backgroundColor: C.card,
-            paddingHorizontal: 16,
-            paddingTop: 14,
-            paddingBottom: 14,
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.04,
-            shadowRadius: 4,
-            elevation: 2,
-          }}
-        >
-          <Text style={{ fontSize: 17, fontWeight: "700", color: C.text }}>
-            Budget
-          </Text>
-          <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
-            <View style={{ flexDirection: "row", gap: 6 }}>
-              <Text style={{ fontSize: 11, color: C.sub }}>‹ May 2026 ›</Text>
-            </View>
-            <TouchableOpacity
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 4,
-                backgroundColor: C.greenBg,
-                borderRadius: 8,
-                paddingHorizontal: 10,
-                paddingVertical: 5,
-              }}
-            >
-              <Text style={{ fontSize: 13 }}>＋</Text>
-              <Text style={{ fontSize: 11, fontWeight: "600", color: C.green }}>
-                Add budget
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* ── Ring chart card ── */}
+        {/* --- Summary Card --- */}
         <View
           style={{
             marginHorizontal: 12,
@@ -90,20 +45,24 @@ export default function BudgetScreen() {
             backgroundColor: C.card,
             borderRadius: 18,
             padding: 20,
+            flexDirection: "row",
             alignItems: "center",
+            gap: 18,
             shadowColor: "#000",
             shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.05,
-            shadowRadius: 12,
-            elevation: 3,
+            shadowOpacity: 0.04,
+            shadowRadius: 8,
+            elevation: 2,
           }}
         >
+          {/* Chart on the left */}
           <View
             style={{
               position: "relative",
               width: RING_SIZE,
               height: RING_SIZE,
-              marginBottom: 12,
+              justifyContent: "center",
+              alignItems: "center",
             }}
           >
             <Svg width={RING_SIZE} height={RING_SIZE}>
@@ -143,9 +102,9 @@ export default function BudgetScreen() {
             >
               <Text
                 style={{
-                  fontSize: 14,
+                  fontSize: 16,
                   fontWeight: "700",
-                  color: C.text,
+                  color: C.green,
                   fontFamily: "DMMono_400Regular",
                 }}
               >
@@ -154,37 +113,44 @@ export default function BudgetScreen() {
             </View>
           </View>
 
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: "700",
-              color: C.text,
-              fontFamily: "DMMono_400Regular",
-            }}
-          >
-            {fmt(TOTAL_SPENT)}
-            <Text style={{ fontSize: 12, fontWeight: "400", color: C.sub }}>
-              {" "}
-              / {fmt(TOTAL_LIMIT)}
+          {/* Info on the right */}
+          <View style={{ flex: 1, justifyContent: "center" }}>
+            <Text
+              style={{
+                fontSize: 17,
+                fontWeight: "700",
+                color: C.text,
+                fontFamily: "DMMono_400Regular",
+                marginBottom: 2,
+              }}
+            >
+              {fmt(TOTAL_SPENT)}
+              <Text style={{ fontSize: 13, fontWeight: "400", color: C.sub }}>
+                {" "}
+                / {fmt(TOTAL_LIMIT)}
+              </Text>
             </Text>
-          </Text>
-          <Text style={{ fontSize: 11, color: C.sub, marginTop: 2 }}>
-            spent this month
-          </Text>
-
-          {/* Remaining chip */}
-          <View
-            style={{
-              marginTop: 10,
-              paddingHorizontal: 12,
-              paddingVertical: 5,
-              borderRadius: 99,
-              backgroundColor: C.greenBg,
-            }}
-          >
-            <Text style={{ fontSize: 11, fontWeight: "600", color: C.green }}>
-              {fmt(REMAINING)} remaining
+            <Text style={{ fontSize: 12, color: C.sub, marginBottom: 8 }}>
+              spent this month
             </Text>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+            >
+              <View
+                style={{
+                  paddingHorizontal: 14,
+                  paddingVertical: 7,
+                  borderRadius: 99,
+                  backgroundColor: C.greenBg,
+                }}
+              >
+                <Text
+                  style={{ fontSize: 12, fontWeight: "700", color: C.green }}
+                >
+                  {fmt(REMAINING)} remaining
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
 
@@ -201,11 +167,6 @@ export default function BudgetScreen() {
                   borderRadius: 18,
                   padding: 16,
                   marginBottom: 8,
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.04,
-                  shadowRadius: 8,
-                  elevation: 2,
                 }}
               >
                 <View

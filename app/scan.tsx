@@ -31,11 +31,6 @@ export default function ScanScreen() {
             paddingTop: 10,
             paddingBottom: 12,
             backgroundColor: C.card,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.04,
-            shadowRadius: 4,
-            elevation: 2,
           }}
         >
           <TouchableOpacity
@@ -174,11 +169,6 @@ export default function ScanScreen() {
               backgroundColor: C.card,
               borderRadius: 18,
               padding: 16,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.05,
-              shadowRadius: 10,
-              elevation: 3,
             }}
           >
             <View

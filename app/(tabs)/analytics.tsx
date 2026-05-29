@@ -61,11 +61,6 @@ export default function AnalyticsScreen() {
             paddingHorizontal: 16,
             paddingTop: 14,
             paddingBottom: 14,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.04,
-            shadowRadius: 4,
-            elevation: 2,
           }}
         >
           <View
@@ -130,11 +125,6 @@ export default function AnalyticsScreen() {
             backgroundColor: C.card,
             borderRadius: 18,
             padding: 16,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.05,
-            shadowRadius: 12,
-            elevation: 3,
           }}
         >
           <Text
@@ -244,11 +234,6 @@ export default function AnalyticsScreen() {
             backgroundColor: C.card,
             borderRadius: 18,
             padding: 16,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.05,
-            shadowRadius: 12,
-            elevation: 3,
           }}
         >
           <Text
@@ -324,11 +309,6 @@ export default function AnalyticsScreen() {
             backgroundColor: C.card,
             borderRadius: 18,
             padding: 16,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.05,
-            shadowRadius: 12,
-            elevation: 3,
           }}
         >
           <View
