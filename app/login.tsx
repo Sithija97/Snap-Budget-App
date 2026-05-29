@@ -164,8 +164,6 @@ export default function LoginScreen() {
             style={{
               height: 50,
               borderRadius: 14,
-              borderWidth: 1.5,
-              borderColor: C.border,
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",

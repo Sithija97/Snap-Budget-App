@@ -277,11 +277,6 @@ export default function HomeScreen() {
             backgroundColor: C.card,
             borderRadius: 18,
             overflow: "hidden",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.05,
-            shadowRadius: 12,
-            elevation: 3,
           }}
         >
           <View
@@ -363,11 +358,6 @@ export default function HomeScreen() {
             backgroundColor: C.card,
             borderRadius: 18,
             padding: 16,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.05,
-            shadowRadius: 12,
-            elevation: 3,
           }}
         >
           <View

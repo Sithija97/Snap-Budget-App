@@ -211,11 +211,6 @@ export default function TransactionsScreen() {
               backgroundColor: C.card,
               borderRadius: 18,
               overflow: "hidden",
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.04,
-              shadowRadius: 8,
-              elevation: 2,
             }}
           >
             <View
@@ -263,8 +258,7 @@ export default function TransactionsScreen() {
                   gap: 11,
                   paddingVertical: 9,
                   paddingHorizontal: 16,
-                  borderBottomWidth: i < g.txs.length - 1 ? 1 : 0,
-                  borderBottomColor: C.border,
+                  borderBottomWidth: 0,
                 }}
               >
                 <View

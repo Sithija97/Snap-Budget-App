@@ -49,11 +49,6 @@ export default function BudgetScreen() {
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.04,
-            shadowRadius: 4,
-            elevation: 2,
           }}
         >
           <Text style={{ fontSize: 17, fontWeight: "700", color: C.text }}>
@@ -91,11 +86,6 @@ export default function BudgetScreen() {
             borderRadius: 18,
             padding: 20,
             alignItems: "center",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.05,
-            shadowRadius: 12,
-            elevation: 3,
           }}
         >
           <View
@@ -201,11 +191,6 @@ export default function BudgetScreen() {
                   borderRadius: 18,
                   padding: 16,
                   marginBottom: 8,
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.04,
-                  shadowRadius: 8,
-                  elevation: 2,
                 }}
               >
                 <View
