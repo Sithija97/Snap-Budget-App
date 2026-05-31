@@ -1,90 +1,82 @@
+import { memo } from "react";
 import { View, Text } from "react-native";
 import Svg, { Circle } from "react-native-svg";
-import { CategoryBreakdown } from "../../types";
+import { CategoryBreakdown } from "@/types";
 
 interface Props {
-  data: CategoryBreakdown[];
-  size?: number;
+  data:          CategoryBreakdown[];
+  size?:         number;
+  centerLabel?:  string;
+  centerValue?:  string;
 }
 
-const STROKE_WIDTH = 25;
+const STROKE_WIDTH = 22;
 
-export default function DonutChart({ data, size = 110 }: Props) {
-  const radius = (size - STROKE_WIDTH) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const cx = size / 2;
-  const cy = size / 2;
+function DonutChart({
+  data,
+  size         = 120,
+  centerLabel  = "",
+  centerValue  = "",
+}: Props) {
+  const R             = (size - STROKE_WIDTH) / 2;
+  const circumference = 2 * Math.PI * R;
+  const cx            = size / 2;
+  const cy            = size / 2;
 
   let offset = 0;
-  const topCategory = data.reduce((a, b) => (a.pct > b.pct ? a : b), data[0]);
 
   return (
     <View className="flex-row items-center gap-4">
-      {/* SVG Donut with center label */}
       <View style={{ width: size, height: size }}>
         <Svg
           width={size}
           height={size}
           style={{ transform: [{ rotate: "-90deg" }] }}
         >
-          {/* Background ring */}
           <Circle
-            cx={cx}
-            cy={cy}
-            r={radius}
-            stroke="#F1F5F9"
+            cx={cx} cy={cy} r={R}
+            stroke="#E8EDF2"
             strokeWidth={STROKE_WIDTH}
             fill="none"
           />
           {data.map((item) => {
-            const segLength = (item.pct / 100) * circumference;
+            const segLength  = (item.pct / 100) * circumference;
             const dashOffset = -offset;
             offset += segLength;
             return (
               <Circle
                 key={item.category}
-                cx={cx}
-                cy={cy}
-                r={radius}
+                cx={cx} cy={cy} r={R}
                 stroke={item.color}
                 strokeWidth={STROKE_WIDTH}
                 fill="none"
                 strokeDasharray={`${segLength} ${circumference - segLength}`}
                 strokeDashoffset={dashOffset}
-                strokeLinecap="butt"
               />
             );
           })}
         </Svg>
 
-        {/* Center label */}
         <View className="absolute inset-0 items-center justify-center">
-          <Text className="text-[18px] font-semibold text-slate-900">
-            {topCategory.pct}%
-          </Text>
-          <Text className="text-[9px] text-brand-muted">
-            {topCategory.category}
-          </Text>
+          <Text className="text-[10px] text-brand-muted">{centerLabel}</Text>
+          <Text className="text-[12px] font-bold text-brand-black font-mono">{centerValue}</Text>
         </View>
       </View>
 
-      {/* Legend */}
       <View className="flex-1 gap-2">
-        {data.map((item) => (
-          <View key={item.category} className="flex-row items-center gap-2">
+        {data.map((c) => (
+          <View key={c.category} className="flex-row items-center gap-2">
             <View
               className="w-2.5 h-2.5 rounded-full"
-              style={{ backgroundColor: item.color }}
+              style={{ backgroundColor: c.color }}
             />
-            <Text className="text-[11px] text-slate-900 flex-1">
-              {item.category}
-            </Text>
-            <Text className="text-[11px] text-brand-muted font-mono">
-              Rs {(item.amount / 1000).toFixed(1)}k
-            </Text>
+            <Text className="flex-1 text-[12px] text-brand-muted">{c.category}</Text>
+            <Text className="text-[12px] font-semibold text-brand-black font-mono">{c.pct}%</Text>
           </View>
         ))}
       </View>
     </View>
   );
 }
+
+export default memo(DonutChart);

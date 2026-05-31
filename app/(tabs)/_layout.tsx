@@ -1,22 +1,15 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { Tabs, router } from "expo-router";
 import { House, List, ChartPie, ChartBar, ScanLine } from "lucide-react-native";
-
-const C = {
-  green:   "#1D9E75",
-  dark:    "#0F1117",
-  sub:     "#94A3B8",
-  border:  "#E8EDF2",
-  card:    "#FFFFFF",
-};
+import { Colors } from "@/constants/theme";
 
 const TAB_ITEMS = [
   { name: "index",        Icon: House,    label: "Home",    routeIndex: 0 },
   { name: "transactions", Icon: List,     label: "Records", routeIndex: 1 },
   null,
   { name: "budget",       Icon: ChartPie, label: "Budget",  routeIndex: 2 },
-  { name: "analytics",   Icon: ChartBar,  label: "Reports", routeIndex: 3 },
-];
+  { name: "analytics",    Icon: ChartBar, label: "Reports", routeIndex: 3 },
+] as const;
 
 function CustomTabBar({
   state,
@@ -30,13 +23,9 @@ function CustomTabBar({
 }) {
   return (
     <View
+      className="bg-brand-card border-t border-brand-border flex-row pt-2"
       style={{
-        backgroundColor: C.card,
-        borderTopWidth: 1,
-        borderTopColor: C.border,
         paddingBottom: Math.max(insets.bottom, 10),
-        paddingTop: 8,
-        flexDirection: "row",
         shadowColor: "#000",
         shadowOffset: { width: 0, height: -2 },
         shadowOpacity: 0.06,
@@ -47,28 +36,18 @@ function CustomTabBar({
       {TAB_ITEMS.map((item, _index) => {
         if (!item) {
           return (
-            <View
-              key="scan"
-              style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-            >
+            <View key="scan" className="flex-1 items-center justify-center">
               <TouchableOpacity
                 onPress={() => router.push("/scan")}
                 activeOpacity={0.85}
+                className="w-[52px] h-[52px] rounded-full bg-brand-green items-center justify-center border-[3px] border-brand-card"
                 style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: 26,
-                  backgroundColor: C.green,
-                  alignItems: "center",
-                  justifyContent: "center",
                   marginTop: -26,
-                  shadowColor: C.green,
+                  shadowColor: Colors.green,
                   shadowOffset: { width: 0, height: 6 },
                   shadowOpacity: 0.4,
                   shadowRadius: 10,
                   elevation: 8,
-                  borderWidth: 3,
-                  borderColor: C.card,
                 }}
               >
                 <ScanLine size={22} color="#fff" strokeWidth={2} />
@@ -77,37 +56,25 @@ function CustomTabBar({
           );
         }
 
-        const isFocused = state.index === item.routeIndex;
-        const iconColor = isFocused ? C.green : C.sub;
+        const isFocused  = state.index === item.routeIndex;
+        const iconColor  = isFocused ? Colors.green : Colors.muted;
 
         return (
           <TouchableOpacity
             key={item.name}
-            style={{ flex: 1, alignItems: "center", paddingVertical: 2 }}
+            className="flex-1 items-center py-0.5"
             onPress={() => navigation.navigate(item.name)}
             activeOpacity={0.7}
           >
             <item.Icon size={20} color={iconColor} strokeWidth={isFocused ? 2.5 : 1.8} />
             <Text
-              style={{
-                fontSize: 9,
-                fontWeight: "600",
-                color: iconColor,
-                marginTop: 3,
-              }}
+              className="text-[9px] font-semibold mt-[3px]"
+              style={{ color: iconColor }}
             >
               {item.label}
             </Text>
             {isFocused && (
-              <View
-                style={{
-                  width: 4,
-                  height: 4,
-                  borderRadius: 2,
-                  backgroundColor: C.green,
-                  marginTop: 2,
-                }}
-              />
+              <View className="w-1 h-1 rounded-full bg-brand-green mt-0.5" />
             )}
           </TouchableOpacity>
         );

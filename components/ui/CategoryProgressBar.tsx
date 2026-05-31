@@ -1,72 +1,62 @@
+import { memo } from "react";
 import { View, Text } from "react-native";
-import { Budget } from "../../types";
+import { ShoppingCart } from "lucide-react-native";
+import { Budget } from "@/types";
+import { CAT_ICONS } from "@/constants/icons";
+import { Colors } from "@/constants/theme";
+import { fmt } from "@/utils/format";
+import AlertBanner from "@/components/ui/AlertBanner";
 
-export default function CategoryProgressBar({
-  category,
-  spent,
-  limit,
-  emoji,
-  color,
-}: Budget) {
-  const pct = Math.min((spent / limit) * 100, 100);
-  const isOver = spent > limit;
-  const barColor = isOver ? "#E24B4A" : color;
-  const remaining = Math.max(limit - spent, 0);
+type Props = Pick<Budget, "category" | "spent" | "limit" | "color">;
+
+function CategoryProgressBar({ category, spent, limit, color }: Props) {
+  const Icon     = CAT_ICONS[category] || ShoppingCart;
+  const pct      = Math.min(spent / limit, 1);
+  const isOver   = spent > limit;
+  const barColor = isOver ? Colors.red : color;
 
   return (
-    <View className="bg-white rounded-2xl p-4">
-      <View className="flex-row items-center gap-3">
-        {/* Icon */}
+    <View className="bg-brand-card rounded-[18px] p-4">
+      <View className="flex-row items-center gap-3 mb-3">
         <View
-          className="w-11 h-11 rounded-2xl items-center justify-center"
-          style={{ backgroundColor: barColor + "18" }}
+          className="w-[42px] h-[42px] rounded-[14px] items-center justify-center"
+          style={{ backgroundColor: color + "20" }}
         >
-          <Text className="text-xl">{emoji}</Text>
+          <Icon size={20} color={color} strokeWidth={1.8} />
         </View>
 
-        {/* Name + remaining */}
         <View className="flex-1">
-          <Text className="text-[15px] font-semibold text-slate-900">
-            {category}
-          </Text>
-          <Text
-            className="text-xs mt-0.5"
-            style={{ color: isOver ? "#E24B4A" : "#94A3B8" }}
-          >
-            {isOver
-              ? `Rs ${(spent - limit).toLocaleString()} over budget`
-              : `Rs ${remaining.toLocaleString()} remaining`}
+          <Text className="text-[14px] font-semibold text-brand-black">{category}</Text>
+          <Text className="text-[11px] text-brand-muted mt-0.5 font-mono">
+            {fmt(spent)} of {fmt(limit)}
           </Text>
         </View>
 
-        {/* Spent / Limit */}
         <View className="items-end">
-          <Text
-            className="text-[15px] font-semibold"
-            style={{ color: isOver ? "#E24B4A" : "#0f172a" }}
-          >
-            Rs {spent.toLocaleString()}
+          <Text className={`text-[13px] font-bold font-mono ${isOver ? "text-brand-red" : "text-brand-black"}`}>
+            {fmt(isOver ? spent - limit : limit - spent)}
           </Text>
-          <Text className="text-brand-muted text-xs mt-0.5">
-            of Rs {limit.toLocaleString()}
+          <Text className="text-[10px] text-brand-muted mt-0.5">
+            {isOver ? "over limit" : "remaining"}
           </Text>
         </View>
       </View>
 
-      {/* Progress track */}
-      <View className="mt-3 h-2 rounded-full bg-[#F1F5F9]">
+      <View className="h-[7px] bg-brand-border rounded-full overflow-hidden">
         <View
-          className="h-2 rounded-full"
-          style={{
-            width: `${pct.toFixed(1)}%` as any,
-            backgroundColor: barColor,
-          }}
+          className="h-full rounded-full"
+          style={{ width: `${pct * 100}%` as any, backgroundColor: barColor }}
         />
       </View>
 
-      <Text className="text-[9px] text-brand-muted mt-1.5">
-        {pct.toFixed(0)}% of budget used
-      </Text>
+      {isOver && (
+        <AlertBanner
+          type="error"
+          message={`Over budget by ${fmt(spent - limit)}`}
+        />
+      )}
     </View>
   );
 }
+
+export default memo(CategoryProgressBar);

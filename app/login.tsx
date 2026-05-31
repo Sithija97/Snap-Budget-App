@@ -11,16 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { router } from "expo-router";
-
-const C = {
-  dark:        "#0F1117",
-  darkCard:    "#1E293B",
-  darkBorder:  "#334155",
-  green:       "#1D9E75",
-  greenBg:     "#E6F4EE",
-  text:        "#FFFFFF",
-  sub:         "#94A3B8",
-};
+import { Colors } from "@/constants/theme";
 
 function GoogleLogo({ size = 20 }: { size?: number }) {
   return (
@@ -50,92 +41,50 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: C.dark }} edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-brand-black" edges={["top"]}>
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <ScrollView
-          style={{ flex: 1 }}
+          className="flex-1"
           contentContainerStyle={{ flexGrow: 1, padding: 24 }}
           keyboardShouldPersistTaps="handled"
         >
           {/* Logo */}
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 12,
-              marginTop: 8,
-              marginBottom: 40,
-            }}
-          >
+          <View className="flex-row items-center gap-3 mt-2 mb-10">
             <View
+              className="w-[52px] h-[52px] bg-brand-green rounded-2xl items-center justify-center"
               style={{
-                width: 52,
-                height: 52,
-                backgroundColor: C.green,
-                borderRadius: 16,
-                alignItems: "center",
-                justifyContent: "center",
-                shadowColor: C.green,
+                shadowColor: Colors.green,
                 shadowOffset: { width: 0, height: 6 },
                 shadowOpacity: 0.4,
                 shadowRadius: 12,
                 elevation: 6,
               }}
             >
-              <Text style={{ fontSize: 24 }}>🧾</Text>
+              <Text className="text-2xl">🧾</Text>
             </View>
             <View>
-              <Text style={{ fontSize: 18, fontWeight: "700", color: C.text }}>
-                SnapBudget
-              </Text>
-              <Text style={{ fontSize: 11, color: C.sub }}>Personal finance</Text>
+              <Text className="text-[18px] font-bold text-white">SnapBudget</Text>
+              <Text className="text-[11px] text-brand-muted">Personal finance</Text>
             </View>
           </View>
 
           {/* Heading */}
-          <Text
-            style={{
-              fontSize: 32,
-              fontWeight: "700",
-              color: C.text,
-              lineHeight: 40,
-              marginBottom: 8,
-            }}
-          >
+          <Text className="text-[32px] font-bold text-white leading-10 mb-2">
             {"Your money,\nfinally clear."}
           </Text>
-          <Text
-            style={{
-              fontSize: 14,
-              color: C.sub,
-              lineHeight: 22,
-              marginBottom: 40,
-            }}
-          >
+          <Text className="text-[14px] text-brand-muted leading-[22px] mb-10">
             {"Snap receipts. Track budgets.\nKnow exactly where it all goes."}
           </Text>
 
           {/* Email */}
-          <View
-            style={{
-              height: 52,
-              borderRadius: 14,
-              borderWidth: 1.5,
-              borderColor: C.darkBorder,
-              paddingHorizontal: 16,
-              flexDirection: "row",
-              alignItems: "center",
-              marginBottom: 12,
-              backgroundColor: C.darkCard,
-            }}
-          >
+          <View className="h-[52px] rounded-[14px] border border-[#334155] px-4 flex-row items-center mb-3 bg-[#1E293B]">
             <TextInput
-              style={{ flex: 1, fontSize: 14, color: C.text }}
+              className="flex-1 text-[14px] text-white"
               placeholder="Email address"
-              placeholderTextColor={C.sub}
+              placeholderTextColor={Colors.muted}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
@@ -144,23 +93,11 @@ export default function LoginScreen() {
           </View>
 
           {/* Password */}
-          <View
-            style={{
-              height: 52,
-              borderRadius: 14,
-              borderWidth: 1.5,
-              borderColor: C.darkBorder,
-              paddingHorizontal: 16,
-              flexDirection: "row",
-              alignItems: "center",
-              marginBottom: 20,
-              backgroundColor: C.darkCard,
-            }}
-          >
+          <View className="h-[52px] rounded-[14px] border border-[#334155] px-4 flex-row items-center mb-5 bg-[#1E293B]">
             <TextInput
-              style={{ flex: 1, fontSize: 14, color: C.text }}
+              className="flex-1 text-[14px] text-white"
               placeholder="Password"
-              placeholderTextColor={C.sub}
+              placeholderTextColor={Colors.muted}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -169,14 +106,9 @@ export default function LoginScreen() {
 
           {/* Sign in */}
           <TouchableOpacity
+            className="h-[52px] bg-brand-green rounded-[14px] items-center justify-center mb-5"
             style={{
-              height: 52,
-              backgroundColor: C.green,
-              borderRadius: 14,
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: 20,
-              shadowColor: C.green,
+              shadowColor: Colors.green,
               shadowOffset: { width: 0, height: 6 },
               shadowOpacity: 0.4,
               shadowRadius: 12,
@@ -185,62 +117,32 @@ export default function LoginScreen() {
             onPress={() => router.replace("/(tabs)")}
             activeOpacity={0.85}
           >
-            <Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>
-              Sign in
-            </Text>
+            <Text className="text-white font-bold text-[15px]">Sign in</Text>
           </TouchableOpacity>
 
           {/* OR divider */}
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 12,
-              marginBottom: 20,
-            }}
-          >
-            <View style={{ flex: 1, height: 1, backgroundColor: C.darkBorder }} />
-            <Text style={{ fontSize: 12, color: C.sub }}>or</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: C.darkBorder }} />
+          <View className="flex-row items-center gap-3 mb-5">
+            <View className="flex-1 h-px bg-[#334155]" />
+            <Text className="text-[12px] text-brand-muted">or</Text>
+            <View className="flex-1 h-px bg-[#334155]" />
           </View>
 
           {/* Google */}
           <TouchableOpacity
-            style={{
-              height: 52,
-              borderRadius: 14,
-              borderWidth: 1.5,
-              borderColor: C.darkBorder,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 10,
-              backgroundColor: C.darkCard,
-            }}
+            className="h-[52px] rounded-[14px] border border-[#334155] flex-row items-center justify-center gap-2.5 bg-[#1E293B]"
             activeOpacity={0.8}
           >
             <GoogleLogo size={20} />
-            <Text style={{ fontSize: 14, color: C.text, fontWeight: "500" }}>
-              Continue with Google
-            </Text>
+            <Text className="text-[14px] text-white font-medium">Continue with Google</Text>
           </TouchableOpacity>
 
-          <View style={{ flex: 1 }} />
+          <View className="flex-1" />
 
           {/* Footer */}
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "center",
-              gap: 4,
-              paddingVertical: 10,
-            }}
-          >
-            <Text style={{ fontSize: 13, color: C.sub }}>Don't have an account?</Text>
+          <View className="flex-row justify-center gap-1 py-2.5">
+            <Text className="text-[13px] text-brand-muted">Don't have an account?</Text>
             <TouchableOpacity>
-              <Text style={{ fontSize: 13, color: C.green, fontWeight: "700" }}>
-                Sign up free
-              </Text>
+              <Text className="text-[13px] text-brand-green font-bold">Sign up free</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

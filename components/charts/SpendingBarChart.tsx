@@ -1,5 +1,6 @@
+import { memo } from "react";
 import { View, Text } from "react-native";
-import { MonthlySpending } from "../../types";
+import { MonthlySpending } from "@/types";
 
 interface Props {
   data: MonthlySpending[];
@@ -8,7 +9,7 @@ interface Props {
 
 const MAX_HEIGHT = 100;
 
-export default function SpendingBarChart({ data, activeMonth = "May" }: Props) {
+function SpendingBarChart({ data, activeMonth = "May" }: Props) {
   const maxAmount = Math.max(...data.map((d) => d.amount));
 
   return (
@@ -16,7 +17,7 @@ export default function SpendingBarChart({ data, activeMonth = "May" }: Props) {
       <View className="flex-row gap-2" style={{ height: MAX_HEIGHT + 24 }}>
         {data.map((item) => {
           const barHeight = Math.max((item.amount / maxAmount) * MAX_HEIGHT, 6);
-          const isActive = item.month === activeMonth;
+          const isActive  = item.month === activeMonth;
           return (
             <View
               key={item.month}
@@ -40,9 +41,7 @@ export default function SpendingBarChart({ data, activeMonth = "May" }: Props) {
               )}
               <View
                 className={`w-full ${
-                  isActive
-                    ? "bg-brand-green rounded-t-xl"
-                    : "bg-slate-200 rounded-t-lg"
+                  isActive ? "bg-brand-green rounded-t-xl" : "bg-slate-200 rounded-t-lg"
                 }`}
                 style={{ height: barHeight }}
               />
@@ -51,7 +50,6 @@ export default function SpendingBarChart({ data, activeMonth = "May" }: Props) {
         })}
       </View>
 
-      {/* Month labels */}
       <View className="flex-row gap-2 mt-2">
         {data.map((item) => {
           const isActive = item.month === activeMonth;
@@ -59,9 +57,7 @@ export default function SpendingBarChart({ data, activeMonth = "May" }: Props) {
             <View key={item.month} className="flex-1 items-center">
               <Text
                 className={`text-[9px] ${
-                  isActive
-                    ? "text-brand-black font-semibold"
-                    : "text-brand-muted"
+                  isActive ? "text-brand-black font-semibold" : "text-brand-muted"
                 }`}
               >
                 {item.month}
@@ -73,3 +69,5 @@ export default function SpendingBarChart({ data, activeMonth = "May" }: Props) {
     </View>
   );
 }
+
+export default memo(SpendingBarChart);
