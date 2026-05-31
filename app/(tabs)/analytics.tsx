@@ -8,48 +8,67 @@ import {
   TOTAL_SPENT,
   TOTAL_INCOME,
 } from "../../constants/mockData";
+import {
+  ShoppingCart,
+  Coffee,
+  Car,
+  ShoppingBag,
+  Smartphone,
+  HeartPulse,
+} from "lucide-react-native";
 
 const C = {
-  dark:     "#0F1117",
-  green:    "#1D9E75",
-  greenBg:  "#E6F4EE",
-  red:      "#E24B4A",
-  redBg:    "#FCEBEB",
-  amber:    "#EF9F27",
-  text:     "#0F1117",
-  sub:      "#94A3B8",
-  border:   "#E8EDF2",
-  surface:  "#F8F9FA",
-  card:     "#FFFFFF",
+  dark: "#0F1117",
+  green: "#1D9E75",
+  greenBg: "#E6F4EE",
+  red: "#E24B4A",
+  redBg: "#FCEBEB",
+  amber: "#EF9F27",
+  text: "#0F1117",
+  sub: "#94A3B8",
+  border: "#E8EDF2",
+  surface: "#F8F9FA",
+  card: "#FFFFFF",
 };
 
 const fmt = (n: number) => `Rs ${n.toLocaleString()}`;
 const TABS = ["Expense", "Income", "All"];
 
 const DONUT_SIZE = 120;
-const DONUT_R    = 44;
-const DONUT_CX   = DONUT_SIZE / 2;
-const DONUT_CY   = DONUT_SIZE / 2;
+const DONUT_R = 44;
+const DONUT_CX = DONUT_SIZE / 2;
+const DONUT_CY = DONUT_SIZE / 2;
 const DONUT_CIRC = 2 * Math.PI * DONUT_R;
+
+const CAT_ICONS: Record<string, any> = {
+  Groceries: ShoppingCart,
+  Food: Coffee,
+  Transport: Car,
+  Shopping: ShoppingBag,
+  Bills: Smartphone,
+  Health: HeartPulse,
+};
 
 export default function AnalyticsScreen() {
   const [activeTab, setActiveTab] = useState("Expense");
 
-  const cats  = MOCK_CATEGORY_BREAKDOWN;
+  const cats = MOCK_CATEGORY_BREAKDOWN;
   const total = cats.reduce((a, c) => a + c.amount, 0);
 
   let offset = DONUT_CIRC / 4;
   const arcs = cats.map((c) => {
     const arc = (c.pct / 100) * DONUT_CIRC;
-    const o   = offset;
-    offset   += arc;
+    const o = offset;
+    offset += arc;
     return { ...c, arc, dashOffset: DONUT_CIRC - o };
   });
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: C.surface }} edges={["top"]}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: C.surface }}
+      edges={["top"]}
+    >
       <ScrollView showsVerticalScrollIndicator={false}>
-
         {/* ── Header ── */}
         <View
           style={{
@@ -57,11 +76,6 @@ export default function AnalyticsScreen() {
             paddingHorizontal: 16,
             paddingTop: 14,
             paddingBottom: 14,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.04,
-            shadowRadius: 4,
-            elevation: 2,
           }}
         >
           <View
@@ -119,25 +133,20 @@ export default function AnalyticsScreen() {
         </View>
 
         {/* ── Income / Expense solid cards (reference style) ── */}
-        <View style={{ flexDirection: "row", gap: 12, marginHorizontal: 14, marginTop: 14 }}>
+        {/* <View style={{ flexDirection: "row", gap: 12, marginHorizontal: 14, marginTop: 14 }}>
           <View
             style={{
               flex: 1,
-              backgroundColor: C.green,
+              backgroundColor: C.dark,
               borderRadius: 18,
               padding: 16,
-              shadowColor: C.green,
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.3,
-              shadowRadius: 10,
-              elevation: 6,
             }}
           >
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 10 }}>
-              <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.3)", alignItems: "center", justifyContent: "center" }}>
-                <Text style={{ fontSize: 10, color: "#fff" }}>↓</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: "rgba(29,158,117,0.2)", alignItems: "center", justifyContent: "center" }}>
+                <Text style={{ fontSize: 11, color: C.green, fontWeight: "700" }}>↓</Text>
               </View>
-              <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", fontWeight: "500" }}>
+              <Text style={{ fontSize: 11, color: C.green, fontWeight: "600" }}>
                 Total Income
               </Text>
             </View>
@@ -151,7 +160,7 @@ export default function AnalyticsScreen() {
             >
               {fmt(TOTAL_INCOME)}
             </Text>
-            <Text style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", marginTop: 4 }}>
+            <Text style={{ fontSize: 10, color: C.sub, marginTop: 4 }}>
               Bank Account
             </Text>
           </View>
@@ -159,21 +168,16 @@ export default function AnalyticsScreen() {
           <View
             style={{
               flex: 1,
-              backgroundColor: C.red,
+              backgroundColor: C.dark,
               borderRadius: 18,
               padding: 16,
-              shadowColor: C.red,
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.3,
-              shadowRadius: 10,
-              elevation: 6,
             }}
           >
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 10 }}>
-              <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.3)", alignItems: "center", justifyContent: "center" }}>
-                <Text style={{ fontSize: 10, color: "#fff" }}>↑</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: "rgba(226,75,74,0.2)", alignItems: "center", justifyContent: "center" }}>
+                <Text style={{ fontSize: 11, color: C.red, fontWeight: "700" }}>↑</Text>
               </View>
-              <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", fontWeight: "500" }}>
+              <Text style={{ fontSize: 11, color: C.red, fontWeight: "600" }}>
                 Total Expense
               </Text>
             </View>
@@ -187,11 +191,11 @@ export default function AnalyticsScreen() {
             >
               {fmt(TOTAL_SPENT)}
             </Text>
-            <Text style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", marginTop: 4 }}>
+            <Text style={{ fontSize: 10, color: C.sub, marginTop: 4 }}>
               Bank Account
             </Text>
           </View>
-        </View>
+        </View> */}
 
         {/* ── Donut + legend ── */}
         <View
@@ -201,14 +205,16 @@ export default function AnalyticsScreen() {
             backgroundColor: C.card,
             borderRadius: 20,
             padding: 16,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.05,
-            shadowRadius: 8,
-            elevation: 2,
           }}
         >
-          <Text style={{ fontSize: 14, fontWeight: "600", color: C.text, marginBottom: 16 }}>
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: "600",
+              color: C.text,
+              marginBottom: 16,
+            }}
+          >
             Category breakdown
           </Text>
 
@@ -217,13 +223,19 @@ export default function AnalyticsScreen() {
             <View style={{ width: DONUT_SIZE, height: DONUT_SIZE }}>
               <Svg width={DONUT_SIZE} height={DONUT_SIZE}>
                 <Circle
-                  cx={DONUT_CX} cy={DONUT_CY} r={DONUT_R}
-                  stroke={C.border} strokeWidth={22} fill="none"
+                  cx={DONUT_CX}
+                  cy={DONUT_CY}
+                  r={DONUT_R}
+                  stroke={C.border}
+                  strokeWidth={22}
+                  fill="none"
                 />
                 {arcs.map((a, i) => (
                   <Circle
                     key={i}
-                    cx={DONUT_CX} cy={DONUT_CY} r={DONUT_R}
+                    cx={DONUT_CX}
+                    cy={DONUT_CY}
+                    r={DONUT_R}
                     stroke={a.color}
                     strokeWidth={22}
                     fill="none"
@@ -234,8 +246,13 @@ export default function AnalyticsScreen() {
               </Svg>
               <View
                 style={{
-                  position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-                  alignItems: "center", justifyContent: "center",
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
                 <Text style={{ fontSize: 10, color: C.sub }}>Total</Text>
@@ -255,7 +272,10 @@ export default function AnalyticsScreen() {
             {/* Legend */}
             <View style={{ flex: 1, gap: 8 }}>
               {cats.map((c) => (
-                <View key={c.category} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <View
+                  key={c.category}
+                  style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+                >
                   <View
                     style={{
                       width: 10,
@@ -265,7 +285,7 @@ export default function AnalyticsScreen() {
                     }}
                   />
                   <Text style={{ flex: 1, fontSize: 12, color: C.sub }}>
-                    {c.emoji} {c.category}
+                    {c.category}
                   </Text>
                   <Text
                     style={{
@@ -291,56 +311,93 @@ export default function AnalyticsScreen() {
             backgroundColor: C.card,
             borderRadius: 20,
             padding: 16,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.05,
-            shadowRadius: 8,
-            elevation: 2,
           }}
         >
-          <Text style={{ fontSize: 14, fontWeight: "600", color: C.text, marginBottom: 16 }}>
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: "600",
+              color: C.text,
+              marginBottom: 16,
+            }}
+          >
             By category
           </Text>
-          {cats.map((c) => (
-            <View key={c.category} style={{ marginBottom: 14 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                <Text style={{ fontSize: 17 }}>{c.emoji}</Text>
-                <Text style={{ flex: 1, fontSize: 13, fontWeight: "500", color: C.text }}>
-                  {c.category}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: "600",
-                    color: C.text,
-                    fontFamily: "DMMono_400Regular",
-                  }}
-                >
-                  {fmt(c.amount)}
-                </Text>
-                <Text style={{ fontSize: 11, color: C.sub, width: 30, textAlign: "right" }}>
-                  {c.pct}%
-                </Text>
-              </View>
-              <View
-                style={{
-                  height: 6,
-                  backgroundColor: C.border,
-                  borderRadius: 99,
-                  overflow: "hidden",
-                }}
-              >
+          {cats.map((c) => {
+            const CatIcon = CAT_ICONS[c.category] || ShoppingCart;
+            return (
+              <View key={c.category} style={{ marginBottom: 14 }}>
                 <View
                   style={{
-                    width: `${c.pct}%` as any,
-                    height: "100%",
-                    backgroundColor: c.color,
-                    borderRadius: 99,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 8,
+                    marginBottom: 6,
                   }}
-                />
+                >
+                  <View
+                    style={{
+                      width: 30,
+                      height: 30,
+                      borderRadius: 10,
+                      backgroundColor: c.color + "20",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <CatIcon size={15} color={c.color} strokeWidth={1.8} />
+                  </View>
+                  <Text
+                    style={{
+                      flex: 1,
+                      fontSize: 13,
+                      fontWeight: "500",
+                      color: C.text,
+                    }}
+                  >
+                    {c.category}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: "600",
+                      color: C.text,
+                      fontFamily: "DMMono_400Regular",
+                    }}
+                  >
+                    {fmt(c.amount)}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      color: C.sub,
+                      width: 30,
+                      textAlign: "right",
+                    }}
+                  >
+                    {c.pct}%
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    height: 6,
+                    backgroundColor: C.border,
+                    borderRadius: 99,
+                    overflow: "hidden",
+                  }}
+                >
+                  <View
+                    style={{
+                      width: `${c.pct}%` as any,
+                      height: "100%",
+                      backgroundColor: c.color,
+                      borderRadius: 99,
+                    }}
+                  />
+                </View>
               </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
 
         {/* ── Monthly bar chart ── */}
@@ -352,11 +409,6 @@ export default function AnalyticsScreen() {
             backgroundColor: C.card,
             borderRadius: 20,
             padding: 16,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.05,
-            shadowRadius: 8,
-            elevation: 2,
           }}
         >
           <View
@@ -371,9 +423,22 @@ export default function AnalyticsScreen() {
               Monthly trend
             </Text>
             <View style={{ flexDirection: "row", gap: 14 }}>
-              {[{ color: C.green, label: "Income" }, { color: C.red, label: "Expense" }].map((l) => (
-                <View key={l.label} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: l.color }} />
+              {[
+                { color: C.green, label: "Income" },
+                { color: C.red, label: "Expense" },
+              ].map((l) => (
+                <View
+                  key={l.label}
+                  style={{ flexDirection: "row", alignItems: "center", gap: 5 }}
+                >
+                  <View
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: 4,
+                      backgroundColor: l.color,
+                    }}
+                  />
                   <Text style={{ fontSize: 10, color: C.sub }}>{l.label}</Text>
                 </View>
               ))}
@@ -389,16 +454,30 @@ export default function AnalyticsScreen() {
             }}
           >
             {MOCK_MONTHLY_SPENDING.map((item, i) => {
-              const max     = Math.max(...MOCK_MONTHLY_SPENDING.map((s) => s.amount));
-              const h       = Math.round((item.amount / max) * 72) + 10;
+              const max = Math.max(
+                ...MOCK_MONTHLY_SPENDING.map((s) => s.amount),
+              );
+              const h = Math.round((item.amount / max) * 72) + 10;
               const isActive = i === MOCK_MONTHLY_SPENDING.length - 1;
               return (
                 <View
                   key={i}
-                  style={{ flex: 1, alignItems: "center", justifyContent: "flex-end", gap: 5 }}
+                  style={{
+                    flex: 1,
+                    alignItems: "center",
+                    justifyContent: "flex-end",
+                    gap: 5,
+                  }}
                 >
                   {isActive && (
-                    <Text style={{ fontSize: 9, color: C.green, fontWeight: "700", fontFamily: "DMMono_400Regular" }}>
+                    <Text
+                      style={{
+                        fontSize: 9,
+                        color: C.green,
+                        fontWeight: "700",
+                        fontFamily: "DMMono_400Regular",
+                      }}
+                    >
                       {Math.round(item.amount / 1000)}k
                     </Text>
                   )}
@@ -430,7 +509,6 @@ export default function AnalyticsScreen() {
             })}
           </View>
         </View>
-
       </ScrollView>
     </SafeAreaView>
   );

@@ -14,7 +14,7 @@ export interface Transaction {
   amount: number;
   date: string;
   time: string;
-  emoji: string;
+  icon: string;
   iconBg: string;
   iconColor: string;
 }

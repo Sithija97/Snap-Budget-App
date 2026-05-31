@@ -1,39 +1,69 @@
 import { useState } from "react";
-import { ScrollView, View, Text, TouchableOpacity } from "react-native";
+import {
+  ScrollView,
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  TouchableWithoutFeedback,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import {
-  WALLETS,
+  // Plus, ArrowLeftRight, ChartPie, ChartBar, — quick actions (commented out)
+  LogOut,
+  ShoppingCart,
+  Car,
+  CircleArrowDown,
+  Smartphone,
+  ShoppingBag,
+  Coffee,
+  Laptop,
+  HeartPulse,
+} from "lucide-react-native";
+import {
   MOCK_TRANSACTIONS,
   MOCK_MONTHLY_SPENDING,
-  TOTAL_INCOME,
+  MOCK_USER,
   TOTAL_SPENT,
+  REMAINING,
+  TOTAL_INCOME,
 } from "../../constants/mockData";
 
 const C = {
-  dark:     "#0F1117",
-  green:    "#1D9E75",
-  greenBg:  "#E6F4EE",
-  red:      "#E24B4A",
-  redBg:    "#FCEBEB",
-  amber:    "#EF9F27",
-  amberBg:  "#FFF4E5",
-  blue:     "#4A7AFF",
-  blueBg:   "#EEF2FF",
-  purple:   "#9B6BFF",
+  dark: "#0F1117",
+  green: "#1D9E75",
+  greenBg: "#E6F4EE",
+  red: "#E24B4A",
+  redBg: "#FCEBEB",
+  amber: "#EF9F27",
+  amberBg: "#FFF4E5",
+  blue: "#4A7AFF",
+  blueBg: "#EEF2FF",
+  purple: "#9B6BFF",
   purpleBg: "#F3EEFF",
-  text:     "#0F1117",
-  sub:      "#94A3B8",
-  border:   "#E8EDF2",
-  surface:  "#F8F9FA",
-  card:     "#FFFFFF",
+  text: "#0F1117",
+  sub: "#94A3B8",
+  border: "#E8EDF2",
+  surface: "#F8F9FA",
+  card: "#FFFFFF",
 };
 
 const fmt = (n: number) => `Rs ${n.toLocaleString()}`;
 
+const TX_ICONS: Record<string, any> = {
+  ShoppingCart,
+  Car,
+  CircleArrowDown,
+  Smartphone,
+  ShoppingBag,
+  Coffee,
+  Laptop,
+  HeartPulse,
+};
+
 export default function HomeScreen() {
-  const [walletIdx, setWalletIdx] = useState(0);
-  const w = WALLETS[walletIdx];
+  const [showProfile, setShowProfile] = useState(false);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.dark }} edges={["top"]}>
@@ -47,252 +77,254 @@ export default function HomeScreen() {
             backgroundColor: C.dark,
             paddingHorizontal: 20,
             paddingTop: 16,
-            paddingBottom: 32,
+            paddingBottom: 34,
             borderBottomLeftRadius: 32,
             borderBottomRightRadius: 32,
-            overflow: "hidden",
+            marginBottom: 16,
           }}
         >
-          {/* Glow circle — wallet accent colour */}
-          <View
-            style={{
-              position: "absolute",
-              top: -50,
-              right: -50,
-              width: 180,
-              height: 180,
-              borderRadius: 90,
-              backgroundColor: w.color,
-              opacity: 0.15,
-            }}
-          />
-          <View
-            style={{
-              position: "absolute",
-              bottom: -40,
-              left: -20,
-              width: 120,
-              height: 120,
-              borderRadius: 60,
-              backgroundColor: w.color,
-              opacity: 0.08,
-            }}
-          />
-
           {/* Header row */}
           <View
             style={{
               flexDirection: "row",
               justifyContent: "space-between",
               alignItems: "center",
-              marginBottom: 24,
+              marginBottom: 18,
             }}
           >
             <View>
-              <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginBottom: 3 }}>
+              <Text
+                style={{
+                  fontSize: 11,
+                  color: "rgba(255,255,255,0.5)",
+                  marginBottom: 2,
+                }}
+              >
+                Good morning, {MOCK_USER.name}
+              </Text>
+              <Text style={{ fontSize: 15, fontWeight: "600", color: "#fff" }}>
                 May 2026
               </Text>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
-                <View
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 4,
-                    backgroundColor: w.color,
-                  }}
-                />
-                <Text style={{ fontSize: 15, fontWeight: "600", color: "#fff" }}>
-                  {w.name}
-                </Text>
-              </View>
             </View>
-            <View style={{ flexDirection: "row", gap: 8 }}>
-              <TouchableOpacity
-                onPress={() => setWalletIdx((walletIdx + 1) % WALLETS.length)}
-                style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: 17,
-                  backgroundColor: "rgba(255,255,255,0.12)",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Text style={{ fontSize: 16 }}>{w.emoji}</Text>
-              </TouchableOpacity>
-              <View
-                style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: 17,
-                  backgroundColor: "rgba(255,255,255,0.12)",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Text style={{ fontSize: 14 }}>🔔</Text>
-              </View>
-            </View>
+
+            {/* Avatar button */}
+            <TouchableOpacity
+              onPress={() => setShowProfile(true)}
+              activeOpacity={0.85}
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 19,
+                backgroundColor: C.green,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ fontSize: 15, fontWeight: "700", color: "#fff" }}>
+                {MOCK_USER.name.charAt(0).toUpperCase()}
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* Balance */}
-          <View style={{ alignItems: "center", marginBottom: 24 }}>
-            <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>
-              Total Balance
-            </Text>
-            <Text
-              style={{
-                fontSize: 36,
-                fontWeight: "700",
-                color: "#fff",
-                fontFamily: "DMMono_400Regular",
-                letterSpacing: -1,
-              }}
-            >
-              {fmt(w.balance)}
-            </Text>
-          </View>
+          <Text
+            style={{
+              fontSize: 38,
+              fontWeight: "700",
+              color: "#fff",
+              fontFamily: "DMMono_400Regular",
+              letterSpacing: -1,
+              marginBottom: 4,
+            }}
+          >
+            {fmt(TOTAL_SPENT)}
+          </Text>
+          <Text
+            style={{
+              fontSize: 12,
+              color: "rgba(255,255,255,0.45)",
+              marginBottom: 18,
+            }}
+          >
+            spent this month
+          </Text>
 
-          {/* Inc / Exp chips */}
+          {/* Stat chips */}
           <View style={{ flexDirection: "row", gap: 10 }}>
             <View
               style={{
-                flex: 1,
-                backgroundColor: "rgba(255,255,255,0.1)",
-                borderRadius: 16,
-                padding: 12,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+                backgroundColor: "rgba(226,75,74,0.15)",
+                borderRadius: 99,
               }}
             >
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 5 }}>
-                <View
-                  style={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: 9,
-                    backgroundColor: C.green,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Text style={{ fontSize: 9, color: "#fff" }}>↓</Text>
-                </View>
-                <Text style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", fontWeight: "500" }}>
-                  Income
-                </Text>
-              </View>
+              <Text style={{ fontSize: 11, color: C.red }}>↘</Text>
               <Text
                 style={{
-                  fontSize: 14,
-                  fontWeight: "700",
-                  color: "#fff",
+                  fontSize: 11,
+                  color: C.red,
                   fontFamily: "DMMono_400Regular",
                 }}
               >
-                {fmt(TOTAL_INCOME)}
+                +12% vs last month
               </Text>
             </View>
-
             <View
               style={{
-                flex: 1,
-                backgroundColor: "rgba(255,255,255,0.07)",
-                borderRadius: 16,
-                padding: 12,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+                backgroundColor: "rgba(29,158,117,0.18)",
+                borderRadius: 99,
               }}
             >
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 5 }}>
-                <View
-                  style={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: 9,
-                    backgroundColor: C.red,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Text style={{ fontSize: 9, color: "#fff" }}>↑</Text>
-                </View>
-                <Text style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", fontWeight: "500" }}>
-                  Expense
-                </Text>
-              </View>
+              <Text style={{ fontSize: 12, color: C.green }}>◎</Text>
               <Text
                 style={{
-                  fontSize: 14,
-                  fontWeight: "700",
-                  color: "#fff",
+                  fontSize: 11,
+                  color: C.green,
                   fontFamily: "DMMono_400Regular",
                 }}
               >
-                {fmt(TOTAL_SPENT)}
+                {fmt(REMAINING)} left
               </Text>
             </View>
-          </View>
-
-          {/* Wallet dots */}
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "center",
-              gap: 5,
-              marginTop: 16,
-            }}
-          >
-            {WALLETS.map((_, i) => (
-              <View
-                key={i}
-                style={{
-                  width: i === walletIdx ? 20 : 5,
-                  height: 5,
-                  borderRadius: 99,
-                  backgroundColor:
-                    i === walletIdx ? "#fff" : "rgba(255,255,255,0.3)",
-                }}
-              />
-            ))}
           </View>
         </View>
 
-        {/* ── Quick actions ── */}
+        {/* ── Quick actions (commented out) ── */}
+
+        {/* Income / Expense summary */}
         <View
           style={{
             flexDirection: "row",
-            justifyContent: "space-around",
-            paddingHorizontal: 16,
-            paddingTop: 20,
-            paddingBottom: 8,
+            gap: 10,
+            marginHorizontal: 14,
+            marginTop: 12,
+            marginBottom: 16,
           }}
         >
-          {[
-            { label: "Add",      icon: "➕", bg: C.greenBg,  color: C.green  },
-            { label: "Transfer", icon: "🔄", bg: C.blueBg,   color: C.blue   },
-            { label: "Budget",   icon: "📊", bg: C.purpleBg, color: C.purple },
-            { label: "Report",   icon: "📈", bg: C.amberBg,  color: C.amber  },
-          ].map((a) => (
-            <TouchableOpacity key={a.label} style={{ alignItems: "center", gap: 6 }}>
+          {/* Income */}
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "#EDFAF4",
+              borderRadius: 14,
+              padding: 12,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+                marginBottom: 5,
+              }}
+            >
               <View
                 style={{
-                  width: 50,
-                  height: 50,
-                  borderRadius: 16,
-                  backgroundColor: a.bg,
+                  width: 20,
+                  height: 20,
+                  borderRadius: 10,
+                  backgroundColor: C.green,
                   alignItems: "center",
                   justifyContent: "center",
-                  shadowColor: a.color,
-                  shadowOffset: { width: 0, height: 3 },
-                  shadowOpacity: 0.15,
-                  shadowRadius: 6,
-                  elevation: 2,
                 }}
               >
-                <Text style={{ fontSize: 22 }}>{a.icon}</Text>
+                <Text style={{ fontSize: 9, color: "#fff", fontWeight: "700" }}>
+                  ↓
+                </Text>
               </View>
-              <Text style={{ fontSize: 11, fontWeight: "500", color: C.sub }}>
-                {a.label}
+              <Text
+                style={{
+                  fontSize: 10,
+                  color: C.green,
+                  fontWeight: "700",
+                  letterSpacing: 0.4,
+                }}
+              >
+                INCOME
               </Text>
-            </TouchableOpacity>
-          ))}
+            </View>
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: "700",
+                color: C.green,
+                fontFamily: "DMMono_400Regular",
+                marginBottom: 2,
+              }}
+            >
+              {fmt(TOTAL_INCOME)}
+            </Text>
+            <Text style={{ fontSize: 10, color: C.sub }}>
+              received this month
+            </Text>
+          </View>
+
+          {/* Expense */}
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "#FDF0F0",
+              borderRadius: 14,
+              padding: 12,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+                marginBottom: 5,
+              }}
+            >
+              <View
+                style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: 10,
+                  backgroundColor: C.red,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text style={{ fontSize: 9, color: "#fff", fontWeight: "700" }}>
+                  ↑
+                </Text>
+              </View>
+              <Text
+                style={{
+                  fontSize: 10,
+                  color: C.red,
+                  fontWeight: "700",
+                  letterSpacing: 0.4,
+                }}
+              >
+                EXPENSE
+              </Text>
+            </View>
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: "700",
+                color: C.red,
+                fontFamily: "DMMono_400Regular",
+                marginBottom: 2,
+              }}
+            >
+              {fmt(TOTAL_SPENT)}
+            </Text>
+            <Text style={{ fontSize: 10, color: C.sub }}>
+              {Math.round((TOTAL_SPENT / TOTAL_INCOME) * 100)}% of income used
+            </Text>
+          </View>
         </View>
 
         {/* ── Recent transactions ── */}
@@ -303,11 +335,6 @@ export default function HomeScreen() {
             backgroundColor: C.card,
             borderRadius: 20,
             overflow: "hidden",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.05,
-            shadowRadius: 8,
-            elevation: 2,
           }}
         >
           <View
@@ -316,89 +343,84 @@ export default function HomeScreen() {
               justifyContent: "space-between",
               alignItems: "center",
               paddingHorizontal: 16,
-              paddingTop: 14,
-              paddingBottom: 8,
+              paddingTop: 10,
+              paddingBottom: 6,
             }}
           >
             <Text style={{ fontSize: 14, fontWeight: "600", color: C.text }}>
               Recent Transactions
             </Text>
-            <TouchableOpacity onPress={() => router.push("/(tabs)/transactions")}>
+            <TouchableOpacity
+              onPress={() => router.push("/(tabs)/transactions")}
+            >
               <Text style={{ fontSize: 12, color: C.green, fontWeight: "600" }}>
                 See all →
               </Text>
             </TouchableOpacity>
           </View>
-          {MOCK_TRANSACTIONS.slice(0, 4).map((tx, i) => (
-            <View
-              key={tx.id}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 12,
-                paddingVertical: 10,
-                paddingHorizontal: 16,
-                borderTopWidth: i > 0 ? 1 : 0,
-                borderTopColor: C.border,
-              }}
-            >
+
+          {MOCK_TRANSACTIONS.slice(0, 5).map((tx) => {
+            const Icon = TX_ICONS[tx.icon] || ShoppingCart;
+            return (
               <View
+                key={tx.id}
                 style={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: 14,
-                  backgroundColor: tx.iconBg,
+                  flexDirection: "row",
                   alignItems: "center",
-                  justifyContent: "center",
+                  gap: 12,
+                  paddingVertical: 7,
+                  paddingHorizontal: 16,
                 }}
               >
-                <Text style={{ fontSize: 20 }}>{tx.emoji}</Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 13, fontWeight: "600", color: C.text }}>
-                  {tx.merchant}
+                <View
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 12,
+                    backgroundColor: tx.iconBg,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Icon size={20} color={tx.iconColor} strokeWidth={1.8} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{ fontSize: 13, fontWeight: "600", color: C.text }}
+                  >
+                    {tx.merchant}
+                  </Text>
+                  <Text style={{ fontSize: 11, color: C.sub, marginTop: 2 }}>
+                    {tx.category} · {tx.time}
+                  </Text>
+                </View>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: "700",
+                    color: tx.txType === "inc" ? C.green : C.red,
+                    fontFamily: "DMMono_400Regular",
+                  }}
+                >
+                  {tx.txType === "inc" ? "+" : "−"}
+                  {fmt(tx.amount)}
                 </Text>
-                <Text style={{ fontSize: 11, color: C.sub, marginTop: 2 }}>
-                  {tx.category} · {tx.time}
-                </Text>
               </View>
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: "700",
-                  color: tx.txType === "inc" ? C.green : C.red,
-                  fontFamily: "DMMono_400Regular",
-                }}
-              >
-                {tx.txType === "inc" ? "+" : "−"}
-                {fmt(tx.amount)}
-              </Text>
-            </View>
-          ))}
+            );
+          })}
         </View>
 
         {/* ── 6-month bar chart ── */}
-        <View
+        {/* <View
           style={{
-            marginHorizontal: 14,
-            marginTop: 14,
-            marginBottom: 20,
-            backgroundColor: C.card,
-            borderRadius: 20,
-            padding: 16,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.05,
-            shadowRadius: 8,
-            elevation: 2,
+            marginHorizontal: 14, marginTop: 14, marginBottom: 20,
+            backgroundColor: C.card, borderRadius: 20, padding: 16,
           }}
         >
           <View
             style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 16,
+              flexDirection: "row", justifyContent: "space-between",
+              alignItems: "center", marginBottom: 16,
             }}
           >
             <Text style={{ fontSize: 14, fontWeight: "600", color: C.text }}>
@@ -406,15 +428,7 @@ export default function HomeScreen() {
             </Text>
             <Text style={{ fontSize: 12, color: C.sub }}>6 months</Text>
           </View>
-
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "flex-end",
-              height: 90,
-              gap: 8,
-            }}
-          >
+          <View style={{ flexDirection: "row", alignItems: "flex-end", height: 90, gap: 8 }}>
             {MOCK_MONTHLY_SPENDING.map((item, i) => {
               const max = Math.max(...MOCK_MONTHLY_SPENDING.map((s) => s.amount));
               const h = Math.round((item.amount / max) * 72) + 10;
@@ -423,19 +437,15 @@ export default function HomeScreen() {
                 <View
                   key={i}
                   style={{
-                    flex: 1,
-                    alignItems: "center",
-                    justifyContent: "flex-end",
-                    gap: 5,
+                    flex: 1, alignItems: "center",
+                    justifyContent: "flex-end", gap: 5,
                   }}
                 >
                   {isActive && (
                     <Text
                       style={{
-                        fontSize: 9,
-                        color: C.green,
-                        fontWeight: "700",
-                        fontFamily: "DMMono_400Regular",
+                        fontSize: 9, color: C.green,
+                        fontWeight: "700", fontFamily: "DMMono_400Regular",
                       }}
                     >
                       {Math.round(item.amount / 1000)}k
@@ -443,16 +453,13 @@ export default function HomeScreen() {
                   )}
                   <View
                     style={{
-                      width: "100%",
-                      height: h,
-                      borderTopLeftRadius: 8,
-                      borderTopRightRadius: 8,
+                      width: "100%", height: h,
+                      borderTopLeftRadius: 8, borderTopRightRadius: 8,
                       backgroundColor: isActive ? C.green : C.border,
                       shadowColor: isActive ? C.green : "transparent",
                       shadowOffset: { width: 0, height: 3 },
                       shadowOpacity: isActive ? 0.35 : 0,
-                      shadowRadius: 6,
-                      elevation: isActive ? 4 : 0,
+                      shadowRadius: 6, elevation: isActive ? 4 : 0,
                     }}
                   />
                   <Text
@@ -468,8 +475,117 @@ export default function HomeScreen() {
               );
             })}
           </View>
-        </View>
+        </View> */}
       </ScrollView>
+
+      {/* ── Profile bottom sheet modal ── */}
+      <Modal
+        visible={showProfile}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowProfile(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setShowProfile(false)}>
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0,0,0,0.45)",
+              justifyContent: "flex-end",
+            }}
+          >
+            <TouchableWithoutFeedback onPress={() => {}}>
+              <View
+                style={{
+                  backgroundColor: C.card,
+                  borderTopLeftRadius: 26,
+                  borderTopRightRadius: 26,
+                  paddingHorizontal: 24,
+                  paddingTop: 12,
+                  paddingBottom: 40,
+                }}
+              >
+                {/* Handle */}
+                <View
+                  style={{
+                    width: 40,
+                    height: 4,
+                    borderRadius: 2,
+                    backgroundColor: C.border,
+                    alignSelf: "center",
+                    marginBottom: 22,
+                  }}
+                />
+
+                {/* User info */}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 14,
+                    marginBottom: 28,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 54,
+                      height: 54,
+                      borderRadius: 27,
+                      backgroundColor: C.green,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      shadowColor: C.green,
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.35,
+                      shadowRadius: 8,
+                      elevation: 4,
+                    }}
+                  >
+                    <Text
+                      style={{ fontSize: 22, fontWeight: "700", color: "#fff" }}
+                    >
+                      {MOCK_USER.name.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                  <View>
+                    <Text
+                      style={{ fontSize: 17, fontWeight: "700", color: C.text }}
+                    >
+                      {MOCK_USER.name}
+                    </Text>
+                    <Text style={{ fontSize: 13, color: C.sub, marginTop: 2 }}>
+                      kasun@example.com
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Sign out */}
+                <TouchableOpacity
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: 15,
+                    backgroundColor: C.redBg,
+                    borderRadius: 14,
+                  }}
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    setShowProfile(false);
+                    router.replace("/login");
+                  }}
+                >
+                  <LogOut size={18} color={C.red} strokeWidth={2} />
+                  <Text
+                    style={{ fontSize: 14, fontWeight: "600", color: C.red }}
+                  >
+                    Sign out
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </SafeAreaView>
   );
 }

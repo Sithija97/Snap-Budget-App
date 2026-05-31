@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { Tabs, router } from "expo-router";
+import { House, List, ChartPie, ChartBar, ScanLine } from "lucide-react-native";
 
 const C = {
   green:   "#1D9E75",
@@ -7,15 +8,14 @@ const C = {
   sub:     "#94A3B8",
   border:  "#E8EDF2",
   card:    "#FFFFFF",
-  surface: "#F8F9FA",
 };
 
 const TAB_ITEMS = [
-  { name: "index",        emoji: "🏠", label: "Home",    routeIndex: 0 },
-  { name: "transactions", emoji: "📋", label: "Records", routeIndex: 1 },
+  { name: "index",        Icon: House,    label: "Home",    routeIndex: 0 },
+  { name: "transactions", Icon: List,     label: "Records", routeIndex: 1 },
   null,
-  { name: "budget",       emoji: "📊", label: "Budget",  routeIndex: 2 },
-  { name: "analytics",   emoji: "📈", label: "Reports",  routeIndex: 3 },
+  { name: "budget",       Icon: ChartPie, label: "Budget",  routeIndex: 2 },
+  { name: "analytics",   Icon: ChartBar,  label: "Reports", routeIndex: 3 },
 ];
 
 function CustomTabBar({
@@ -71,13 +71,14 @@ function CustomTabBar({
                   borderColor: C.card,
                 }}
               >
-                <Text style={{ fontSize: 22 }}>➕</Text>
+                <ScanLine size={22} color="#fff" strokeWidth={2} />
               </TouchableOpacity>
             </View>
           );
         }
 
         const isFocused = state.index === item.routeIndex;
+        const iconColor = isFocused ? C.green : C.sub;
 
         return (
           <TouchableOpacity
@@ -86,14 +87,12 @@ function CustomTabBar({
             onPress={() => navigation.navigate(item.name)}
             activeOpacity={0.7}
           >
-            <Text style={{ fontSize: 18, opacity: isFocused ? 1 : 0.4 }}>
-              {item.emoji}
-            </Text>
+            <item.Icon size={20} color={iconColor} strokeWidth={isFocused ? 2.5 : 1.8} />
             <Text
               style={{
                 fontSize: 9,
                 fontWeight: "600",
-                color: isFocused ? C.green : C.sub,
+                color: iconColor,
                 marginTop: 3,
               }}
             >

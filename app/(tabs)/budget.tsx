@@ -2,6 +2,9 @@ import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
 import { MOCK_BUDGETS, TOTAL_SPENT, REMAINING } from "../../constants/mockData";
+import {
+  ShoppingCart, Coffee, Car, ShoppingBag, Smartphone, HeartPulse,
+} from "lucide-react-native";
 
 const C = {
   dark:    "#0F1117",
@@ -26,6 +29,11 @@ const RING_CY    = RING_SIZE / 2;
 const RING_CIRC  = 2 * Math.PI * RING_R;
 const TOTAL_LIMIT = MOCK_BUDGETS.reduce((a, b) => a + b.limit, 0);
 
+const CAT_ICONS: Record<string, any> = {
+  Groceries: ShoppingCart, Food: Coffee, Transport: Car,
+  Shopping: ShoppingBag, Bills: Smartphone, Health: HeartPulse,
+};
+
 export default function BudgetScreen() {
   const pctUsed = TOTAL_SPENT / TOTAL_LIMIT;
   const dash    = pctUsed * RING_CIRC;
@@ -41,11 +49,6 @@ export default function BudgetScreen() {
             paddingHorizontal: 16,
             paddingTop: 14,
             paddingBottom: 14,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.04,
-            shadowRadius: 4,
-            elevation: 2,
           }}
         >
           <Text style={{ fontSize: 17, fontWeight: "700", color: C.text }}>
@@ -58,17 +61,17 @@ export default function BudgetScreen() {
           style={{
             marginHorizontal: 14,
             marginTop: 14,
-            backgroundColor: C.card,
+            backgroundColor: C.dark,
             borderRadius: 20,
             padding: 20,
             flexDirection: "row",
             alignItems: "center",
             gap: 20,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.05,
-            shadowRadius: 8,
-            elevation: 2,
+            shadowColor: C.dark,
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: 0.25,
+            shadowRadius: 12,
+            elevation: 6,
           }}
         >
           {/* Ring */}
@@ -76,7 +79,7 @@ export default function BudgetScreen() {
             <Svg width={RING_SIZE} height={RING_SIZE}>
               <Circle
                 cx={RING_CX} cy={RING_CY} r={RING_R}
-                stroke={C.border} strokeWidth={11} fill="none"
+                stroke="#1E293B" strokeWidth={11} fill="none"
               />
               <Circle
                 cx={RING_CX} cy={RING_CY} r={RING_R}
@@ -109,18 +112,21 @@ export default function BudgetScreen() {
 
           {/* Stats */}
           <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 11, color: C.sub, marginBottom: 3 }}>
+              Monthly budget
+            </Text>
             <Text
               style={{
                 fontSize: 18,
                 fontWeight: "700",
-                color: C.text,
+                color: "#fff",
                 fontFamily: "DMMono_400Regular",
               }}
             >
               {fmt(TOTAL_SPENT)}
             </Text>
-            <Text style={{ fontSize: 12, color: C.sub, marginBottom: 10 }}>
-              of {fmt(TOTAL_LIMIT)} budget
+            <Text style={{ fontSize: 12, color: C.sub, marginBottom: 12 }}>
+              of {fmt(TOTAL_LIMIT)} total
             </Text>
             <View
               style={{
@@ -128,7 +134,7 @@ export default function BudgetScreen() {
                 paddingHorizontal: 14,
                 paddingVertical: 6,
                 borderRadius: 99,
-                backgroundColor: C.greenBg,
+                backgroundColor: "rgba(29,158,117,0.2)",
               }}
             >
               <Text style={{ fontSize: 12, fontWeight: "700", color: C.green }}>
@@ -144,6 +150,7 @@ export default function BudgetScreen() {
             const pct   = Math.min(b.spent / b.limit, 1);
             const isOver = b.spent > b.limit;
             const barColor = isOver ? C.red : b.color;
+            const BIcon = CAT_ICONS[b.category] || ShoppingCart;
 
             return (
               <View
@@ -152,11 +159,6 @@ export default function BudgetScreen() {
                   backgroundColor: C.card,
                   borderRadius: 18,
                   padding: 16,
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.04,
-                  shadowRadius: 6,
-                  elevation: 1,
                 }}
               >
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 12 }}>
@@ -170,13 +172,13 @@ export default function BudgetScreen() {
                       justifyContent: "center",
                     }}
                   >
-                    <Text style={{ fontSize: 22 }}>{b.emoji}</Text>
+                    <BIcon size={20} color={b.color} strokeWidth={1.8} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={{ fontSize: 14, fontWeight: "600", color: C.text }}>
                       {b.category}
                     </Text>
-                    <Text style={{ fontSize: 11, color: C.sub, marginTop: 2 }}>
+                    <Text style={{ fontSize: 11, color: C.sub, marginTop: 2, fontFamily: "DMMono_400Regular" }}>
                       {fmt(b.spent)} of {fmt(b.limit)}
                     </Text>
                   </View>

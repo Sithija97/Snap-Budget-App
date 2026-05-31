@@ -2,11 +2,20 @@ import { useState } from "react";
 import { ScrollView, View, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
+  ShoppingCart, Car, CircleArrowDown, Smartphone,
+  ShoppingBag, Coffee, Laptop, HeartPulse,
+} from "lucide-react-native";
+import {
   MOCK_TRANSACTIONS,
   TOTAL_INCOME,
   TOTAL_SPENT,
 } from "../../constants/mockData";
 import { Transaction } from "../../types";
+
+const TX_ICONS: Record<string, any> = {
+  ShoppingCart, Car, CircleArrowDown, Smartphone,
+  ShoppingBag, Coffee, Laptop, HeartPulse,
+};
 
 const C = {
   dark:    "#0F1117",
@@ -73,11 +82,6 @@ export default function TransactionsScreen() {
           backgroundColor: C.card,
           paddingHorizontal: 16,
           paddingTop: 14,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.04,
-          shadowRadius: 4,
-          elevation: 2,
         }}
       >
         <View
@@ -127,29 +131,27 @@ export default function TransactionsScreen() {
           <Text style={{ fontSize: 18, color: C.sub }}>›</Text>
         </View>
 
-        {/* Income / Expense summary — solid style */}
+        {/* Income / Expense summary */}
         <View style={{ flexDirection: "row", gap: 10, marginBottom: 14 }}>
           <View
             style={{
               flex: 1,
-              backgroundColor: C.green,
+              backgroundColor: "#EDFAF4",
               borderRadius: 14,
-              padding: 12,
-              shadowColor: C.green,
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.25,
-              shadowRadius: 8,
-              elevation: 4,
+              padding: 14,
             }}
           >
-            <Text style={{ fontSize: 10, color: "rgba(255,255,255,0.75)", marginBottom: 3 }}>
-              ↓ INCOME
-            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 7 }}>
+              <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: C.green, alignItems: "center", justifyContent: "center" }}>
+                <Text style={{ fontSize: 9, color: "#fff", fontWeight: "700" }}>↓</Text>
+              </View>
+              <Text style={{ fontSize: 10, color: C.green, fontWeight: "700", letterSpacing: 0.4 }}>INCOME</Text>
+            </View>
             <Text
               style={{
                 fontSize: 15,
                 fontWeight: "700",
-                color: "#fff",
+                color: C.green,
                 fontFamily: "DMMono_400Regular",
               }}
             >
@@ -159,24 +161,22 @@ export default function TransactionsScreen() {
           <View
             style={{
               flex: 1,
-              backgroundColor: C.red,
+              backgroundColor: "#FDF0F0",
               borderRadius: 14,
-              padding: 12,
-              shadowColor: C.red,
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.25,
-              shadowRadius: 8,
-              elevation: 4,
+              padding: 14,
             }}
           >
-            <Text style={{ fontSize: 10, color: "rgba(255,255,255,0.75)", marginBottom: 3 }}>
-              ↑ EXPENSE
-            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 7 }}>
+              <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: C.red, alignItems: "center", justifyContent: "center" }}>
+                <Text style={{ fontSize: 9, color: "#fff", fontWeight: "700" }}>↑</Text>
+              </View>
+              <Text style={{ fontSize: 10, color: C.red, fontWeight: "700", letterSpacing: 0.4 }}>EXPENSE</Text>
+            </View>
             <Text
               style={{
                 fontSize: 15,
                 fontWeight: "700",
-                color: "#fff",
+                color: C.red,
                 fontFamily: "DMMono_400Regular",
               }}
             >
@@ -227,11 +227,6 @@ export default function TransactionsScreen() {
               backgroundColor: C.card,
               borderRadius: 18,
               overflow: "hidden",
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.04,
-              shadowRadius: 6,
-              elevation: 1,
             }}
           >
             {/* Group header */}
@@ -271,7 +266,9 @@ export default function TransactionsScreen() {
             </View>
 
             {/* Rows */}
-            {g.txs.map((tx, i) => (
+            {g.txs.map((tx, i) => {
+              const Icon = TX_ICONS[tx.icon] || ShoppingCart;
+              return (
               <View
                 key={tx.id}
                 style={{
@@ -280,8 +277,6 @@ export default function TransactionsScreen() {
                   gap: 12,
                   paddingVertical: 10,
                   paddingHorizontal: 16,
-                  borderTopWidth: i > 0 ? 1 : 0,
-                  borderTopColor: C.border,
                 }}
               >
                 <View
@@ -294,7 +289,7 @@ export default function TransactionsScreen() {
                     justifyContent: "center",
                   }}
                 >
-                  <Text style={{ fontSize: 20 }}>{tx.emoji}</Text>
+                  <Icon size={20} color={tx.iconColor} strokeWidth={1.8} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 13, fontWeight: "600", color: C.text }}>
@@ -315,7 +310,8 @@ export default function TransactionsScreen() {
                   {tx.txType === "inc" ? "+" : "−"}{fmt(tx.amount)}
                 </Text>
               </View>
-            ))}
+              );
+            })}
           </View>
         ))}
         <View style={{ height: 24 }} />
