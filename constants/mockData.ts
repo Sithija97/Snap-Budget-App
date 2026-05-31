@@ -14,14 +14,8 @@ export const MOCK_USER = {
 
 export const WALLETS: Wallet[] = [
   { id: 1, name: "Cash Wallet", balance: 18450, color: "#4A7AFF", emoji: "💵" },
-  {
-    id: 2,
-    name: "Bank Account",
-    balance: 62300,
-    color: "#00C170",
-    emoji: "🏦",
-  },
-  { id: 3, name: "Savings", balance: 120000, color: "#9B6BFF", emoji: "🐷" },
+  { id: 2, name: "Bank Account", balance: 62300, color: "#1D9E75", emoji: "🏦" },
+  { id: 3, name: "Savings",      balance: 120000, color: "#9B6BFF", emoji: "🐷" },
 ];
 
 export const MOCK_TRANSACTIONS: Transaction[] = [
@@ -34,8 +28,8 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     date: "2026-05-26",
     time: "10:22 AM",
     emoji: "🛒",
-    iconBg: "#E6FAF4",
-    iconColor: "#00C170",
+    iconBg: "#E6F4EE",
+    iconColor: "#1D9E75",
   },
   {
     id: "2",
@@ -58,8 +52,8 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     date: "2026-05-01",
     time: "09:00 AM",
     emoji: "💰",
-    iconBg: "#E6FAF4",
-    iconColor: "#00C170",
+    iconBg: "#E6F4EE",
+    iconColor: "#1D9E75",
   },
   {
     id: "4",
@@ -106,8 +100,8 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     date: "2026-05-18",
     time: "11:00 AM",
     emoji: "💻",
-    iconBg: "#E6FAF4",
-    iconColor: "#00C170",
+    iconBg: "#E6F4EE",
+    iconColor: "#1D9E75",
   },
   {
     id: "8",
@@ -128,7 +122,7 @@ export const MOCK_BUDGETS: Budget[] = [
     emoji: "🛒",
     spent: 12400,
     limit: 15000,
-    color: "#00C170",
+    color: "#1D9E75",
   },
   {
     category: "Food",
@@ -182,7 +176,7 @@ export const MOCK_CATEGORY_BREAKDOWN: CategoryBreakdown[] = [
     emoji: "🛒",
     amount: 12400,
     pct: 29,
-    color: "#00C170",
+    color: "#1D9E75",
   },
   {
     category: "Shopping",

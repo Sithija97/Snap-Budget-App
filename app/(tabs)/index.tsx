@@ -11,17 +11,22 @@ import {
 } from "../../constants/mockData";
 
 const C = {
-  green: "#00C170",
-  greenBg: "#E6FAF4",
-  red: "#FF5A5F",
-  blue: "#4A7AFF",
-  amber: "#FF9F40",
-  purple: "#9B6BFF",
-  text: "#1A1D23",
-  sub: "#8A94A6",
-  border: "#F0F2F7",
-  bg: "#F5F7FC",
-  card: "#FFFFFF",
+  dark:     "#0F1117",
+  green:    "#1D9E75",
+  greenBg:  "#E6F4EE",
+  red:      "#E24B4A",
+  redBg:    "#FCEBEB",
+  amber:    "#EF9F27",
+  amberBg:  "#FFF4E5",
+  blue:     "#4A7AFF",
+  blueBg:   "#EEF2FF",
+  purple:   "#9B6BFF",
+  purpleBg: "#F3EEFF",
+  text:     "#0F1117",
+  sub:      "#94A3B8",
+  border:   "#E8EDF2",
+  surface:  "#F8F9FA",
+  card:     "#FFFFFF",
 };
 
 const fmt = (n: number) => `Rs ${n.toLocaleString()}`;
@@ -31,44 +36,46 @@ export default function HomeScreen() {
   const w = WALLETS[walletIdx];
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: w.color }} edges={["top"]}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: C.dark }} edges={["top"]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        style={{ flex: 1, backgroundColor: C.bg }}
+        style={{ flex: 1, backgroundColor: C.surface }}
       >
         {/* ── Wallet card ── */}
         <View
           style={{
-            backgroundColor: w.color,
+            backgroundColor: C.dark,
             paddingHorizontal: 20,
             paddingTop: 16,
-            paddingBottom: 28,
-            borderBottomLeftRadius: 28,
-            borderBottomRightRadius: 28,
+            paddingBottom: 32,
+            borderBottomLeftRadius: 32,
+            borderBottomRightRadius: 32,
             overflow: "hidden",
           }}
         >
-          {/* Decorative circles */}
+          {/* Glow circle — wallet accent colour */}
           <View
             style={{
               position: "absolute",
-              top: -40,
-              right: -40,
-              width: 130,
-              height: 130,
-              borderRadius: 65,
-              backgroundColor: "rgba(255,255,255,0.08)",
+              top: -50,
+              right: -50,
+              width: 180,
+              height: 180,
+              borderRadius: 90,
+              backgroundColor: w.color,
+              opacity: 0.15,
             }}
           />
           <View
             style={{
               position: "absolute",
-              bottom: -30,
+              bottom: -40,
               left: -20,
-              width: 100,
-              height: 100,
-              borderRadius: 50,
-              backgroundColor: "rgba(255,255,255,0.06)",
+              width: 120,
+              height: 120,
+              borderRadius: 60,
+              backgroundColor: w.color,
+              opacity: 0.08,
             }}
           />
 
@@ -78,43 +85,47 @@ export default function HomeScreen() {
               flexDirection: "row",
               justifyContent: "space-between",
               alignItems: "center",
-              marginBottom: 18,
+              marginBottom: 24,
             }}
           >
             <View>
-              <Text
-                style={{
-                  fontSize: 11,
-                  color: "rgba(255,255,255,0.7)",
-                  marginBottom: 2,
-                }}
-              >
+              <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginBottom: 3 }}>
                 May 2026
               </Text>
-              <Text style={{ fontSize: 15, fontWeight: "600", color: "#fff" }}>
-                {w.name}
-              </Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
+                <View
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: w.color,
+                  }}
+                />
+                <Text style={{ fontSize: 15, fontWeight: "600", color: "#fff" }}>
+                  {w.name}
+                </Text>
+              </View>
             </View>
             <View style={{ flexDirection: "row", gap: 8 }}>
               <TouchableOpacity
                 onPress={() => setWalletIdx((walletIdx + 1) % WALLETS.length)}
                 style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  backgroundColor: "rgba(255,255,255,0.2)",
+                  width: 34,
+                  height: 34,
+                  borderRadius: 17,
+                  backgroundColor: "rgba(255,255,255,0.12)",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <Text style={{ fontSize: 16 }}>👛</Text>
+                <Text style={{ fontSize: 16 }}>{w.emoji}</Text>
               </TouchableOpacity>
               <View
                 style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  backgroundColor: "rgba(255,255,255,0.2)",
+                  width: 34,
+                  height: 34,
+                  borderRadius: 17,
+                  backgroundColor: "rgba(255,255,255,0.12)",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
@@ -125,19 +136,13 @@ export default function HomeScreen() {
           </View>
 
           {/* Balance */}
-          <View style={{ alignItems: "center", marginBottom: 20 }}>
-            <Text
-              style={{
-                fontSize: 11,
-                color: "rgba(255,255,255,0.7)",
-                marginBottom: 4,
-              }}
-            >
+          <View style={{ alignItems: "center", marginBottom: 24 }}>
+            <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>
               Total Balance
             </Text>
             <Text
               style={{
-                fontSize: 32,
+                fontSize: 36,
                 fontWeight: "700",
                 color: "#fff",
                 fontFamily: "DMMono_400Regular",
@@ -150,60 +155,79 @@ export default function HomeScreen() {
 
           {/* Inc / Exp chips */}
           <View style={{ flexDirection: "row", gap: 10 }}>
-            {[
-              {
-                label: "Income",
-                val: TOTAL_INCOME,
-                icon: "⬇️",
-                bg: "rgba(255,255,255,0.2)",
-              },
-              {
-                label: "Expense",
-                val: TOTAL_SPENT,
-                icon: "⬆️",
-                bg: "rgba(255,255,255,0.15)",
-              },
-            ].map((chip) => (
-              <View
-                key={chip.label}
-                style={{
-                  flex: 1,
-                  backgroundColor: chip.bg,
-                  borderRadius: 14,
-                  padding: 10,
-                }}
-              >
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: "rgba(255,255,255,0.1)",
+                borderRadius: 16,
+                padding: 12,
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 5 }}>
                 <View
                   style={{
-                    flexDirection: "row",
+                    width: 18,
+                    height: 18,
+                    borderRadius: 9,
+                    backgroundColor: C.green,
                     alignItems: "center",
-                    gap: 5,
-                    marginBottom: 4,
+                    justifyContent: "center",
                   }}
                 >
-                  <Text style={{ fontSize: 11 }}>{chip.icon}</Text>
-                  <Text
-                    style={{
-                      fontSize: 10,
-                      color: "rgba(255,255,255,0.75)",
-                      fontWeight: "500",
-                    }}
-                  >
-                    {chip.label}
-                  </Text>
+                  <Text style={{ fontSize: 9, color: "#fff" }}>↓</Text>
                 </View>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    fontWeight: "700",
-                    color: "#fff",
-                    fontFamily: "DMMono_400Regular",
-                  }}
-                >
-                  {fmt(chip.val)}
+                <Text style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", fontWeight: "500" }}>
+                  Income
                 </Text>
               </View>
-            ))}
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: "700",
+                  color: "#fff",
+                  fontFamily: "DMMono_400Regular",
+                }}
+              >
+                {fmt(TOTAL_INCOME)}
+              </Text>
+            </View>
+
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: "rgba(255,255,255,0.07)",
+                borderRadius: 16,
+                padding: 12,
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 5 }}>
+                <View
+                  style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: 9,
+                    backgroundColor: C.red,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Text style={{ fontSize: 9, color: "#fff" }}>↑</Text>
+                </View>
+                <Text style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", fontWeight: "500" }}>
+                  Expense
+                </Text>
+              </View>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: "700",
+                  color: "#fff",
+                  fontFamily: "DMMono_400Regular",
+                }}
+              >
+                {fmt(TOTAL_SPENT)}
+              </Text>
+            </View>
           </View>
 
           {/* Wallet dots */}
@@ -212,18 +236,18 @@ export default function HomeScreen() {
               flexDirection: "row",
               justifyContent: "center",
               gap: 5,
-              marginTop: 14,
+              marginTop: 16,
             }}
           >
             {WALLETS.map((_, i) => (
               <View
                 key={i}
                 style={{
-                  width: i === walletIdx ? 18 : 5,
+                  width: i === walletIdx ? 20 : 5,
                   height: 5,
                   borderRadius: 99,
                   backgroundColor:
-                    i === walletIdx ? "#fff" : "rgba(255,255,255,0.4)",
+                    i === walletIdx ? "#fff" : "rgba(255,255,255,0.3)",
                 }}
               />
             ))}
@@ -235,34 +259,36 @@ export default function HomeScreen() {
           style={{
             flexDirection: "row",
             justifyContent: "space-around",
-            paddingHorizontal: 12,
-            paddingTop: 18,
+            paddingHorizontal: 16,
+            paddingTop: 20,
             paddingBottom: 8,
           }}
         >
           {[
-            { label: "Add", icon: "➕", bg: C.greenBg, color: C.green },
-            { label: "Transfer", icon: "🔄", bg: "#EEF2FF", color: C.blue },
-            { label: "Budget", icon: "📊", bg: "#F3EEFF", color: C.purple },
-            { label: "Report", icon: "📈", bg: "#FFF4E5", color: C.amber },
+            { label: "Add",      icon: "➕", bg: C.greenBg,  color: C.green  },
+            { label: "Transfer", icon: "🔄", bg: C.blueBg,   color: C.blue   },
+            { label: "Budget",   icon: "📊", bg: C.purpleBg, color: C.purple },
+            { label: "Report",   icon: "📈", bg: C.amberBg,  color: C.amber  },
           ].map((a) => (
-            <TouchableOpacity
-              key={a.label}
-              style={{ alignItems: "center", gap: 6 }}
-            >
+            <TouchableOpacity key={a.label} style={{ alignItems: "center", gap: 6 }}>
               <View
                 style={{
-                  width: 46,
-                  height: 46,
-                  borderRadius: 14,
+                  width: 50,
+                  height: 50,
+                  borderRadius: 16,
                   backgroundColor: a.bg,
                   alignItems: "center",
                   justifyContent: "center",
+                  shadowColor: a.color,
+                  shadowOffset: { width: 0, height: 3 },
+                  shadowOpacity: 0.15,
+                  shadowRadius: 6,
+                  elevation: 2,
                 }}
               >
-                <Text style={{ fontSize: 20 }}>{a.icon}</Text>
+                <Text style={{ fontSize: 22 }}>{a.icon}</Text>
               </View>
-              <Text style={{ fontSize: 10, fontWeight: "500", color: C.sub }}>
+              <Text style={{ fontSize: 11, fontWeight: "500", color: C.sub }}>
                 {a.label}
               </Text>
             </TouchableOpacity>
@@ -272,11 +298,16 @@ export default function HomeScreen() {
         {/* ── Recent transactions ── */}
         <View
           style={{
-            marginHorizontal: 12,
+            marginHorizontal: 14,
             marginTop: 8,
             backgroundColor: C.card,
-            borderRadius: 18,
+            borderRadius: 20,
             overflow: "hidden",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.05,
+            shadowRadius: 8,
+            elevation: 2,
           }}
         >
           <View
@@ -284,17 +315,16 @@ export default function HomeScreen() {
               flexDirection: "row",
               justifyContent: "space-between",
               alignItems: "center",
-              padding: 16,
-              paddingBottom: 6,
+              paddingHorizontal: 16,
+              paddingTop: 14,
+              paddingBottom: 8,
             }}
           >
-            <Text style={{ fontSize: 13, fontWeight: "600", color: C.text }}>
-              Recent transactions
+            <Text style={{ fontSize: 14, fontWeight: "600", color: C.text }}>
+              Recent Transactions
             </Text>
-            <TouchableOpacity
-              onPress={() => router.push("/(tabs)/transactions")}
-            >
-              <Text style={{ fontSize: 11, color: C.green, fontWeight: "500" }}>
+            <TouchableOpacity onPress={() => router.push("/(tabs)/transactions")}>
+              <Text style={{ fontSize: 12, color: C.green, fontWeight: "600" }}>
                 See all →
               </Text>
             </TouchableOpacity>
@@ -305,59 +335,62 @@ export default function HomeScreen() {
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                gap: 11,
-                paddingVertical: 9,
+                gap: 12,
+                paddingVertical: 10,
                 paddingHorizontal: 16,
-                borderBottomWidth: i < 3 ? 1 : 0,
-                borderBottomColor: C.border,
+                borderTopWidth: i > 0 ? 1 : 0,
+                borderTopColor: C.border,
               }}
             >
               <View
                 style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 13,
+                  width: 42,
+                  height: 42,
+                  borderRadius: 14,
                   backgroundColor: tx.iconBg,
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <Text style={{ fontSize: 18 }}>{tx.emoji}</Text>
+                <Text style={{ fontSize: 20 }}>{tx.emoji}</Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text
-                  style={{ fontSize: 13.5, fontWeight: "500", color: C.text }}
-                >
+                <Text style={{ fontSize: 13, fontWeight: "600", color: C.text }}>
                   {tx.merchant}
                 </Text>
-                <Text style={{ fontSize: 11, color: C.sub, marginTop: 1 }}>
+                <Text style={{ fontSize: 11, color: C.sub, marginTop: 2 }}>
                   {tx.category} · {tx.time}
                 </Text>
               </View>
               <Text
                 style={{
-                  fontSize: 13.5,
-                  fontWeight: "600",
+                  fontSize: 13,
+                  fontWeight: "700",
                   color: tx.txType === "inc" ? C.green : C.red,
                   fontFamily: "DMMono_400Regular",
                 }}
               >
-                {tx.txType === "inc" ? "+" : "\u2212"}
+                {tx.txType === "inc" ? "+" : "−"}
                 {fmt(tx.amount)}
               </Text>
             </View>
           ))}
         </View>
 
-        {/* ── 6-month spending bar chart ── */}
+        {/* ── 6-month bar chart ── */}
         <View
           style={{
-            marginHorizontal: 12,
-            marginTop: 12,
-            marginBottom: 16,
+            marginHorizontal: 14,
+            marginTop: 14,
+            marginBottom: 20,
             backgroundColor: C.card,
-            borderRadius: 18,
+            borderRadius: 20,
             padding: 16,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.05,
+            shadowRadius: 8,
+            elevation: 2,
           }}
         >
           <View
@@ -365,27 +398,26 @@ export default function HomeScreen() {
               flexDirection: "row",
               justifyContent: "space-between",
               alignItems: "center",
-              marginBottom: 14,
+              marginBottom: 16,
             }}
           >
-            <Text style={{ fontSize: 13, fontWeight: "600", color: C.text }}>
-              6-month spending
+            <Text style={{ fontSize: 14, fontWeight: "600", color: C.text }}>
+              Spending Trend
             </Text>
-            <Text style={{ fontSize: 11, color: C.sub }}>May 2026</Text>
+            <Text style={{ fontSize: 12, color: C.sub }}>6 months</Text>
           </View>
+
           <View
             style={{
               flexDirection: "row",
               alignItems: "flex-end",
-              height: 80,
-              gap: 6,
+              height: 90,
+              gap: 8,
             }}
           >
             {MOCK_MONTHLY_SPENDING.map((item, i) => {
-              const max = Math.max(
-                ...MOCK_MONTHLY_SPENDING.map((s) => s.amount),
-              );
-              const h = Math.round((item.amount / max) * 68) + 8;
+              const max = Math.max(...MOCK_MONTHLY_SPENDING.map((s) => s.amount));
+              const h = Math.round((item.amount / max) * 72) + 10;
               const isActive = i === MOCK_MONTHLY_SPENDING.length - 1;
               return (
                 <View
@@ -394,22 +426,39 @@ export default function HomeScreen() {
                     flex: 1,
                     alignItems: "center",
                     justifyContent: "flex-end",
-                    gap: 4,
+                    gap: 5,
                   }}
                 >
+                  {isActive && (
+                    <Text
+                      style={{
+                        fontSize: 9,
+                        color: C.green,
+                        fontWeight: "700",
+                        fontFamily: "DMMono_400Regular",
+                      }}
+                    >
+                      {Math.round(item.amount / 1000)}k
+                    </Text>
+                  )}
                   <View
                     style={{
                       width: "100%",
                       height: h,
-                      borderTopLeftRadius: 6,
-                      borderTopRightRadius: 6,
+                      borderTopLeftRadius: 8,
+                      borderTopRightRadius: 8,
                       backgroundColor: isActive ? C.green : C.border,
+                      shadowColor: isActive ? C.green : "transparent",
+                      shadowOffset: { width: 0, height: 3 },
+                      shadowOpacity: isActive ? 0.35 : 0,
+                      shadowRadius: 6,
+                      elevation: isActive ? 4 : 0,
                     }}
                   />
                   <Text
                     style={{
-                      fontSize: 9,
-                      fontWeight: isActive ? "600" : "400",
+                      fontSize: 10,
+                      fontWeight: isActive ? "700" : "400",
                       color: isActive ? C.green : C.sub,
                     }}
                   >
