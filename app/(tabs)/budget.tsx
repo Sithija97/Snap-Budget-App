@@ -1,96 +1,111 @@
 import { useMemo } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Svg, { Circle } from "react-native-svg";
-import { MOCK_BUDGETS, TOTAL_SPENT, REMAINING } from "@/constants/mockData";
-import { Colors } from "@/constants/theme";
+import { MOCK_BUDGETS, TOTAL_SPENT } from "@/constants/mockData";
 import { fmt } from "@/utils/format";
-import CategoryProgressBar from "@/components/ui/CategoryProgressBar";
-
-const RING_SIZE = 96;
-const RING_R    = 37;
-const RING_CX   = RING_SIZE / 2;
-const RING_CY   = RING_SIZE / 2;
-const RING_CIRC = 2 * Math.PI * RING_R;
+import { UIText } from "@/components/ui/UIText";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { CAT_ICONS } from "@/constants/icons";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function BudgetScreen() {
-  const totalLimit = useMemo(
-    () => MOCK_BUDGETS.reduce((a, b) => a + b.limit, 0),
-    [],
-  );
+  const { isDark } = useTheme();
 
-  const pctUsed = TOTAL_SPENT / totalLimit;
-  const dash    = pctUsed * RING_CIRC;
+  const totalLimit = useMemo(() => MOCK_BUDGETS.reduce((a, b) => a + b.limit, 0), []);
+  const pctUsed = Math.round((TOTAL_SPENT / totalLimit) * 100);
+
+  const iconColor = isDark ? '#a1a1aa' : '#71717a';
+  const trackBg   = isDark ? '#18181b' : '#f4f4f5';
+  const fillFg    = isDark ? '#fafafa' : '#18181b';
 
   return (
-    <SafeAreaView className="flex-1 bg-brand-surface" edges={["top"]}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-
-        {/* ── Header ── */}
-        <View className="bg-brand-card px-4 pt-[14px] pb-[14px]">
-          <Text className="text-[17px] font-bold text-brand-black">Budget</Text>
+    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["top"]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 96 }}
+      >
+        {/* Header */}
+        <View className="flex-row items-center justify-between mb-4">
+          <UIText size="xl" variant="heading">Budget</UIText>
+          <UIText size="sm" variant="muted">Edit</UIText>
         </View>
 
-        {/* ── Summary ring card ── */}
-        <View
-          className="mx-[14px] mt-[14px] bg-brand-black rounded-[20px] p-5 flex-row items-center gap-5"
-          style={{
-            shadowColor: Colors.dark,
-            shadowOffset: { width: 0, height: 6 },
-            shadowOpacity: 0.25,
-            shadowRadius: 12,
-            elevation: 6,
-          }}
-        >
-          <View style={{ width: RING_SIZE, height: RING_SIZE }}>
-            <Svg width={RING_SIZE} height={RING_SIZE}>
-              <Circle
-                cx={RING_CX} cy={RING_CY} r={RING_R}
-                stroke="#1E293B" strokeWidth={11} fill="none"
-              />
-              <Circle
-                cx={RING_CX} cy={RING_CY} r={RING_R}
-                stroke={Colors.green}
-                strokeWidth={11}
-                fill="none"
-                strokeDasharray={`${dash} ${RING_CIRC}`}
-                strokeDashoffset={RING_CIRC / 4}
-                strokeLinecap="round"
-              />
-            </Svg>
-            <View className="absolute inset-0 items-center justify-center">
-              <Text className="text-[17px] font-bold text-brand-green font-mono">
-                {Math.round(pctUsed * 100)}%
-              </Text>
+        {/* Monthly overview */}
+        <Card>
+          <View className="flex-row items-start justify-between">
+            <View>
+              <UIText size="lg" className="font-mono font-medium">{fmt(TOTAL_SPENT)}</UIText>
+              <UIText size="xs" variant="muted" className="mt-0.5">of {fmt(totalLimit)}</UIText>
             </View>
+            <Badge label={`${pctUsed}%`} variant="outline" />
           </View>
 
-          <View className="flex-1">
-            <Text className="text-[11px] text-brand-muted mb-[3px]">Monthly budget</Text>
-            <Text className="text-[18px] font-bold text-white font-mono">
-              {fmt(TOTAL_SPENT)}
-            </Text>
-            <Text className="text-[12px] text-brand-muted mb-3">
-              of {fmt(totalLimit)} total
-            </Text>
+          {/* Progress track */}
+          <View
+            style={{ height: 6, backgroundColor: trackBg, borderRadius: 99, marginTop: 12, overflow: 'hidden' }}
+          >
             <View
-              className="self-start px-[14px] py-[6px] rounded-full"
-              style={{ backgroundColor: "rgba(29,158,117,0.2)" }}
-            >
-              <Text className="text-[12px] font-bold text-brand-green">
-                {fmt(REMAINING)} left
-              </Text>
-            </View>
+              style={{
+                height: '100%',
+                width: `${Math.min(pctUsed, 100)}%`,
+                backgroundColor: fillFg,
+                borderRadius: 99,
+              }}
+            />
           </View>
-        </View>
 
-        {/* ── Category cards ── */}
-        <View className="mx-[14px] mt-[14px] mb-6 gap-2.5">
-          {MOCK_BUDGETS.map((b) => (
-            <CategoryProgressBar key={b.category} {...b} />
-          ))}
-        </View>
+          <UIText size="xs" variant="muted" className="mt-2">12 days remaining</UIText>
+        </Card>
 
+        {/* Categories */}
+        <UIText size="xs" variant="label" className="mt-6 mb-3">Categories</UIText>
+
+        <View className="gap-3">
+          {MOCK_BUDGETS.map((b) => {
+            const pct = Math.round((b.spent / b.limit) * 100);
+            const fillColor = pct > 100 ? '#ef4444' : pct >= 80 ? '#d97706' : fillFg;
+            const Icon = CAT_ICONS[b.category];
+
+            return (
+              <Card key={b.category}>
+                <View className="flex-row items-center gap-3">
+                  <View
+                    className="w-8 h-8 rounded-lg items-center justify-center"
+                    style={{ backgroundColor: trackBg }}
+                  >
+                    {Icon && <Icon size={15} color={iconColor} strokeWidth={1.8} />}
+                  </View>
+
+                  <View className="flex-1">
+                    <UIText size="sm" variant="heading">{b.category}</UIText>
+                    <UIText size="xs" variant="muted" className="mt-0.5">
+                      {fmt(b.spent)} of {fmt(b.limit)}
+                    </UIText>
+                  </View>
+
+                  <UIText size="xs" className="font-mono text-mutedFg dark:text-mutedFg-dark">
+                    {pct}%
+                  </UIText>
+                </View>
+
+                {/* Category progress */}
+                <View
+                  style={{ height: 4, backgroundColor: trackBg, borderRadius: 99, marginTop: 10, overflow: 'hidden' }}
+                >
+                  <View
+                    style={{
+                      height: '100%',
+                      width: `${Math.min(pct, 100)}%`,
+                      backgroundColor: fillColor,
+                      borderRadius: 99,
+                    }}
+                  />
+                </View>
+              </Card>
+            );
+          })}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

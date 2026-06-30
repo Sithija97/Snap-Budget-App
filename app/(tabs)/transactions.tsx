@@ -1,110 +1,98 @@
 import { useCallback } from "react";
-import { ScrollView, View, Text, TouchableOpacity } from "react-native";
+import { ScrollView, View, TextInput, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MOCK_TRANSACTIONS, TOTAL_INCOME, TOTAL_SPENT } from "@/constants/mockData";
-import { fmt } from "@/utils/format";
+import { Search } from "lucide-react-native";
+import { MOCK_TRANSACTIONS } from "@/constants/mockData";
 import {
   useTransactionFilters,
   FILTER_OPTIONS,
   FilterOption,
 } from "@/hooks/useTransactionFilters";
 import TransactionItem from "@/components/ui/TransactionItem";
-import SummaryCards from "@/components/ui/SummaryCards";
+import { UIText } from "@/components/ui/UIText";
+import { Card } from "@/components/ui/Card";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function TransactionsScreen() {
   const { filter, setFilter, groups } = useTransactionFilters(MOCK_TRANSACTIONS);
+  const { isDark } = useTheme();
 
-  const handleFilterChange = useCallback(
-    (f: FilterOption) => setFilter(f),
-    [setFilter],
-  );
+  const handleFilterChange = useCallback((f: FilterOption) => setFilter(f), [setFilter]);
+
+  const iconColor  = isDark ? '#a1a1aa' : '#71717a';
+  const inputText  = isDark ? '#fafafa' : '#09090b';
+  const borderColor = isDark ? '#27272a' : '#e4e4e7';
 
   return (
-    <SafeAreaView className="flex-1 bg-brand-surface" edges={["top"]}>
-      {/* ── Header ── */}
-      <View className="bg-brand-card px-4 pt-[14px]">
-        <View className="flex-row justify-between items-center mb-3">
-          <Text className="text-[17px] font-bold text-brand-black">Records</Text>
-          <View className="flex-row gap-2">
-            {["🔍", "⚙️"].map((icon) => (
-              <View
-                key={icon}
-                className="w-8 h-8 rounded-[10px] bg-brand-surface items-center justify-center"
-              >
-                <Text className="text-[14px]">{icon}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
+    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["top"]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 96 }}
+      >
+        {/* Header */}
+        <UIText size="xl" variant="heading" className="mb-4">Transactions</UIText>
 
-        {/* Month navigator */}
-        <View className="flex-row items-center justify-center gap-[18px] mb-[14px]">
-          <Text className="text-[18px] text-brand-muted">‹</Text>
-          <Text className="text-[14px] font-bold text-brand-black">May 2026</Text>
-          <Text className="text-[18px] text-brand-muted">›</Text>
-        </View>
-
-        {/* Summary */}
-        <View className="mb-[14px]">
-          <SummaryCards income={TOTAL_INCOME} spent={TOTAL_SPENT} />
-        </View>
+        {/* Search bar */}
+        <Card className="py-2.5 flex-row items-center gap-2">
+          <Search size={16} color={iconColor} />
+          <TextInput
+            style={{ flex: 1, color: inputText, fontSize: 15 }}
+            placeholder="Search..."
+            placeholderTextColor={iconColor}
+          />
+        </Card>
 
         {/* Filter chips */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View className="flex-row gap-[7px] pb-3">
-            {FILTER_OPTIONS.map((f) => (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 8, paddingVertical: 12 }}
+        >
+          {FILTER_OPTIONS.map((f) => {
+            const isActive = filter === f;
+            return (
               <TouchableOpacity
                 key={f}
                 onPress={() => handleFilterChange(f)}
-                className={`px-[14px] py-[6px] rounded-full border ${
-                  filter === f
-                    ? "bg-brand-black border-brand-black"
-                    : "bg-brand-surface border-brand-border"
-                }`}
+                style={{
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  borderColor: isActive ? (isDark ? '#fafafa' : '#18181b') : borderColor,
+                  backgroundColor: isActive ? (isDark ? '#fafafa' : '#18181b') : 'transparent',
+                }}
+                activeOpacity={0.7}
               >
-                <Text
-                  className={`text-[12px] font-semibold ${
-                    filter === f ? "text-white" : "text-brand-muted"
-                  }`}
+                <UIText
+                  size="sm"
+                  className={isActive
+                    ? 'font-medium text-accentFg dark:text-accentFg-dark'
+                    : 'text-mutedFg dark:text-mutedFg-dark'
+                  }
                 >
                   {f}
-                </Text>
+                </UIText>
               </TouchableOpacity>
-            ))}
-          </View>
+            );
+          })}
         </ScrollView>
-      </View>
 
-      {/* ── Transaction groups ── */}
-      <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
-        {groups.map((g) => {
-          const groupTotal = g.txs
-            .filter((t) => t.txType !== "inc")
-            .reduce((sum, t) => sum + t.amount, 0);
-
-          return (
-            <View
-              key={g.label}
-              className="mx-[14px] mt-3 bg-brand-card rounded-[18px] overflow-hidden"
-            >
-              <View className="flex-row justify-between items-center px-4 pt-3 pb-[6px]">
-                <Text className="text-[11px] font-bold text-brand-muted uppercase tracking-widest">
-                  {g.label}
-                </Text>
-                {groupTotal > 0 && (
-                  <Text className="text-[11px] text-brand-red font-mono font-semibold">
-                    −{fmt(groupTotal)}
-                  </Text>
-                )}
-              </View>
-
-              {g.txs.map((tx) => (
-                <TransactionItem key={tx.id} {...tx} />
-              ))}
+        {/* Grouped list */}
+        <View className="gap-4">
+          {groups.map((g) => (
+            <View key={g.label}>
+              <UIText size="xs" variant="label" className="py-2">{g.label}</UIText>
+              <Card className="p-0 overflow-hidden">
+                {g.txs.map((tx) => (
+                  <View key={tx.id} className="px-4">
+                    <TransactionItem {...tx} />
+                  </View>
+                ))}
+              </Card>
             </View>
-          );
-        })}
-        <View className="h-6" />
+          ))}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

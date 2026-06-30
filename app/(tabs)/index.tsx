@@ -1,5 +1,5 @@
-import { memo, useCallback, useMemo, useState } from "react";
-import { ScrollView, View, Text, TouchableOpacity } from "react-native";
+import { useMemo } from "react";
+import { ScrollView, View, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import {
@@ -9,119 +9,72 @@ import {
   REMAINING,
   TOTAL_INCOME,
 } from "@/constants/mockData";
-import { Colors } from "@/constants/theme";
 import { fmt } from "@/utils/format";
 import TransactionItem from "@/components/ui/TransactionItem";
-import SummaryCards from "@/components/ui/SummaryCards";
-import ProfileModal from "@/components/home/ProfileModal";
+import { UIText } from "@/components/ui/UIText";
+import { Card } from "@/components/ui/Card";
+import { Separator } from "@/components/ui/Separator";
+import { Button } from "@/components/ui/Button";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
-const RECENT_COUNT = 5;
-
-const StatChip = memo(function StatChip({
-  label,
-  color,
-  bg,
-}: {
-  label: string;
-  color: string;
-  bg: string;
-}) {
-  return (
-    <View
-      className="flex-row items-center gap-1.5 px-3 py-2 rounded-full"
-      style={{ backgroundColor: bg }}
-    >
-      <Text className="text-[11px] font-mono" style={{ color }}>
-        {label}
-      </Text>
-    </View>
-  );
-});
+const RECENT_COUNT = 4;
 
 export default function HomeScreen() {
-  const [showProfile, setShowProfile] = useState(false);
-
-  const recentTransactions = useMemo(
-    () => MOCK_TRANSACTIONS.slice(0, RECENT_COUNT),
-    [],
-  );
-
-  const openProfile  = useCallback(() => setShowProfile(true), []);
-  const closeProfile = useCallback(() => setShowProfile(false), []);
+  const recentTransactions = useMemo(() => MOCK_TRANSACTIONS.slice(0, RECENT_COUNT), []);
 
   return (
-    <SafeAreaView className="flex-1 bg-brand-black" edges={["top"]}>
-      <ScrollView showsVerticalScrollIndicator={false} className="flex-1 bg-brand-surface">
+    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["top"]}>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 96 }}
+      >
+        {/* Header */}
+        <View className="flex-row items-center justify-between mb-4">
+          <UIText size="lg" variant="heading">May 2026</UIText>
+          <ThemeToggle />
+        </View>
 
-        {/* ── Wallet card ── */}
-        <View className="bg-brand-black px-5 pt-4 pb-[34px] rounded-b-[32px] mb-4">
-          <View className="flex-row justify-between items-center mb-[18px]">
-            <View>
-              <Text className="text-[11px] text-white/50 mb-0.5">
-                Good morning, {MOCK_USER.name}
-              </Text>
-              <Text className="text-[15px] font-semibold text-white">May 2026</Text>
+        {/* Summary card */}
+        <Card>
+          <UIText size="xs" variant="label">Total spent</UIText>
+          <UIText size="2xl" className="font-mono font-medium mt-1">{fmt(TOTAL_SPENT)}</UIText>
+
+          <Separator className="my-3" />
+
+          <View className="flex-row">
+            <View className="flex-1">
+              <UIText size="xs" variant="label">Income</UIText>
+              <UIText size="base" variant="heading" className="mt-0.5">{fmt(TOTAL_INCOME)}</UIText>
             </View>
-
-            <TouchableOpacity
-              onPress={openProfile}
-              activeOpacity={0.85}
-              className="w-[38px] h-[38px] rounded-full bg-brand-green items-center justify-center"
-            >
-              <Text className="text-[15px] font-bold text-white">
-                {MOCK_USER.name.charAt(0).toUpperCase()}
-              </Text>
-            </TouchableOpacity>
+            <View className="flex-1">
+              <UIText size="xs" variant="label">Remaining</UIText>
+              <UIText size="base" className="mt-0.5 font-medium text-positive dark:text-positive-dark">
+                {fmt(REMAINING)}
+              </UIText>
+            </View>
           </View>
+        </Card>
 
-          <Text
-            className="text-[38px] font-bold text-white font-mono mb-1"
-            style={{ letterSpacing: -1 }}
-          >
-            {fmt(TOTAL_SPENT)}
-          </Text>
-          <Text className="text-[12px] text-white/45 mb-[18px]">spent this month</Text>
+        {/* Recent transactions */}
+        <UIText size="xs" variant="label" className="mt-6 mb-3">Recent transactions</UIText>
 
-          <View className="flex-row gap-2.5">
-            <StatChip
-              label="+12% vs last month"
-              color={Colors.red}
-              bg="rgba(226,75,74,0.15)"
-            />
-            <StatChip
-              label={`${fmt(REMAINING)} left`}
-              color={Colors.green}
-              bg="rgba(29,158,117,0.18)"
-            />
-          </View>
-        </View>
-
-        {/* ── Income / Expense summary ── */}
-        <View className="mx-[14px] mt-3 mb-4">
-          <SummaryCards income={TOTAL_INCOME} spent={TOTAL_SPENT} showSubText />
-        </View>
-
-        {/* ── Recent transactions ── */}
-        <View className="mx-[14px] mt-2 mb-6 bg-brand-card rounded-[20px] overflow-hidden">
-          <View className="flex-row justify-between items-center px-4 pt-[10px] pb-[6px]">
-            <Text className="text-[14px] font-semibold text-brand-black">Recent Transactions</Text>
-            <TouchableOpacity onPress={() => router.push("/(tabs)/transactions")}>
-              <Text className="text-[12px] text-brand-green font-semibold">See all →</Text>
-            </TouchableOpacity>
-          </View>
-
-          {recentTransactions.map((tx) => (
-            <TransactionItem key={tx.id} {...tx} />
+        <Card className="p-0 overflow-hidden">
+          {recentTransactions.map((tx, i) => (
+            <View key={tx.id} className={`px-4 ${i === recentTransactions.length - 1 ? '' : ''}`}>
+              <TransactionItem {...tx} />
+            </View>
           ))}
-        </View>
-      </ScrollView>
+        </Card>
 
-      <ProfileModal
-        visible={showProfile}
-        name={MOCK_USER.name}
-        email="kasun@example.com"
-        onClose={closeProfile}
-      />
+        <TouchableOpacity
+          className="mt-2 self-start"
+          onPress={() => router.push("/(tabs)/transactions")}
+          activeOpacity={0.7}
+        >
+          <UIText size="sm" variant="muted" className="py-2">View all transactions</UIText>
+        </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   );
 }

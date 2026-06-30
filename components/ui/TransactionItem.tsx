@@ -1,47 +1,40 @@
-import { memo } from "react";
-import { View, Text } from "react-native";
-import { ShoppingCart } from "lucide-react-native";
-import { Transaction, TxType } from "@/types";
-import { TX_ICONS } from "@/constants/icons";
-import { fmt } from "@/utils/format";
+import { memo } from 'react';
+import { View } from 'react-native';
+import { ShoppingCart } from 'lucide-react-native';
+import { Transaction, TxType } from '@/types';
+import { TX_ICONS } from '@/constants/icons';
+import { fmt } from '@/utils/format';
+import { UIText } from './UIText';
 
 type Props = Pick<
   Transaction,
-  "merchant" | "category" | "txType" | "amount" | "time" | "icon" | "iconBg" | "iconColor"
+  'merchant' | 'category' | 'txType' | 'amount' | 'time' | 'icon'
 >;
 
-function TransactionItem({
-  merchant,
-  category,
-  txType,
-  amount,
-  time,
-  icon,
-  iconBg,
-  iconColor,
-}: Props) {
-  const Icon     = TX_ICONS[icon] || ShoppingCart;
+function TransactionItem({ merchant, category, txType, amount, time, icon }: Props) {
+  const Icon = TX_ICONS[icon] || ShoppingCart;
   const isIncome = txType === TxType.Income;
 
   return (
-    <View className="flex-row items-center gap-3 py-[7px] px-4">
-      <View
-        className="w-[38px] h-[38px] rounded-xl items-center justify-center"
-        style={{ backgroundColor: iconBg }}
-      >
-        <Icon size={20} color={iconColor} strokeWidth={1.8} />
+    <View className="flex-row items-center gap-3 py-3 border-b border-border dark:border-border-dark">
+      <View className="w-9 h-9 rounded-lg items-center justify-center bg-muted dark:bg-muted-dark">
+        <Icon size={16} color="#71717a" strokeWidth={1.8} />
       </View>
 
       <View className="flex-1">
-        <Text className="text-[13px] font-semibold text-brand-black">{merchant}</Text>
-        <Text className="text-[11px] text-brand-muted mt-0.5">
-          {category} · {time}
-        </Text>
+        <UIText size="sm" variant="heading">{merchant}</UIText>
+        <UIText size="xs" variant="muted" className="mt-0.5">{category}</UIText>
       </View>
 
-      <Text className={`text-[13px] font-bold font-mono ${isIncome ? "text-brand-green" : "text-brand-red"}`}>
-        {isIncome ? "+" : "−"}{fmt(amount)}
-      </Text>
+      <View className="items-end">
+        <UIText
+          size="sm"
+          className={`font-mono ${isIncome ? 'text-positive dark:text-positive-dark' : 'text-negative dark:text-negative-dark'}`}
+        >
+          {isIncome ? '+' : '−'}{fmt(amount)}
+        </UIText>
+        <UIText size="xs" variant="muted" className="mt-0.5">{time}</UIText>
+      </View>
     </View>
   );
 }

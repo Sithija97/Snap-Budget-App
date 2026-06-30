@@ -1,81 +1,69 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity, Text } from "react-native";
 import { Tabs, router } from "expo-router";
-import { House, List, ChartPie, ChartBar, ScanLine } from "lucide-react-native";
-import { Colors } from "@/constants/theme";
+import { House, ScanLine, List, ChartPie, Settings2 } from "lucide-react-native";
+import { useTheme } from "@/context/ThemeContext";
 
-const TAB_ITEMS = [
-  { name: "index",        Icon: House,    label: "Home",    routeIndex: 0 },
-  { name: "transactions", Icon: List,     label: "Records", routeIndex: 1 },
-  null,
-  { name: "budget",       Icon: ChartPie, label: "Budget",  routeIndex: 2 },
-  { name: "analytics",    Icon: ChartBar, label: "Reports", routeIndex: 3 },
-] as const;
+type LucideIcon = React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
 
-function CustomTabBar({
-  state,
-  navigation,
-  insets,
-}: {
-  state: any;
-  navigation: any;
-  descriptors: any;
-  insets: any;
-}) {
+type TabItem =
+  | { isAction: true;  name: string; Icon: LucideIcon; label: string }
+  | { isAction?: false; name: string; Icon: LucideIcon; label: string; routeIndex: number };
+
+const TABS: TabItem[] = [
+  { name: "index",        Icon: House,     label: "Home",         routeIndex: 0 },
+  { name: "transactions", Icon: List,      label: "Transactions", routeIndex: 1 },
+  { name: "scan-tab",     Icon: ScanLine,  label: "Scan",         isAction: true },
+  { name: "budget",       Icon: ChartPie,  label: "Budget",       routeIndex: 2 },
+  { name: "settings",     Icon: Settings2, label: "Settings",     routeIndex: 3 },
+];
+
+function CustomTabBar({ state, navigation, insets }: { state: any; navigation: any; descriptors: any; insets: any }) {
+  const { isDark } = useTheme();
+  const activeColor   = isDark ? '#fafafa' : '#09090b';
+  const inactiveColor = isDark ? '#a1a1aa' : '#71717a';
+  const borderColor   = isDark ? '#27272a' : '#e4e4e7';
+  const bgColor       = isDark ? '#09090b' : '#ffffff';
+
   return (
     <View
-      className="bg-brand-card border-t border-brand-border flex-row pt-2"
       style={{
-        paddingBottom: Math.max(insets.bottom, 10),
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-        elevation: 8,
+        flexDirection: 'row',
+        backgroundColor: bgColor,
+        borderTopWidth: 1,
+        borderTopColor: borderColor,
+        height: 60 + Math.max(insets.bottom, 0),
+        paddingBottom: Math.max(insets.bottom, 0),
       }}
     >
-      {TAB_ITEMS.map((item, _index) => {
-        if (!item) {
+      {TABS.map((tab) => {
+        if (tab.isAction) {
           return (
-            <View key="scan" className="flex-1 items-center justify-center">
-              <TouchableOpacity
-                onPress={() => router.push("/scan")}
-                activeOpacity={0.85}
-                className="w-[52px] h-[52px] rounded-full bg-brand-green items-center justify-center border-[3px] border-brand-card"
-                style={{
-                  marginTop: -26,
-                  shadowColor: Colors.green,
-                  shadowOffset: { width: 0, height: 6 },
-                  shadowOpacity: 0.4,
-                  shadowRadius: 10,
-                  elevation: 8,
-                }}
-              >
-                <ScanLine size={22} color="#fff" strokeWidth={2} />
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              key={tab.name}
+              style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+              onPress={() => router.push('/scan')}
+              activeOpacity={0.7}
+            >
+              <tab.Icon size={22} color={inactiveColor} strokeWidth={1.8} />
+              <Text style={{ fontSize: 11, color: inactiveColor, marginTop: 2 }}>{tab.label}</Text>
+            </TouchableOpacity>
           );
         }
 
-        const isFocused  = state.index === item.routeIndex;
-        const iconColor  = isFocused ? Colors.green : Colors.muted;
+        const isFocused = state.index === tab.routeIndex;
+        const color = isFocused ? activeColor : inactiveColor;
 
         return (
           <TouchableOpacity
-            key={item.name}
-            className="flex-1 items-center py-0.5"
-            onPress={() => navigation.navigate(item.name)}
+            key={tab.name}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+            onPress={() => navigation.navigate(tab.name)}
             activeOpacity={0.7}
           >
-            <item.Icon size={20} color={iconColor} strokeWidth={isFocused ? 2.5 : 1.8} />
-            <Text
-              className="text-[9px] font-semibold mt-[3px]"
-              style={{ color: iconColor }}
-            >
-              {item.label}
+            <tab.Icon size={22} color={color} strokeWidth={isFocused ? 2.2 : 1.8} />
+            <Text style={{ fontSize: 11, color, marginTop: 2, fontWeight: isFocused ? '500' : '400' }}>
+              {tab.label}
             </Text>
-            {isFocused && (
-              <View className="w-1 h-1 rounded-full bg-brand-green mt-0.5" />
-            )}
           </TouchableOpacity>
         );
       })}
@@ -92,7 +80,7 @@ export default function TabLayout() {
       <Tabs.Screen name="index" />
       <Tabs.Screen name="transactions" />
       <Tabs.Screen name="budget" />
-      <Tabs.Screen name="analytics" />
+      <Tabs.Screen name="settings" />
     </Tabs>
   );
 }
