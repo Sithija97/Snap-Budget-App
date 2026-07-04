@@ -1,10 +1,8 @@
-import { useMemo } from "react";
 import { ScrollView, View, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import {
   MOCK_TRANSACTIONS,
-  MOCK_USER,
   TOTAL_SPENT,
   REMAINING,
   TOTAL_INCOME,
@@ -14,14 +12,12 @@ import TransactionItem from "@/components/ui/TransactionItem";
 import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
-import { Button } from "@/components/ui/Button";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
-const RECENT_COUNT = 4;
+// Constant slice — derived from a module-level constant, computed once at import time
+const RECENT_TRANSACTIONS = MOCK_TRANSACTIONS.slice(0, 4);
 
 export default function HomeScreen() {
-  const recentTransactions = useMemo(() => MOCK_TRANSACTIONS.slice(0, RECENT_COUNT), []);
-
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["top"]}>
       <ScrollView
@@ -60,9 +56,9 @@ export default function HomeScreen() {
         <UIText size="xs" variant="label" className="mt-6 mb-3">Recent transactions</UIText>
 
         <Card className="p-0 overflow-hidden">
-          {recentTransactions.map((tx, i) => (
-            <View key={tx.id} className={`px-4 ${i === recentTransactions.length - 1 ? '' : ''}`}>
-              <TransactionItem {...tx} />
+          {RECENT_TRANSACTIONS.map((tx, i) => (
+            <View key={tx.id} className="px-4">
+              <TransactionItem {...tx} isLast={i === RECENT_TRANSACTIONS.length - 1} />
             </View>
           ))}
         </Card>

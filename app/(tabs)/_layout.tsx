@@ -80,6 +80,7 @@ export default function TabLayout() {
       <Tabs.Screen name="index" />
       <Tabs.Screen name="transactions" />
       <Tabs.Screen name="budget" />
+      <Tabs.Screen name="analytics" />
       <Tabs.Screen name="settings" />
     </Tabs>
   );

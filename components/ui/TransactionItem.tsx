@@ -4,21 +4,24 @@ import { ShoppingCart } from 'lucide-react-native';
 import { Transaction, TxType } from '@/types';
 import { TX_ICONS } from '@/constants/icons';
 import { fmt } from '@/utils/format';
+import { useTheme } from '@/context/ThemeContext';
 import { UIText } from './UIText';
 
 type Props = Pick<
   Transaction,
   'merchant' | 'category' | 'txType' | 'amount' | 'time' | 'icon'
->;
+> & { isLast?: boolean };
 
-function TransactionItem({ merchant, category, txType, amount, time, icon }: Props) {
+function TransactionItem({ merchant, category, txType, amount, time, icon, isLast }: Props) {
+  const { isDark } = useTheme();
   const Icon = TX_ICONS[icon] || ShoppingCart;
   const isIncome = txType === TxType.Income;
+  const iconColor = isDark ? '#a1a1aa' : '#71717a';
 
   return (
-    <View className="flex-row items-center gap-3 py-3 border-b border-border dark:border-border-dark">
+    <View className={`flex-row items-center gap-3 py-3 ${isLast ? '' : 'border-b border-border dark:border-border-dark'}`}>
       <View className="w-9 h-9 rounded-lg items-center justify-center bg-muted dark:bg-muted-dark">
-        <Icon size={16} color="#71717a" strokeWidth={1.8} />
+        <Icon size={16} color={iconColor} strokeWidth={1.8} />
       </View>
 
       <View className="flex-1">

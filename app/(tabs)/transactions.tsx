@@ -1,7 +1,7 @@
-import { useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ScrollView, View, TextInput, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Search } from "lucide-react-native";
+import { Search, X } from "lucide-react-native";
 import { MOCK_TRANSACTIONS } from "@/constants/mockData";
 import {
   useTransactionFilters,
@@ -14,20 +14,34 @@ import { Card } from "@/components/ui/Card";
 import { useTheme } from "@/context/ThemeContext";
 
 export default function TransactionsScreen() {
-  const { filter, setFilter, groups } = useTransactionFilters(MOCK_TRANSACTIONS);
   const { isDark } = useTheme();
+  const [searchQuery, setSearchQuery] = useState('');
 
+  // Filter by search query first, then hand off to category filter hook
+  const searchFiltered = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return MOCK_TRANSACTIONS;
+    return MOCK_TRANSACTIONS.filter(
+      tx =>
+        tx.merchant.toLowerCase().includes(q) ||
+        tx.category.toLowerCase().includes(q),
+    );
+  }, [searchQuery]);
+
+  const { filter, setFilter, groups } = useTransactionFilters(searchFiltered);
   const handleFilterChange = useCallback((f: FilterOption) => setFilter(f), [setFilter]);
 
-  const iconColor  = isDark ? '#a1a1aa' : '#71717a';
-  const inputText  = isDark ? '#fafafa' : '#09090b';
+  const iconColor   = isDark ? '#a1a1aa' : '#71717a';
+  const inputText   = isDark ? '#fafafa' : '#09090b';
   const borderColor = isDark ? '#27272a' : '#e4e4e7';
+  const accentFill  = isDark ? '#fafafa' : '#18181b';
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["top"]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 96 }}
+        keyboardShouldPersistTaps="handled"
       >
         {/* Header */}
         <UIText size="xl" variant="heading" className="mb-4">Transactions</UIText>
@@ -37,9 +51,18 @@ export default function TransactionsScreen() {
           <Search size={16} color={iconColor} />
           <TextInput
             style={{ flex: 1, color: inputText, fontSize: 15 }}
-            placeholder="Search..."
+            placeholder="Search transactions..."
             placeholderTextColor={iconColor}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="none"
+            returnKeyType="search"
           />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')} activeOpacity={0.7}>
+              <X size={15} color={iconColor} />
+            </TouchableOpacity>
+          )}
         </Card>
 
         {/* Filter chips */}
@@ -47,6 +70,7 @@ export default function TransactionsScreen() {
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ gap: 8, paddingVertical: 12 }}
+          keyboardShouldPersistTaps="handled"
         >
           {FILTER_OPTIONS.map((f) => {
             const isActive = filter === f;
@@ -59,8 +83,8 @@ export default function TransactionsScreen() {
                   paddingVertical: 6,
                   borderRadius: 8,
                   borderWidth: 1,
-                  borderColor: isActive ? (isDark ? '#fafafa' : '#18181b') : borderColor,
-                  backgroundColor: isActive ? (isDark ? '#fafafa' : '#18181b') : 'transparent',
+                  borderColor: isActive ? accentFill : borderColor,
+                  backgroundColor: isActive ? accentFill : 'transparent',
                 }}
                 activeOpacity={0.7}
               >
@@ -78,15 +102,22 @@ export default function TransactionsScreen() {
           })}
         </ScrollView>
 
+        {/* Empty state */}
+        {groups.length === 0 && (
+          <View className="items-center py-12">
+            <UIText size="sm" variant="muted">No transactions found</UIText>
+          </View>
+        )}
+
         {/* Grouped list */}
         <View className="gap-4">
           {groups.map((g) => (
             <View key={g.label}>
               <UIText size="xs" variant="label" className="py-2">{g.label}</UIText>
               <Card className="p-0 overflow-hidden">
-                {g.txs.map((tx) => (
+                {g.txs.map((tx, i) => (
                   <View key={tx.id} className="px-4">
-                    <TransactionItem {...tx} />
+                    <TransactionItem {...tx} isLast={i === g.txs.length - 1} />
                   </View>
                 ))}
               </Card>

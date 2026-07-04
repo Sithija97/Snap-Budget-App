@@ -15,14 +15,16 @@ export default function SettingsScreen() {
 
   const iconColor   = isDark ? '#a1a1aa' : '#71717a';
   const activeStyle = {
+    flex: 1,
+    alignItems: 'center' as const,
     backgroundColor: isDark ? '#fafafa' : '#18181b',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    borderRadius: 6,
+    paddingVertical: 7,
   };
   const inactiveStyle = {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    flex: 1,
+    alignItems: 'center' as const,
+    paddingVertical: 7,
   };
 
   const initials = MOCK_USER.name.slice(0, 2).toUpperCase();
@@ -53,34 +55,36 @@ export default function SettingsScreen() {
         {/* Appearance */}
         <UIText size="xs" variant="label" className="mb-2">Appearance</UIText>
         <Card>
-          <View className="flex-row items-center justify-between py-1">
-            <View>
-              <UIText size="sm" variant="heading">Theme</UIText>
-              <UIText size="xs" variant="muted">Light · Dark · System</UIText>
-            </View>
-            <View className="flex-row">
-              {THEME_OPTIONS.map((opt) => {
-                const isActive = theme === opt;
-                return (
-                  <TouchableOpacity
-                    key={opt}
-                    style={isActive ? activeStyle : inactiveStyle}
-                    onPress={() => setTheme(opt)}
-                    activeOpacity={0.7}
+          <UIText size="sm" variant="heading">Theme</UIText>
+          <View
+            className="flex-row mt-3"
+            style={{
+              backgroundColor: isDark ? '#09090b' : '#f4f4f5',
+              borderRadius: 8,
+              padding: 3,
+            }}
+          >
+            {THEME_OPTIONS.map((opt) => {
+              const isActive = theme === opt;
+              return (
+                <TouchableOpacity
+                  key={opt}
+                  style={isActive ? activeStyle : inactiveStyle}
+                  onPress={() => setTheme(opt)}
+                  activeOpacity={0.7}
+                >
+                  <UIText
+                    size="sm"
+                    className={isActive
+                      ? 'font-medium text-accentFg dark:text-accentFg-dark'
+                      : 'text-mutedFg dark:text-mutedFg-dark'
+                    }
                   >
-                    <UIText
-                      size="sm"
-                      className={isActive
-                        ? 'font-medium text-accentFg dark:text-accentFg-dark capitalize'
-                        : 'text-mutedFg dark:text-mutedFg-dark capitalize'
-                      }
-                    >
-                      {opt.charAt(0).toUpperCase() + opt.slice(1)}
-                    </UIText>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+                    {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                  </UIText>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </Card>
 

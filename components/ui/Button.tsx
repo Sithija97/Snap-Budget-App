@@ -1,5 +1,6 @@
 import { TouchableOpacity } from 'react-native';
 import { UIText } from './UIText';
+import { useTheme } from '@/context/ThemeContext';
 
 type Variant = 'default' | 'outline' | 'ghost' | 'destructive';
 
@@ -12,13 +13,6 @@ const containerStyles: Record<Variant, string> = {
   destructive: `${base} bg-destructive`,
 };
 
-const textStyles: Record<Variant, string> = {
-  default:     'text-accentFg dark:text-accentFg-dark',
-  outline:     'text-foreground dark:text-foreground-dark',
-  ghost:       'text-foreground dark:text-foreground-dark',
-  destructive: 'text-white',
-};
-
 interface ButtonProps {
   label: string;
   variant?: Variant;
@@ -28,6 +22,17 @@ interface ButtonProps {
 }
 
 export function Button({ label, variant = 'default', onPress, icon, className = '' }: ButtonProps) {
+  const { isDark } = useTheme();
+
+  const textColor = (() => {
+    switch (variant) {
+      case 'default':     return isDark ? '#18181b' : '#ffffff';
+      case 'destructive': return '#ffffff';
+      case 'outline':
+      case 'ghost':       return isDark ? '#fafafa' : '#09090b';
+    }
+  })();
+
   return (
     <TouchableOpacity
       className={`${containerStyles[variant]} ${className}`}
@@ -35,7 +40,7 @@ export function Button({ label, variant = 'default', onPress, icon, className = 
       activeOpacity={0.7}
     >
       {icon}
-      <UIText size="sm" className={`font-medium ${textStyles[variant]}`}>
+      <UIText size="sm" style={{ fontWeight: '500', color: textColor }}>
         {label}
       </UIText>
     </TouchableOpacity>

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useColorScheme } from 'react-native';
 
@@ -28,16 +28,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const setTheme = (t: Theme) => {
+  // Stable reference — won't cause context consumers to re-render on unrelated state changes
+  const setTheme = useCallback((t: Theme) => {
     setThemeState(t);
     AsyncStorage.setItem('app_theme', t);
-  };
+  }, []);
 
-  const isDark =
-    theme === 'dark' || (theme === 'system' && systemScheme === 'dark');
+  const isDark = theme === 'dark' || (theme === 'system' && systemScheme === 'dark');
+
+  // Only a new object when theme or isDark actually changes
+  const value = useMemo<ThemeContextType>(
+    () => ({ theme, isDark, setTheme }),
+    [theme, isDark, setTheme],
+  );
 
   return (
-    <ThemeContext.Provider value={{ theme, isDark, setTheme }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

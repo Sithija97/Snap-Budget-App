@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   View,
   TextInput,
+  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -103,9 +104,11 @@ export default function LoginScreen() {
           </View>
 
           {/* Footer */}
-          <View className="flex-row justify-center gap-1 py-6">
+          <View className="flex-row justify-center items-center gap-1 py-6">
             <UIText size="sm" variant="muted">Don't have an account?</UIText>
-            <UIText size="sm" variant="muted"> Sign up</UIText>
+            <TouchableOpacity activeOpacity={0.7}>
+              <UIText size="sm" variant="heading"> Sign up</UIText>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
