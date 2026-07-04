@@ -1,12 +1,28 @@
-import { Transaction } from "@/types";
+export type TransactionGroup<T extends { date: string }> = { label: string; txs: T[] };
 
-export type TransactionGroup = { label: string; txs: Transaction[] };
+// Local-timezone "YYYY-MM-DD" for a Date
+export function toISODate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
-const TODAY     = "2026-05-26";
-const YESTERDAY = "2026-05-25";
+export const todayISO = () => toISODate(new Date());
 
-export function groupByDate(txs: Transaction[]): TransactionGroup[] {
-  const dateMap: Record<string, Transaction[]> = {};
+// "YYYY-MM" for the current month — the key budgets are stored under
+export const currentMonth = () => todayISO().slice(0, 7);
+
+export function daysAgoISO(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return toISODate(d);
+}
+
+export function groupByDate<T extends { date: string }>(txs: T[]): TransactionGroup<T>[] {
+  const today = todayISO();
+  const yesterday = daysAgoISO(1);
+  const dateMap: Record<string, T[]> = {};
 
   for (const tx of txs) {
     if (!dateMap[tx.date]) dateMap[tx.date] = [];
@@ -17,8 +33,8 @@ export function groupByDate(txs: Transaction[]): TransactionGroup[] {
     .sort((a, b) => b.localeCompare(a))
     .map((date) => {
       let label = date;
-      if (date === TODAY)          label = "Today";
-      else if (date === YESTERDAY) label = "Yesterday";
+      if (date === today)          label = "Today";
+      else if (date === yesterday) label = "Yesterday";
       else {
         const d = new Date(date);
         label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });

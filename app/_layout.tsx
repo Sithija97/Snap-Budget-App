@@ -11,6 +11,7 @@ import { DMMono_400Regular } from "@expo-google-fonts/dm-mono";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
 import { ThemeProvider, useTheme } from "@/context/ThemeContext";
+import { useWalletStore } from "@/store/useWalletStore";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -36,7 +37,18 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (loaded) SplashScreen.hideAsync();
+    if (!loaded) return;
+    SplashScreen.hideAsync();
+
+    // Silently guarantee at least one wallet exists — but only after the
+    // persisted state has rehydrated, so we don't duplicate it on later launches
+    if (useWalletStore.persist.hasHydrated()) {
+      useWalletStore.getState().ensureDefaultWallet();
+      return;
+    }
+    return useWalletStore.persist.onFinishHydration(() =>
+      useWalletStore.getState().ensureDefaultWallet()
+    );
   }, [loaded]);
 
   if (!loaded) return null;

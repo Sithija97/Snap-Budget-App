@@ -19,9 +19,10 @@ interface ButtonProps {
   onPress?: () => void;
   icon?: React.ReactNode;
   className?: string;
+  disabled?: boolean;
 }
 
-export function Button({ label, variant = 'default', onPress, icon, className = '' }: ButtonProps) {
+export function Button({ label, variant = 'default', onPress, icon, className = '', disabled = false }: ButtonProps) {
   const { isDark } = useTheme();
 
   const textColor = (() => {
@@ -35,9 +36,10 @@ export function Button({ label, variant = 'default', onPress, icon, className = 
 
   return (
     <TouchableOpacity
-      className={`${containerStyles[variant]} ${className}`}
+      className={`${containerStyles[variant]} ${disabled ? 'opacity-50' : ''} ${className}`}
       onPress={onPress}
       activeOpacity={0.7}
+      disabled={disabled}
     >
       {icon}
       <UIText size="sm" style={{ fontWeight: '500', color: textColor }}>

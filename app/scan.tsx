@@ -4,10 +4,19 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { ChevronLeft, ScanLine, CheckCircle2 } from "lucide-react-native";
 import { useTheme } from "@/context/ThemeContext";
+import { useTransactionStore } from "@/store/useTransactionStore";
+import { useCategoryStore } from "@/store/useCategoryStore";
+import { useWalletStore } from "@/store/useWalletStore";
+import { TxType } from "@/types";
+import { parseAmount } from "@/utils/format";
+import { todayISO } from "@/utils/dates";
 import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
+
+const nowTime = () =>
+  new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
 
 const RECEIPT_ROWS = [
   { label: "Merchant",  value: "Cargills Food City" },
@@ -32,6 +41,43 @@ export default function ScanScreen() {
   const [amount, setAmount]     = useState('');
   const [merchant, setMerchant] = useState('');
   const [category, setCategory] = useState('');
+
+  const addTransaction = useTransactionStore((s) => s.addTransaction);
+  const wallets = useWalletStore((s) => s.wallets);
+
+  const defaultWalletId =
+    wallets.find((w) => w.isDefault)?.id ?? wallets[0]?.id ?? null;
+
+  // Matches an existing category by name, or creates a new expense category
+  const resolveCategoryId = (name: string): string => {
+    const trimmed = name.trim();
+    const { categories, addCategory } = useCategoryStore.getState();
+    const existing = categories.find(
+      (c) => c.name.toLowerCase() === trimmed.toLowerCase()
+    );
+    if (existing) return existing.id;
+    addCategory({ name: trimmed, type: "expense", icon: "ShoppingCart", parentId: null });
+    const created = useCategoryStore.getState().categories;
+    return created[created.length - 1].id;
+  };
+
+  const canSaveManual =
+    parseAmount(amount) > 0 && merchant.trim().length > 0 && category.trim().length > 0;
+
+  const saveTransaction = (m: string, catName: string, amt: number) => {
+    addTransaction({
+      merchant: m,
+      categoryId: resolveCategoryId(catName),
+      walletId: defaultWalletId,
+      txType: TxType.Expense,
+      amount: amt,
+      date: todayISO(),
+      time: nowTime(),
+    });
+    Alert.alert("Saved!", "Transaction saved successfully.", [
+      { text: "OK", onPress: () => router.back() },
+    ]);
+  };
 
   const borderColor = isDark ? '#27272a' : '#e4e4e7';
   const mutedBg     = isDark ? '#18181b' : '#f4f4f5';
@@ -112,10 +158,9 @@ export default function ScanScreen() {
               label="Save Transaction"
               variant="default"
               className="mt-2"
+              disabled={!canSaveManual}
               onPress={() =>
-                Alert.alert("Saved!", "Transaction saved successfully.", [
-                  { text: "OK", onPress: () => router.back() },
-                ])
+                saveTransaction(merchant.trim(), category, parseAmount(amount))
               }
             />
           </Card>
@@ -167,7 +212,7 @@ export default function ScanScreen() {
                     <UIText size="xs" variant="muted">{row.label}</UIText>
                     <UIText
                       size="sm"
-                      className={row.highlight ? 'font-mono text-positive dark:text-positive-dark' : ''}
+                      className={'highlight' in row && row.highlight ? 'font-mono text-positive dark:text-positive-dark' : ''}
                     >
                       {row.value}
                     </UIText>
@@ -178,11 +223,7 @@ export default function ScanScreen() {
                   label="Save Transaction"
                   variant="default"
                   className="mt-4"
-                  onPress={() =>
-                    Alert.alert("Saved!", "Transaction saved successfully.", [
-                      { text: "OK", onPress: () => router.back() },
-                    ])
-                  }
+                  onPress={() => saveTransaction("Cargills Food City", "Groceries", 3680)}
                 />
               </Card>
             )}

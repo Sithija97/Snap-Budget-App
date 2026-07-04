@@ -1,8 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
 import { ScrollView, View, TextInput, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { Search, X } from "lucide-react-native";
-import { MOCK_TRANSACTIONS } from "@/constants/mockData";
+import { useDisplayTransactions } from "@/hooks/useDisplayTransactions";
 import {
   useTransactionFilters,
   FILTER_OPTIONS,
@@ -16,17 +17,18 @@ import { useTheme } from "@/context/ThemeContext";
 export default function TransactionsScreen() {
   const { isDark } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
+  const transactions = useDisplayTransactions();
 
   // Filter by search query first, then hand off to category filter hook
   const searchFiltered = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return MOCK_TRANSACTIONS;
-    return MOCK_TRANSACTIONS.filter(
+    if (!q) return transactions;
+    return transactions.filter(
       tx =>
         tx.merchant.toLowerCase().includes(q) ||
-        tx.category.toLowerCase().includes(q),
+        tx.categoryName.toLowerCase().includes(q),
     );
-  }, [searchQuery]);
+  }, [transactions, searchQuery]);
 
   const { filter, setFilter, groups } = useTransactionFilters(searchFiltered);
   const handleFilterChange = useCallback((f: FilterOption) => setFilter(f), [setFilter]);
@@ -117,7 +119,16 @@ export default function TransactionsScreen() {
               <Card className="p-0 overflow-hidden">
                 {g.txs.map((tx, i) => (
                   <View key={tx.id} className="px-4">
-                    <TransactionItem {...tx} isLast={i === g.txs.length - 1} />
+                    <TransactionItem
+                      merchant={tx.merchant}
+                      categoryName={tx.categoryName}
+                      txType={tx.txType}
+                      amount={tx.amount}
+                      time={tx.time}
+                      icon={tx.categoryIcon}
+                      isLast={i === g.txs.length - 1}
+                      onPress={() => router.push({ pathname: "/transaction/[id]", params: { id: tx.id } })}
+                    />
                   </View>
                 ))}
               </Card>

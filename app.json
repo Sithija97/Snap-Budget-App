@@ -10,6 +10,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.sithija.snapbudget",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -26,6 +27,25 @@
     "experiments": {
       "typedRoutes": true
     },
-    "plugins": ["expo-router", "expo-font", "expo-splash-screen"]
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a0322a2d-58e3-4e51-a9d5-3da938de9071"
+      }
+    },
+    "owner": "sithija"
   }
 }

@@ -1,5 +1,6 @@
 import { View, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
 import { MOCK_USER } from "@/constants/mockData";
 import { useTheme } from "@/context/ThemeContext";
@@ -87,6 +88,27 @@ export default function SettingsScreen() {
             })}
           </View>
         </Card>
+
+        {/* Manage */}
+        <UIText size="xs" variant="label" className="mt-5 mb-2">Manage</UIText>
+        <View className="gap-2">
+          <TouchableOpacity activeOpacity={0.7} onPress={() => router.push("/wallets")}>
+            <Card>
+              <View className="flex-row items-center justify-between">
+                <UIText size="sm" variant="heading">Wallets</UIText>
+                <ChevronRight size={16} color={iconColor} />
+              </View>
+            </Card>
+          </TouchableOpacity>
+          <TouchableOpacity activeOpacity={0.7} onPress={() => router.push("/categories")}>
+            <Card>
+              <View className="flex-row items-center justify-between">
+                <UIText size="sm" variant="heading">Categories</UIText>
+                <ChevronRight size={16} color={iconColor} />
+              </View>
+            </Card>
+          </TouchableOpacity>
+        </View>
 
         {/* Budget */}
         <UIText size="xs" variant="label" className="mt-5 mb-2">Budget</UIText>

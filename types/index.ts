@@ -3,43 +3,42 @@ export enum TxType {
   Expense = "exp",
 }
 
-export enum Category {
-  Groceries = "Groceries",
-  Food      = "Food",
-  Transport = "Transport",
-  Shopping  = "Shopping",
-  Bills     = "Bills",
-  Health    = "Health",
-  Income    = "Income",
+export type CategoryType = "expense" | "income";
+
+export interface Category {
+  id:        string;
+  name:      string;
+  type:      CategoryType;
+  icon:      string;          // key into TX_ICONS map
+  parentId:  string | null;   // for subcategories, optional
+  isDefault: boolean;         // seeded categories can't be deleted, only hidden
 }
 
 export interface Wallet {
-  id:      number;
-  name:    string;
-  balance: number;
-  color:   string;
-  emoji:   string;
+  id:        string;
+  name:      string;
+  balance:   number | null;   // null = "not set", distinct from a real 0
+  isDefault: boolean;
+  createdAt: string;
 }
 
 export interface Transaction {
-  id:        string;
-  merchant:  string;
-  category:  string;
-  txType:    TxType;
-  amount:    number;
-  date:      string;
-  time:      string;
-  icon:      string;
-  iconBg:    string;
-  iconColor: string;
+  id:         string;
+  merchant:   string;
+  categoryId: string;
+  walletId:   string | null;
+  txType:     TxType;
+  amount:     number;
+  date:       string;         // "YYYY-MM-DD"
+  time:       string;         // "10:22 AM"
 }
 
 export interface Budget {
-  category: string;
-  emoji:    string;
-  spent:    number;
-  limit:    number;
-  color:    string;
+  id:          string;
+  categoryId:  string;
+  limitAmount: number;
+  month:       string;        // "YYYY-MM"
+  repeat:      boolean;
 }
 
 export interface MonthlySpending {

@@ -7,14 +7,14 @@ type LucideIcon = React.ComponentType<{ size?: number; color?: string; strokeWid
 
 type TabItem =
   | { isAction: true;  name: string; Icon: LucideIcon; label: string }
-  | { isAction?: false; name: string; Icon: LucideIcon; label: string; routeIndex: number };
+  | { isAction?: false; name: string; Icon: LucideIcon; label: string };
 
 const TABS: TabItem[] = [
-  { name: "index",        Icon: House,     label: "Home",         routeIndex: 0 },
-  { name: "transactions", Icon: List,      label: "Transactions", routeIndex: 1 },
-  { name: "scan-tab",     Icon: ScanLine,  label: "Scan",         isAction: true },
-  { name: "budget",       Icon: ChartPie,  label: "Budget",       routeIndex: 2 },
-  { name: "settings",     Icon: Settings2, label: "Settings",     routeIndex: 3 },
+  { name: "index",        Icon: House,     label: "Home" },
+  { name: "transactions", Icon: List,      label: "Transactions" },
+  { name: "scan-tab",     Icon: ScanLine,  label: "Scan",     isAction: true },
+  { name: "budget",       Icon: ChartPie,  label: "Budget" },
+  { name: "settings",     Icon: Settings2, label: "Settings" },
 ];
 
 function CustomTabBar({ state, navigation, insets }: { state: any; navigation: any; descriptors: any; insets: any }) {
@@ -50,7 +50,8 @@ function CustomTabBar({ state, navigation, insets }: { state: any; navigation: a
           );
         }
 
-        const isFocused = state.index === tab.routeIndex;
+        // Match by route name — index positions shift as routes (e.g. analytics) register
+        const isFocused = state.routes[state.index]?.name === tab.name;
         const color = isFocused ? activeColor : inactiveColor;
 
         return (
