@@ -92,6 +92,7 @@ export default function TransactionsScreen() {
               >
                 <UIText
                   size="sm"
+                  variant="unstyled"
                   className={isActive
                     ? 'font-medium text-accentFg dark:text-accentFg-dark'
                     : 'text-mutedFg dark:text-mutedFg-dark'

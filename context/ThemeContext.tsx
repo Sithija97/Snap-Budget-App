@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useColorScheme } from 'react-native';
+import { colorScheme as nativewindColorScheme } from 'nativewind';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -33,6 +34,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setThemeState(t);
     AsyncStorage.setItem('app_theme', t);
   }, []);
+
+  // Bridges the app's own theme selection into NativeWind's color-scheme
+  // singleton, which is what actually drives `dark:` class resolution on native.
+  useEffect(() => {
+    nativewindColorScheme.set(theme);
+  }, [theme]);
 
   const isDark = theme === 'dark' || (theme === 'system' && systemScheme === 'dark');
 

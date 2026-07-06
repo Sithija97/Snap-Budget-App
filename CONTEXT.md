@@ -38,7 +38,6 @@ The app is a **fully functional local-first app**: all data (wallets, categories
 - **Analytics charts are still mock data** — bar chart and category breakdown are not wired to real transaction aggregation (known deferred item)
 - **Budget "repeat" has no auto-renewal logic** — the flag persists but nothing acts on it yet
 - **Settings actions** — Monthly budget, Export data, Clear all data are non-functional
-- **Android adaptive icon foreground is missing** — `app.json` still points `android.adaptiveIcon.foregroundImage` at `./assets/android-icon-foreground.png`, but that file has been deleted from `assets/`; needs a replacement image before an Android build will produce a correct icon
 - Out of scope by decision: Debt/Loan, bank connections, Events, Recurring Transactions
 
 ---
@@ -63,7 +62,9 @@ The app is a **fully functional local-first app**: all data (wallets, categories
 
 **App config note**: `app.json`'s `expo-splash-screen` plugin entry had no config object from the initial commit onward, so no splash image ever rendered (just a blank white screen) — fixed 2026-07-04 by giving it `{ image: "./assets/splash-icon.png", imageWidth: 200, resizeMode: "contain", backgroundColor: "#ffffff" }`. This is a **managed workflow** project (no `android`/`ios` folders checked in), so splash/icon config changes only take effect on the next `expo prebuild` / `expo run:android`/`run:ios` / EAS build — not on a Metro reload. **Expo Go cannot render this config at all** (SDK 52+ limitation — Expo Go always shows the app icon as splash instead); testing the real splash screen requires a development build (`expo run:android`) or an EAS build.
 
----
+**EAS build setup**: `eas.json` has `development`/`preview`/`production` profiles; `preview` builds an installable `.apk` (no store needed). Project is linked as `@sithija/Snapbudget` (`extra.eas.projectId` in `app.json`), with `android.package: "com.sithija.snapbudget"` required for `--non-interactive` builds. Any native-icon/splash change requires a fresh build — there's no JS/Metro shortcut for those.
+
+**Android adaptive icon safe zone**: `android-icon-foreground.png`/`android-icon-monochrome.png` (432×432) originally had artwork filling ~97% of the canvas, which crowds launcher icon masks (circle/squircle) and hides the `android-icon-background.png` color/image around it. Fixed 2026-07-06 by re-centering the artwork at 66% canvas fill (Android's recommended 72dp-of-108dp safe zone) with transparent padding. Any future icon artwork should keep ~30-35% transparent margin baked in before export.
 
 ## Data architecture
 

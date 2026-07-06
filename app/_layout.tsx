@@ -10,16 +10,14 @@ import {
 import { DMMono_400Regular } from "@expo-google-fonts/dm-mono";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
-import { ThemeProvider, useTheme } from "@/context/ThemeContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { useWalletStore } from "@/store/useWalletStore";
 
 SplashScreen.preventAutoHideAsync();
 
 function InnerLayout() {
-  const { isDark } = useTheme();
-
   return (
-    <View className={isDark ? "dark flex-1" : "flex-1"}>
+    <View className="flex-1">
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="login" />
         <Stack.Screen name="(tabs)" />

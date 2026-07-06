@@ -76,6 +76,7 @@ export default function SettingsScreen() {
                 >
                   <UIText
                     size="sm"
+                    variant="unstyled"
                     className={isActive
                       ? 'font-medium text-accentFg dark:text-accentFg-dark'
                       : 'text-mutedFg dark:text-mutedFg-dark'
@@ -117,7 +118,7 @@ export default function SettingsScreen() {
             <View className="flex-row items-center justify-between">
               <UIText size="sm" variant="heading">Monthly budget</UIText>
               <View className="flex-row items-center gap-2">
-                <UIText size="sm" className="font-mono text-mutedFg dark:text-mutedFg-dark">
+                <UIText size="sm" variant="unstyled" className="font-mono text-mutedFg dark:text-mutedFg-dark">
                   Rs 50,000
                 </UIText>
                 <ChevronRight size={16} color={iconColor} />
@@ -136,7 +137,7 @@ export default function SettingsScreen() {
           </TouchableOpacity>
           <TouchableOpacity activeOpacity={0.7}>
             <Card>
-              <UIText size="sm" className="text-destructive">Clear all data</UIText>
+              <UIText size="sm" variant="unstyled" className="text-destructive">Clear all data</UIText>
             </Card>
           </TouchableOpacity>
         </View>

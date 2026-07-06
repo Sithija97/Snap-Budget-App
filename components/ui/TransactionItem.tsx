@@ -39,6 +39,7 @@ function TransactionItem({ merchant, categoryName, txType, amount, time, icon, i
         <View className="items-end">
           <UIText
             size="sm"
+            variant="unstyled"
             className={`font-mono ${isIncome ? 'text-positive dark:text-positive-dark' : 'text-negative dark:text-negative-dark'}`}
           >
             {isIncome ? '+' : '−'}{fmt(amount)}

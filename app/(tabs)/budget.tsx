@@ -50,7 +50,7 @@ const CategoryRow = memo(function CategoryRow({
             </UIText>
           </View>
 
-          <UIText size="xs" className="font-mono text-mutedFg dark:text-mutedFg-dark">
+          <UIText size="xs" variant="unstyled" className="font-mono text-mutedFg dark:text-mutedFg-dark">
             {pct}%
           </UIText>
         </View>

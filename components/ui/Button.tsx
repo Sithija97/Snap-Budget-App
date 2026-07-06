@@ -42,7 +42,7 @@ export function Button({ label, variant = 'default', onPress, icon, className = 
       disabled={disabled}
     >
       {icon}
-      <UIText size="sm" style={{ fontWeight: '500', color: textColor }}>
+      <UIText size="sm" variant="unstyled" style={{ fontWeight: '500', color: textColor }}>
         {label}
       </UIText>
     </TouchableOpacity>

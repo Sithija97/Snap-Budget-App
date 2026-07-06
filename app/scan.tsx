@@ -212,6 +212,7 @@ export default function ScanScreen() {
                     <UIText size="xs" variant="muted">{row.label}</UIText>
                     <UIText
                       size="sm"
+                      variant={'highlight' in row && row.highlight ? 'unstyled' : 'default'}
                       className={'highlight' in row && row.highlight ? 'font-mono text-positive dark:text-positive-dark' : ''}
                     >
                       {row.value}

@@ -84,7 +84,7 @@ export default function AnalyticsScreen() {
                       borderRadius: 4,
                     }}
                   />
-                  <UIText size="xs" style={{ color: textMuted }}>{m.month}</UIText>
+                  <UIText size="xs" variant="unstyled" style={{ color: textMuted }}>{m.month}</UIText>
                 </View>
               );
             })}
@@ -105,7 +105,7 @@ export default function AnalyticsScreen() {
             >
               <View style={{ width: 8, height: 8, borderRadius: 99, backgroundColor: c.color }} />
               <UIText size="sm" className="flex-1">{c.category}</UIText>
-              <UIText size="sm" className="font-mono text-mutedFg dark:text-mutedFg-dark">{c.pct}%</UIText>
+              <UIText size="sm" variant="unstyled" className="font-mono text-mutedFg dark:text-mutedFg-dark">{c.pct}%</UIText>
               <UIText size="sm" className="font-mono">{fmt(c.amount)}</UIText>
             </View>
           ))}

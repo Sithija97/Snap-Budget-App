@@ -61,7 +61,7 @@ export default function HomeScreen() {
             </View>
             <View className="flex-1">
               <UIText size="xs" variant="label">Remaining</UIText>
-              <UIText size="base" className="mt-0.5 font-medium text-positive dark:text-positive-dark">
+              <UIText size="base" variant="unstyled" className="mt-0.5 font-medium text-positive dark:text-positive-dark">
                 {fmt(remaining)}
               </UIText>
             </View>

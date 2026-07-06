@@ -1,14 +1,17 @@
 import { Text, TextProps } from 'react-native';
 
-type Variant = 'default' | 'muted' | 'heading' | 'label' | 'mono';
+type Variant = 'default' | 'muted' | 'heading' | 'label' | 'mono' | 'unstyled';
 type Size = 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl';
 
 const variants: Record<Variant, string> = {
-  default: 'text-foreground dark:text-foreground-dark font-sans',
-  muted:   'text-mutedFg dark:text-mutedFg-dark font-sans',
-  heading: 'text-foreground dark:text-foreground-dark font-medium',
-  label:   'text-mutedFg dark:text-mutedFg-dark uppercase tracking-widest font-medium',
-  mono:    'text-foreground dark:text-foreground-dark font-mono',
+  default:  'text-foreground dark:text-foreground-dark font-sans',
+  muted:    'text-mutedFg dark:text-mutedFg-dark font-sans',
+  heading:  'text-foreground dark:text-foreground-dark font-medium',
+  label:    'text-mutedFg dark:text-mutedFg-dark uppercase tracking-widest font-medium',
+  mono:     'text-foreground dark:text-foreground-dark font-mono',
+  // No text-color class — for callers that need to fully control color via `style`
+  // (e.g. Button, which computes a per-variant contrasting color against its own background).
+  unstyled: 'font-sans',
 };
 
 const sizes: Record<Size, string> = {
