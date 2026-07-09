@@ -18,6 +18,7 @@ const transactionInput = z.object({
   amount: z.number().positive(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   time: z.string().min(1),
+  receiptKey: z.string().nullable().optional(),
 });
 
 export const transactionsRoute = new Hono<Env>();

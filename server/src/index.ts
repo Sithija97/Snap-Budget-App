@@ -8,6 +8,8 @@ import { categoriesRoute } from "./routes/categories";
 import { budgetsRoute } from "./routes/budgets";
 import { transactionsRoute } from "./routes/transactions";
 import { dataRoute } from "./routes/data";
+import { scanRoute } from "./routes/scan";
+import { receiptsRoute } from "./routes/receipts";
 import type { Env } from "./types";
 
 const app = new Hono<Env>();
@@ -38,5 +40,7 @@ app.route("/api/categories", categoriesRoute);
 app.route("/api/budgets", budgetsRoute);
 app.route("/api/transactions", transactionsRoute);
 app.route("/api/data", dataRoute);
+app.route("/api/scan", scanRoute);
+app.route("/api/receipts", receiptsRoute);
 
 export default app;

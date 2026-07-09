@@ -72,6 +72,9 @@ export const transactions = pgTable("transactions", {
   amount: numeric("amount", { mode: "number" }).notNull(),
   date: text("date").notNull(), // "YYYY-MM-DD"
   time: text("time").notNull(), // "10:22 AM"
+  // Cloudinary public_id ("userId/uuid"), null when the transaction wasn't
+  // created from a scanned receipt (e.g. manual entry).
+  receiptKey: text("receipt_key"),
 }, (table) => [
   index("transactions_user_id_date_idx").on(table.userId, table.date),
   index("transactions_category_id_idx").on(table.categoryId),
