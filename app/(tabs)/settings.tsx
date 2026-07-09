@@ -1,18 +1,35 @@
-import { View, ScrollView, TouchableOpacity } from "react-native";
+import { useState } from "react";
+import { View, ScrollView, TouchableOpacity, Alert, Share } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
-import { MOCK_USER } from "@/constants/mockData";
+import { useUser, useClerk } from "@clerk/clerk-expo";
 import { useTheme } from "@/context/ThemeContext";
+import { useWalletStore } from "@/store/useWalletStore";
+import { useCategoryStore } from "@/store/useCategoryStore";
+import { useBudgetStore } from "@/store/useBudgetStore";
+import { useTransactionStore } from "@/store/useTransactionStore";
+import { api } from "@/lib/api";
 import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
+import { Button } from "@/components/ui/Button";
 
 type ThemeOption = 'light' | 'system' | 'dark';
 const THEME_OPTIONS: ThemeOption[] = ['light', 'system', 'dark'];
 
 export default function SettingsScreen() {
   const { theme, setTheme, isDark } = useTheme();
+  const { user } = useUser();
+  const { signOut } = useClerk();
+  const [signingOut, setSigningOut] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [clearing, setClearing] = useState(false);
+
+  const wallets = useWalletStore((s) => s.wallets);
+  const categories = useCategoryStore((s) => s.categories);
+  const budgets = useBudgetStore((s) => s.budgets);
+  const transactions = useTransactionStore((s) => s.transactions);
 
   const iconColor   = isDark ? '#a1a1aa' : '#71717a';
   const activeStyle = {
@@ -28,7 +45,79 @@ export default function SettingsScreen() {
     paddingVertical: 7,
   };
 
-  const initials = MOCK_USER.name.slice(0, 2).toUpperCase();
+  const email = user?.primaryEmailAddress?.emailAddress ?? "";
+  const displayName = user?.fullName?.trim() || email || "Account";
+  const initials = displayName.slice(0, 2).toUpperCase();
+
+  const handleSignOut = () => {
+    Alert.alert("Sign out?", "You'll need to sign in again to access your data.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign out",
+        style: "destructive",
+        onPress: async () => {
+          setSigningOut(true);
+          try {
+            await signOut();
+          } catch {
+            Alert.alert("Couldn't sign out", "Please try again.");
+            setSigningOut(false);
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        wallets,
+        categories,
+        budgets,
+        transactions,
+      };
+      await Share.share({
+        title: "SnapBudget data export",
+        message: JSON.stringify(payload, null, 2),
+      });
+    } catch {
+      Alert.alert("Couldn't export data", "Please try again.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleClearData = () => {
+    Alert.alert(
+      "Clear all data?",
+      "This permanently deletes every wallet, category, budget, and transaction, and resets the app to a fresh state. This can't be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Clear everything",
+          style: "destructive",
+          onPress: async () => {
+            setClearing(true);
+            try {
+              await api.del("/api/data");
+              await Promise.all([
+                useWalletStore.getState().fetchAll(),
+                useCategoryStore.getState().fetchAll(),
+                useBudgetStore.getState().fetchAll(),
+                useTransactionStore.getState().fetchAll(),
+              ]);
+            } catch {
+              Alert.alert("Couldn't clear data", "Please try again.");
+            } finally {
+              setClearing(false);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["top"]}>
@@ -45,8 +134,8 @@ export default function SettingsScreen() {
               <UIText size="sm" variant="heading">{initials}</UIText>
             </View>
             <View>
-              <UIText size="base" variant="heading">{MOCK_USER.name}</UIText>
-              <UIText size="sm" variant="muted">kasun@example.com</UIText>
+              <UIText size="base" variant="heading">{displayName}</UIText>
+              {email.length > 0 && <UIText size="sm" variant="muted">{email}</UIText>}
             </View>
           </View>
         </Card>
@@ -111,36 +200,31 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Budget */}
-        <UIText size="xs" variant="label" className="mt-5 mb-2">Budget</UIText>
-        <TouchableOpacity activeOpacity={0.7}>
-          <Card>
-            <View className="flex-row items-center justify-between">
-              <UIText size="sm" variant="heading">Monthly budget</UIText>
-              <View className="flex-row items-center gap-2">
-                <UIText size="sm" variant="unstyled" className="font-mono text-mutedFg dark:text-mutedFg-dark">
-                  Rs 50,000
-                </UIText>
-                <ChevronRight size={16} color={iconColor} />
-              </View>
-            </View>
-          </Card>
-        </TouchableOpacity>
-
         {/* Data */}
         <UIText size="xs" variant="label" className="mt-5 mb-2">Data</UIText>
         <View className="gap-2">
-          <TouchableOpacity activeOpacity={0.7}>
+          <TouchableOpacity activeOpacity={0.7} onPress={handleExport} disabled={exporting}>
             <Card>
-              <UIText size="sm" variant="heading">Export data</UIText>
+              <UIText size="sm" variant="heading">{exporting ? "Preparing export..." : "Export data"}</UIText>
             </Card>
           </TouchableOpacity>
-          <TouchableOpacity activeOpacity={0.7}>
+          <TouchableOpacity activeOpacity={0.7} onPress={handleClearData} disabled={clearing}>
             <Card>
-              <UIText size="sm" variant="unstyled" className="text-destructive">Clear all data</UIText>
+              <UIText size="sm" variant="unstyled" className="text-destructive">
+                {clearing ? "Clearing..." : "Clear all data"}
+              </UIText>
             </Card>
           </TouchableOpacity>
         </View>
+
+        {/* Account */}
+        <UIText size="xs" variant="label" className="mt-5 mb-2">Account</UIText>
+        <Button
+          label={signingOut ? "Signing out..." : "Sign out"}
+          variant="outline"
+          disabled={signingOut}
+          onPress={handleSignOut}
+        />
 
         {/* Version */}
         <UIText size="xs" variant="muted" className="text-center mt-8">
