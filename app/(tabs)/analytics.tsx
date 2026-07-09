@@ -1,29 +1,16 @@
-import { useState } from "react";
-import { View, ScrollView, TouchableOpacity } from "react-native";
+import { useMemo, useState } from "react";
+import { View, ScrollView, TouchableOpacity, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  MOCK_MONTHLY_SPENDING,
-  MOCK_CATEGORY_BREAKDOWN,
-} from "@/constants/mockData";
+import { useTransactionStore } from "@/store/useTransactionStore";
+import { useCategoryStore } from "@/store/useCategoryStore";
+import { monthlySpendingSeries, weeklySpendingSeries, categoryBreakdownForMonth } from "@/utils/analytics";
+import { currentMonth } from "@/utils/dates";
 import { fmt } from "@/utils/format";
 import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
+import { DataState } from "@/components/ui/DataState";
 import { useTheme } from "@/context/ThemeContext";
-import { MonthlySpending } from "@/types";
-
-// Computed once at module level — never changes
-const MONTHLY_MAX = Math.max(...MOCK_MONTHLY_SPENDING.map(m => m.amount));
-
-// Mock weekly data: last 6 weeks derived from the same magnitude
-const WEEKLY_SPENDING: MonthlySpending[] = [
-  { month: 'W1', amount: 9200 },
-  { month: 'W2', amount: 11400 },
-  { month: 'W3', amount: 8700 },
-  { month: 'W4', amount: 10100 },
-  { month: 'W5', amount: 7600 },
-  { month: 'W6', amount: 6850 },
-];
-const WEEKLY_MAX = Math.max(...WEEKLY_SPENDING.map(m => m.amount));
+import { useRefresh } from "@/hooks/useRefresh";
 
 const PERIODS = ['Monthly', 'Weekly'] as const;
 type Period = typeof PERIODS[number];
@@ -32,20 +19,40 @@ export default function AnalyticsScreen() {
   const { isDark } = useTheme();
   const [period, setPeriod] = useState<Period>('Monthly');
 
+  const transactions = useTransactionStore((s) => s.transactions);
+  const txStatus = useTransactionStore((s) => s.status);
+  const fetchTransactions = useTransactionStore((s) => s.fetchAll);
+  const categories = useCategoryStore((s) => s.categories);
+  const fetchCategories = useCategoryStore((s) => s.fetchAll);
+
+  const monthlySpending = useMemo(() => monthlySpendingSeries(transactions), [transactions]);
+  const weeklySpending = useMemo(() => weeklySpendingSeries(transactions), [transactions]);
+  const breakdown = useMemo(
+    () => categoryBreakdownForMonth(transactions, categories, currentMonth()),
+    [transactions, categories]
+  );
+
   const isMonthly   = period === 'Monthly';
-  const chartData   = isMonthly ? MOCK_MONTHLY_SPENDING : WEEKLY_SPENDING;
-  const chartMax    = isMonthly ? MONTHLY_MAX : WEEKLY_MAX;
+  const chartData   = isMonthly ? monthlySpending : weeklySpending;
+  const chartMax    = Math.max(...chartData.map(m => m.amount), 1);
   const chartLabel  = isMonthly ? 'Spending — last 6 months' : 'Spending — last 6 weeks';
 
   const barActive = isDark ? '#fafafa' : '#18181b';
   const barMuted  = isDark ? '#27272a' : '#e4e4e7';
   const textMuted = isDark ? '#a1a1aa' : '#71717a';
 
+  const { refreshing, onRefresh } = useRefresh(async () => {
+    await Promise.all([fetchTransactions(), fetchCategories()]);
+  });
+
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["top"]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 96 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       >
         {/* Header */}
         <View className="flex-row items-center justify-between mb-4">
@@ -67,49 +74,59 @@ export default function AnalyticsScreen() {
           </View>
         </View>
 
-        {/* Bar chart */}
-        <Card>
-          <UIText size="xs" variant="label" className="mb-3">{chartLabel}</UIText>
-          <View className="flex-row items-end justify-between" style={{ height: 120 }}>
-            {chartData.map((m, i) => {
-              const isLast = i === chartData.length - 1;
-              const barHeight = Math.max((m.amount / chartMax) * 100, 6);
-              return (
-                <View key={i} className="flex-1 items-center" style={{ gap: 4 }}>
-                  <View
-                    style={{
-                      width: '60%',
-                      height: barHeight,
-                      backgroundColor: isLast ? barActive : barMuted,
-                      borderRadius: 4,
-                    }}
-                  />
-                  <UIText size="xs" variant="unstyled" style={{ color: textMuted }}>{m.month}</UIText>
-                </View>
-              );
-            })}
-          </View>
-        </Card>
+        {transactions.length === 0 ? (
+          <DataState status={txStatus} isEmpty onRetry={onRefresh} emptyMessage="No spending data yet" />
+        ) : (
+          <>
+            {/* Bar chart */}
+            <Card>
+              <UIText size="xs" variant="label" className="mb-3">{chartLabel}</UIText>
+              <View className="flex-row items-end justify-between" style={{ height: 120 }}>
+                {chartData.map((m, i) => {
+                  const isLast = i === chartData.length - 1;
+                  const barHeight = Math.max((m.amount / chartMax) * 100, 6);
+                  return (
+                    <View key={i} className="flex-1 items-center" style={{ gap: 4 }}>
+                      <View
+                        style={{
+                          width: '60%',
+                          height: barHeight,
+                          backgroundColor: isLast ? barActive : barMuted,
+                          borderRadius: 4,
+                        }}
+                      />
+                      <UIText size="xs" variant="unstyled" style={{ color: textMuted }}>{m.month}</UIText>
+                    </View>
+                  );
+                })}
+              </View>
+            </Card>
 
-        {/* By category */}
-        <Card className="mt-3">
-          <UIText size="xs" variant="label" className="mb-3">By category</UIText>
-          {MOCK_CATEGORY_BREAKDOWN.map((c, i) => (
-            <View
-              key={c.category}
-              className={`flex-row items-center gap-2 py-2 ${
-                i < MOCK_CATEGORY_BREAKDOWN.length - 1
-                  ? 'border-b border-border dark:border-border-dark'
-                  : ''
-              }`}
-            >
-              <View style={{ width: 8, height: 8, borderRadius: 99, backgroundColor: c.color }} />
-              <UIText size="sm" className="flex-1">{c.category}</UIText>
-              <UIText size="sm" variant="unstyled" className="font-mono text-mutedFg dark:text-mutedFg-dark">{c.pct}%</UIText>
-              <UIText size="sm" className="font-mono">{fmt(c.amount)}</UIText>
-            </View>
-          ))}
-        </Card>
+            {/* By category */}
+            <Card className="mt-3">
+              <UIText size="xs" variant="label" className="mb-3">By category — this month</UIText>
+              {breakdown.length === 0 ? (
+                <UIText size="sm" variant="muted" className="py-2">No expenses yet this month</UIText>
+              ) : (
+                breakdown.map((c, i) => (
+                  <View
+                    key={c.category}
+                    className={`flex-row items-center gap-2 py-2 ${
+                      i < breakdown.length - 1
+                        ? 'border-b border-border dark:border-border-dark'
+                        : ''
+                    }`}
+                  >
+                    <View style={{ width: 8, height: 8, borderRadius: 99, backgroundColor: c.color }} />
+                    <UIText size="sm" className="flex-1">{c.category}</UIText>
+                    <UIText size="sm" variant="unstyled" className="font-mono text-mutedFg dark:text-mutedFg-dark">{c.pct}%</UIText>
+                    <UIText size="sm" className="font-mono">{fmt(c.amount)}</UIText>
+                  </View>
+                ))
+              )}
+            </Card>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
