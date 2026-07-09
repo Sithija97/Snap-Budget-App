@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { View, ScrollView, TextInput, TouchableOpacity, Alert } from "react-native";
+import { useState, useEffect } from "react";
+import { View, ScrollView, TextInput, TouchableOpacity, Alert, Image, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
+import { useAuth } from "@clerk/clerk-expo";
 import { ChevronLeft } from "lucide-react-native";
 import { useTheme } from "@/context/ThemeContext";
 import { useTransactionStore } from "@/store/useTransactionStore";
@@ -9,14 +10,17 @@ import { useCategoryStore } from "@/store/useCategoryStore";
 import { useWalletStore } from "@/store/useWalletStore";
 import { TxType } from "@/types";
 import { fmt, parseAmount } from "@/utils/format";
+import { API_URL } from "@/lib/api";
 import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
+import { Chip } from "@/components/ui/Chip";
 
 export default function TransactionDetailScreen() {
   const { isDark } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { getToken } = useAuth();
 
   const transactions = useTransactionStore((s) => s.transactions);
   const updateTransaction = useTransactionStore((s) => s.updateTransaction);
@@ -32,12 +36,41 @@ export default function TransactionDetailScreen() {
   const [categoryId, setCategoryId] = useState(tx?.categoryId ?? null);
   const [walletId, setWalletId] = useState(tx?.walletId ?? null);
   const [saving, setSaving] = useState(false);
+  // RN's <Image source={{ uri, headers }}> only actually attaches those
+  // headers on native — react-native-web renders a plain <img>, and browsers
+  // give no way to attach custom headers (e.g. Authorization) to an <img>
+  // request, so that approach silently fails to load on web. fetch() +
+  // a data URI works identically on every platform.
+  const [receiptDataUri, setReceiptDataUri] = useState<string | null>(null);
+
+  const receiptKey = tx?.receiptKey;
+  useEffect(() => {
+    if (!receiptKey || !API_URL) return;
+    let cancelled = false;
+    (async () => {
+      const token = await getToken();
+      if (!token) return;
+      const res = await fetch(`${API_URL}/api/receipts/${receiptKey}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (!cancelled) setReceiptDataUri(reader.result as string);
+      };
+      reader.readAsDataURL(blob);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [receiptKey, getToken]);
 
   const borderColor = isDark ? "#27272a" : "#e4e4e7";
+  const mutedBg     = isDark ? "#18181b" : "#f4f4f5";
   const iconColor   = isDark ? "#a1a1aa" : "#71717a";
   const inputText   = isDark ? "#fafafa" : "#09090b";
   const inputBg     = isDark ? "#09090b" : "#ffffff";
-  const accentFill  = isDark ? "#fafafa" : "#18181b";
 
   const inputStyle = {
     height: 44,
@@ -50,16 +83,6 @@ export default function TransactionDetailScreen() {
     fontSize: 15,
   } as const;
 
-  const chipStyle = (isActive: boolean) =>
-    ({
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: isActive ? accentFill : borderColor,
-      backgroundColor: isActive ? accentFill : "transparent",
-    }) as const;
-
   const toggleEdit = () => {
     // Cancelling discards unsaved edits
     if (isEditing && tx) {
@@ -70,11 +93,6 @@ export default function TransactionDetailScreen() {
     }
     setIsEditing(!isEditing);
   };
-
-  const chipText = (isActive: boolean) =>
-    isActive
-      ? "font-medium text-accentFg dark:text-accentFg-dark"
-      : "text-mutedFg dark:text-mutedFg-dark";
 
   const header = (
     <View className="flex-row items-center px-4 pt-3 pb-4">
@@ -198,28 +216,14 @@ export default function TransactionDetailScreen() {
             <UIText size="xs" variant="label" className="mt-2">Category</UIText>
             <View className="flex-row flex-wrap gap-2">
               {categoryOptions.map((c) => (
-                <TouchableOpacity
-                  key={c.id}
-                  onPress={() => setCategoryId(c.id)}
-                  activeOpacity={0.7}
-                  style={chipStyle(categoryId === c.id)}
-                >
-                  <UIText size="sm" className={chipText(categoryId === c.id)}>{c.name}</UIText>
-                </TouchableOpacity>
+                <Chip key={c.id} label={c.name} selected={categoryId === c.id} onPress={() => setCategoryId(c.id)} />
               ))}
             </View>
 
             <UIText size="xs" variant="label" className="mt-2">Wallet</UIText>
             <View className="flex-row flex-wrap gap-2">
               {wallets.map((w) => (
-                <TouchableOpacity
-                  key={w.id}
-                  onPress={() => setWalletId(w.id)}
-                  activeOpacity={0.7}
-                  style={chipStyle(walletId === w.id)}
-                >
-                  <UIText size="sm" className={chipText(walletId === w.id)}>{w.name}</UIText>
-                </TouchableOpacity>
+                <Chip key={w.id} label={w.name} selected={walletId === w.id} onPress={() => setWalletId(w.id)} />
               ))}
             </View>
 
@@ -253,6 +257,27 @@ export default function TransactionDetailScreen() {
                 <UIText size="sm">{row.value}</UIText>
               </View>
             ))}
+
+            {receiptKey && (
+              <>
+                <Separator className="my-3" />
+                <UIText size="xs" variant="label" className="mb-2">Receipt</UIText>
+                {receiptDataUri ? (
+                  <Image
+                    source={{ uri: receiptDataUri }}
+                    style={{ width: "100%", height: 200, borderRadius: 8, backgroundColor: mutedBg }}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View
+                    style={{ width: "100%", height: 200, borderRadius: 8, backgroundColor: mutedBg }}
+                    className="items-center justify-center"
+                  >
+                    <ActivityIndicator color={iconColor} />
+                  </View>
+                )}
+              </>
+            )}
 
             <Button
               label="Delete Transaction"
