@@ -11,6 +11,7 @@ import { currentMonth } from "@/utils/dates";
 import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Chip } from "@/components/ui/Chip";
 
 export default function BudgetFormScreen() {
   const { isDark } = useTheme();
@@ -120,34 +121,9 @@ export default function BudgetFormScreen() {
         <Card className="mx-4 mt-4 gap-3">
           <UIText size="xs" variant="label">Category</UIText>
           <View className="flex-row flex-wrap gap-2">
-            {expenseCategories.map((c) => {
-              const isActive = categoryId === c.id;
-              return (
-                <TouchableOpacity
-                  key={c.id}
-                  onPress={() => setCategoryId(c.id)}
-                  activeOpacity={0.7}
-                  style={{
-                    paddingHorizontal: 12,
-                    paddingVertical: 6,
-                    borderRadius: 8,
-                    borderWidth: 1,
-                    borderColor: isActive ? accentFill : borderColor,
-                    backgroundColor: isActive ? accentFill : "transparent",
-                  }}
-                >
-                  <UIText
-                    size="sm"
-                    className={isActive
-                      ? "font-medium text-accentFg dark:text-accentFg-dark"
-                      : "text-mutedFg dark:text-mutedFg-dark"
-                    }
-                  >
-                    {c.name}
-                  </UIText>
-                </TouchableOpacity>
-              );
-            })}
+            {expenseCategories.map((c) => (
+              <Chip key={c.id} label={c.name} selected={categoryId === c.id} onPress={() => setCategoryId(c.id)} />
+            ))}
           </View>
 
           <UIText size="xs" variant="label" className="mt-2">Monthly limit</UIText>

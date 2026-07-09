@@ -14,6 +14,7 @@ import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
+import { Chip } from "@/components/ui/Chip";
 
 type ThemeOption = 'light' | 'system' | 'dark';
 const THEME_OPTIONS: ThemeOption[] = ['light', 'system', 'dark'];
@@ -32,18 +33,8 @@ export default function SettingsScreen() {
   const transactions = useTransactionStore((s) => s.transactions);
 
   const iconColor   = isDark ? '#a1a1aa' : '#71717a';
-  const activeStyle = {
-    flex: 1,
-    alignItems: 'center' as const,
-    backgroundColor: isDark ? '#fafafa' : '#18181b',
-    borderRadius: 6,
-    paddingVertical: 7,
-  };
-  const inactiveStyle = {
-    flex: 1,
-    alignItems: 'center' as const,
-    paddingVertical: 7,
-  };
+  // Layout only — Chip computes selected/unselected color internally.
+  const segmentStyle = { flex: 1, alignItems: 'center' as const, borderRadius: 6, paddingVertical: 7 };
 
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
   const displayName = user?.fullName?.trim() || email || "Account";
@@ -154,28 +145,16 @@ export default function SettingsScreen() {
               padding: 3,
             }}
           >
-            {THEME_OPTIONS.map((opt) => {
-              const isActive = theme === opt;
-              return (
-                <TouchableOpacity
-                  key={opt}
-                  style={isActive ? activeStyle : inactiveStyle}
-                  onPress={() => setTheme(opt)}
-                  activeOpacity={0.7}
-                >
-                  <UIText
-                    size="sm"
-                    variant="unstyled"
-                    className={isActive
-                      ? 'font-medium text-accentFg dark:text-accentFg-dark'
-                      : 'text-mutedFg dark:text-mutedFg-dark'
-                    }
-                  >
-                    {opt.charAt(0).toUpperCase() + opt.slice(1)}
-                  </UIText>
-                </TouchableOpacity>
-              );
-            })}
+            {THEME_OPTIONS.map((opt) => (
+              <Chip
+                key={opt}
+                bordered={false}
+                style={segmentStyle}
+                label={opt.charAt(0).toUpperCase() + opt.slice(1)}
+                selected={theme === opt}
+                onPress={() => setTheme(opt)}
+              />
+            ))}
           </View>
         </Card>
 

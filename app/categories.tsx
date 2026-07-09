@@ -11,6 +11,7 @@ import { cardRowClass } from "@/utils/cardRow";
 import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
 import { DataState } from "@/components/ui/DataState";
+import { Chip } from "@/components/ui/Chip";
 import { useRefresh } from "@/hooks/useRefresh";
 
 const TYPES: { key: CategoryType; label: string }[] = [
@@ -55,17 +56,13 @@ export default function CategoriesScreen() {
               <UIText size="base" variant="heading" className="flex-1 text-center">Categories</UIText>
               <View className="flex-row gap-4">
                 {TYPES.map((t) => (
-                  <TouchableOpacity key={t.key} onPress={() => setType(t.key)} activeOpacity={0.7}>
-                    <UIText
-                      size="sm"
-                      className={type === t.key
-                        ? "font-medium underline text-foreground dark:text-foreground-dark"
-                        : "text-mutedFg dark:text-mutedFg-dark"
-                      }
-                    >
-                      {t.label}
-                    </UIText>
-                  </TouchableOpacity>
+                  <Chip
+                    key={t.key}
+                    variant="underline"
+                    label={t.label}
+                    selected={type === t.key}
+                    onPress={() => setType(t.key)}
+                  />
                 ))}
               </View>
             </View>

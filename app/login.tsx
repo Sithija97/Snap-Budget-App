@@ -16,6 +16,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { UIText } from "@/components/ui/UIText";
 import { Button } from "@/components/ui/Button";
 import { Separator } from "@/components/ui/Separator";
+import { Chip } from "@/components/ui/Chip";
 
 // Required once per app for the OAuth browser popup to close itself properly
 WebBrowser.maybeCompleteAuthSession();
@@ -162,28 +163,8 @@ export default function LoginScreen() {
 
             {mode !== "verify" && (
               <View className="flex-row justify-center gap-6 mb-6">
-                <TouchableOpacity onPress={() => switchMode("signIn")} activeOpacity={0.7}>
-                  <UIText
-                    size="sm"
-                    className={mode === "signIn"
-                      ? "font-medium underline text-foreground dark:text-foreground-dark"
-                      : "text-mutedFg dark:text-mutedFg-dark"
-                    }
-                  >
-                    Sign in
-                  </UIText>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => switchMode("signUp")} activeOpacity={0.7}>
-                  <UIText
-                    size="sm"
-                    className={mode === "signUp"
-                      ? "font-medium underline text-foreground dark:text-foreground-dark"
-                      : "text-mutedFg dark:text-mutedFg-dark"
-                    }
-                  >
-                    Sign up
-                  </UIText>
-                </TouchableOpacity>
+                <Chip variant="underline" label="Sign in" selected={mode === "signIn"} onPress={() => switchMode("signIn")} />
+                <Chip variant="underline" label="Sign up" selected={mode === "signUp"} onPress={() => switchMode("signUp")} />
               </View>
             )}
 

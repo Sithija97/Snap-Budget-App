@@ -11,6 +11,7 @@ import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Chip } from "@/components/ui/Chip";
 
 const ICON_KEYS = Object.keys(TX_ICONS);
 
@@ -173,34 +174,16 @@ export default function CategoryFormScreen() {
             keyboardShouldPersistTaps="handled"
           >
             {[null, ...parentOptions.map((p) => p.id)].map((pid) => {
-              const isActive = parentId === pid;
               const label = pid === null
                 ? "None"
                 : parentOptions.find((p) => p.id === pid)?.name ?? "";
               return (
-                <TouchableOpacity
+                <Chip
                   key={pid ?? "none"}
+                  label={label}
+                  selected={parentId === pid}
                   onPress={() => setParentId(pid)}
-                  activeOpacity={0.7}
-                  style={{
-                    paddingHorizontal: 12,
-                    paddingVertical: 6,
-                    borderRadius: 8,
-                    borderWidth: 1,
-                    borderColor: isActive ? accentFill : borderColor,
-                    backgroundColor: isActive ? accentFill : "transparent",
-                  }}
-                >
-                  <UIText
-                    size="sm"
-                    className={isActive
-                      ? "font-medium text-accentFg dark:text-accentFg-dark"
-                      : "text-mutedFg dark:text-mutedFg-dark"
-                    }
-                  >
-                    {label}
-                  </UIText>
-                </TouchableOpacity>
+                />
               );
             })}
           </ScrollView>

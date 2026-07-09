@@ -16,6 +16,7 @@ import TransactionItem from "@/components/ui/TransactionItem";
 import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
 import { DataState } from "@/components/ui/DataState";
+import { Chip } from "@/components/ui/Chip";
 import { useTheme } from "@/context/ThemeContext";
 import { useRefresh } from "@/hooks/useRefresh";
 
@@ -43,8 +44,6 @@ export default function TransactionsScreen() {
 
   const iconColor   = isDark ? '#a1a1aa' : '#71717a';
   const inputText   = isDark ? '#fafafa' : '#09090b';
-  const borderColor = isDark ? '#27272a' : '#e4e4e7';
-  const accentFill  = isDark ? '#fafafa' : '#18181b';
 
   const renderGroup = useCallback(
     ({ item: g }: { item: TransactionGroup<DisplayTransaction> }) => (
@@ -114,34 +113,9 @@ export default function TransactionsScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ gap: 8, paddingVertical: 12 }}
               keyboardShouldPersistTaps="handled"
-              renderItem={({ item: f }) => {
-                const isActive = filter === f;
-                return (
-                  <TouchableOpacity
-                    onPress={() => handleFilterChange(f)}
-                    style={{
-                      paddingHorizontal: 12,
-                      paddingVertical: 6,
-                      borderRadius: 8,
-                      borderWidth: 1,
-                      borderColor: isActive ? accentFill : borderColor,
-                      backgroundColor: isActive ? accentFill : 'transparent',
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <UIText
-                      size="sm"
-                      variant="unstyled"
-                      className={isActive
-                        ? 'font-medium text-accentFg dark:text-accentFg-dark'
-                        : 'text-mutedFg dark:text-mutedFg-dark'
-                      }
-                    >
-                      {f}
-                    </UIText>
-                  </TouchableOpacity>
-                );
-              }}
+              renderItem={({ item: f }) => (
+                <Chip label={f} selected={filter === f} onPress={() => handleFilterChange(f)} />
+              )}
             />
           </>
         }

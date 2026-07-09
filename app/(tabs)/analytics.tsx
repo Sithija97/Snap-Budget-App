@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { View, ScrollView, TouchableOpacity, RefreshControl } from "react-native";
+import { View, ScrollView, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
@@ -9,6 +9,7 @@ import { fmt } from "@/utils/format";
 import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
 import { DataState } from "@/components/ui/DataState";
+import { Chip } from "@/components/ui/Chip";
 import { useTheme } from "@/context/ThemeContext";
 import { useRefresh } from "@/hooks/useRefresh";
 
@@ -59,17 +60,7 @@ export default function AnalyticsScreen() {
           <UIText size="xl" variant="heading">Analytics</UIText>
           <View className="flex-row gap-4">
             {PERIODS.map((p) => (
-              <TouchableOpacity key={p} onPress={() => setPeriod(p)} activeOpacity={0.7}>
-                <UIText
-                  size="sm"
-                  className={period === p
-                    ? 'font-medium underline text-foreground dark:text-foreground-dark'
-                    : 'text-mutedFg dark:text-mutedFg-dark'
-                  }
-                >
-                  {p}
-                </UIText>
-              </TouchableOpacity>
+              <Chip key={p} variant="underline" label={p} selected={period === p} onPress={() => setPeriod(p)} />
             ))}
           </View>
         </View>
