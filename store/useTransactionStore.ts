@@ -1,42 +1,81 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Transaction, TxType } from "@/types";
-import { buildSeedTransactions } from "@/constants/seedData";
-import { generateId } from "@/utils/id";
+import { api } from "@/lib/api";
+import { tempId } from "@/utils/tempId";
 
 interface TransactionState {
   transactions: Transaction[];
-  addTransaction: (t: Omit<Transaction, "id">) => void;
-  updateTransaction: (id: string, updates: Partial<Omit<Transaction, "id">>) => void;
-  deleteTransaction: (id: string) => void;
+  status: "idle" | "loading" | "error";
+  fetchAll: () => Promise<void>;
+  addTransaction: (t: Omit<Transaction, "id">) => Promise<void>;
+  updateTransaction: (id: string, updates: Partial<Omit<Transaction, "id">>) => Promise<void>;
+  deleteTransaction: (id: string) => Promise<void>;
+  reset: () => void;
 }
 
-export const useTransactionStore = create<TransactionState>()(
-  persist(
-    (set) => ({
-      transactions: buildSeedTransactions(),
+export const useTransactionStore = create<TransactionState>((set, get) => ({
+  transactions: [],
+  status: "idle",
 
-      addTransaction: (t) =>
-        set((s) => ({
-          transactions: [{ ...t, id: generateId() }, ...s.transactions],
-        })),
+  fetchAll: async () => {
+    set({ status: "loading" });
+    try {
+      const transactions = await api.get<Transaction[]>("/api/transactions");
+      set({ transactions, status: "idle" });
+    } catch (e) {
+      set({ status: "error" });
+      throw e;
+    }
+  },
 
-      updateTransaction: (id, updates) =>
-        set((s) => ({
-          transactions: s.transactions.map((t) =>
-            t.id === id ? { ...t, ...updates } : t
-          ),
-        })),
+  addTransaction: async (t) => {
+    const optimisticId = tempId();
+    const optimistic: Transaction = { ...t, id: optimisticId };
+    set((s) => ({ transactions: [optimistic, ...s.transactions] }));
+    try {
+      const transaction = await api.post<Transaction>("/api/transactions", t);
+      set((s) => ({
+        transactions: s.transactions.map((x) => (x.id === optimisticId ? transaction : x)),
+      }));
+    } catch (e) {
+      set((s) => ({ transactions: s.transactions.filter((x) => x.id !== optimisticId) }));
+      throw e;
+    }
+  },
 
-      deleteTransaction: (id) =>
+  updateTransaction: async (id, updates) => {
+    const previous = get().transactions.find((t) => t.id === id);
+    set((s) => ({
+      transactions: s.transactions.map((t) => (t.id === id ? { ...t, ...updates } : t)),
+    }));
+    try {
+      const transaction = await api.patch<Transaction>(`/api/transactions/${id}`, updates);
+      set((s) => ({
+        transactions: s.transactions.map((t) => (t.id === id ? transaction : t)),
+      }));
+    } catch (e) {
+      if (previous) {
         set((s) => ({
-          transactions: s.transactions.filter((t) => t.id !== id),
-        })),
-    }),
-    { name: "snapbudget-transactions", storage: createJSONStorage(() => AsyncStorage) }
-  )
-);
+          transactions: s.transactions.map((t) => (t.id === id ? previous : t)),
+        }));
+      }
+      throw e;
+    }
+  },
+
+  deleteTransaction: async (id) => {
+    const previous = get().transactions;
+    set((s) => ({ transactions: s.transactions.filter((t) => t.id !== id) }));
+    try {
+      await api.del(`/api/transactions/${id}`);
+    } catch (e) {
+      set({ transactions: previous });
+      throw e;
+    }
+  },
+
+  reset: () => set({ transactions: [], status: "idle" }),
+}));
 
 // Pure derivation helpers — call inside useMemo with the subscribed transactions slice
 

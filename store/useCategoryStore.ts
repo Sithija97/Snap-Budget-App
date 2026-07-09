@@ -1,45 +1,77 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Category } from "@/types";
-import { DEFAULT_CATEGORIES } from "@/constants/seedData";
-import { generateId } from "@/utils/id";
+import { api } from "@/lib/api";
+import { tempId } from "@/utils/tempId";
 import { useTransactionStore } from "./useTransactionStore";
 
 interface CategoryState {
   categories: Category[];
-  addCategory: (c: Omit<Category, "id" | "isDefault">) => void;
-  updateCategory: (id: string, updates: Partial<Omit<Category, "id" | "isDefault">>) => void;
-  /** Refuses default categories and categories still referenced by transactions. */
-  deleteCategory: (id: string) => boolean;
+  status: "idle" | "loading" | "error";
+  fetchAll: () => Promise<void>;
+  addCategory: (c: Omit<Category, "id" | "isDefault">) => Promise<Category>;
+  updateCategory: (id: string, updates: Partial<Omit<Category, "id" | "isDefault">>) => Promise<void>;
+  /** Throws if the server refuses (default category, or still referenced by transactions/budgets). */
+  deleteCategory: (id: string) => Promise<void>;
   categoryHasTransactions: (id: string) => boolean;
+  reset: () => void;
 }
 
-export const useCategoryStore = create<CategoryState>()(
-  persist(
-    (set, get) => ({
-      categories: DEFAULT_CATEGORIES,
+export const useCategoryStore = create<CategoryState>((set, get) => ({
+  categories: [],
+  status: "idle",
 
-      addCategory: (c) =>
-        set((s) => ({
-          categories: [...s.categories, { ...c, id: generateId(), isDefault: false }],
-        })),
+  fetchAll: async () => {
+    set({ status: "loading" });
+    try {
+      const categories = await api.get<Category[]>("/api/categories");
+      set({ categories, status: "idle" });
+    } catch (e) {
+      set({ status: "error" });
+      throw e;
+    }
+  },
 
-      updateCategory: (id, updates) =>
-        set((s) => ({
-          categories: s.categories.map((c) => (c.id === id ? { ...c, ...updates } : c)),
-        })),
+  addCategory: async (c) => {
+    const optimisticId = tempId();
+    const optimistic: Category = { ...c, id: optimisticId, isDefault: false };
+    set((s) => ({ categories: [...s.categories, optimistic] }));
+    try {
+      const category = await api.post<Category>("/api/categories", c);
+      set((s) => ({ categories: s.categories.map((x) => (x.id === optimisticId ? category : x)) }));
+      return category;
+    } catch (e) {
+      set((s) => ({ categories: s.categories.filter((x) => x.id !== optimisticId) }));
+      throw e;
+    }
+  },
 
-      deleteCategory: (id) => {
-        const cat = get().categories.find((c) => c.id === id);
-        if (!cat || cat.isDefault || get().categoryHasTransactions(id)) return false;
-        set((s) => ({ categories: s.categories.filter((c) => c.id !== id) }));
-        return true;
-      },
+  updateCategory: async (id, updates) => {
+    const previous = get().categories.find((c) => c.id === id);
+    set((s) => ({ categories: s.categories.map((c) => (c.id === id ? { ...c, ...updates } : c)) }));
+    try {
+      const category = await api.patch<Category>(`/api/categories/${id}`, updates);
+      set((s) => ({ categories: s.categories.map((c) => (c.id === id ? category : c)) }));
+    } catch (e) {
+      if (previous) set((s) => ({ categories: s.categories.map((c) => (c.id === id ? previous : c)) }));
+      throw e;
+    }
+  },
 
-      categoryHasTransactions: (id) =>
-        useTransactionStore.getState().transactions.some((t) => t.categoryId === id),
-    }),
-    { name: "snapbudget-categories", storage: createJSONStorage(() => AsyncStorage) }
-  )
-);
+  deleteCategory: async (id) => {
+    const previous = get().categories;
+    set((s) => ({ categories: s.categories.filter((c) => c.id !== id) }));
+    try {
+      await api.del(`/api/categories/${id}`);
+    } catch (e) {
+      set({ categories: previous });
+      throw e;
+    }
+  },
+
+  // Client-side pre-check used only to show a friendlier message before
+  // attempting the request — the server enforces this rule regardless.
+  categoryHasTransactions: (id) =>
+    useTransactionStore.getState().transactions.some((t) => t.categoryId === id),
+
+  reset: () => set({ categories: [], status: "idle" }),
+}));

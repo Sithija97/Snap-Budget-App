@@ -30,6 +30,7 @@ export default function BudgetFormScreen() {
   );
   const [amount, setAmount] = useState(editing ? String(editing.limitAmount) : "");
   const [repeat, setRepeat] = useState(editing?.repeat ?? false);
+  const [saving, setSaving] = useState(false);
 
   const borderColor = isDark ? "#27272a" : "#e4e4e7";
   const iconColor   = isDark ? "#a1a1aa" : "#71717a";
@@ -56,17 +57,23 @@ export default function BudgetFormScreen() {
     year: "numeric",
   });
 
-  const canSave = categoryId !== null && parseAmount(amount) > 0;
+  const canSave = categoryId !== null && parseAmount(amount) > 0 && !saving;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!categoryId) return;
     const limitAmount = parseAmount(amount);
-    if (editing) {
-      updateBudget(editing.id, { categoryId, limitAmount, repeat });
-    } else {
-      addBudget({ categoryId, limitAmount, month, repeat });
+    setSaving(true);
+    try {
+      if (editing) {
+        await updateBudget(editing.id, { categoryId, limitAmount, repeat });
+      } else {
+        await addBudget({ categoryId, limitAmount, month, repeat });
+      }
+      router.back();
+    } catch (e: any) {
+      Alert.alert("Couldn't save budget", e?.message ?? "Please try again.");
+      setSaving(false);
     }
-    router.back();
   };
 
   const handleDelete = () => {
@@ -76,9 +83,13 @@ export default function BudgetFormScreen() {
       {
         text: "Delete",
         style: "destructive",
-        onPress: () => {
-          deleteBudget(editing.id);
-          router.back();
+        onPress: async () => {
+          try {
+            await deleteBudget(editing.id);
+            router.back();
+          } catch (e: any) {
+            Alert.alert("Couldn't delete budget", e?.message ?? "Please try again.");
+          }
         },
       },
     ]);
@@ -179,7 +190,7 @@ export default function BudgetFormScreen() {
           </TouchableOpacity>
 
           <Button
-            label="Save Budget"
+            label={saving ? "Saving..." : "Save Budget"}
             variant="default"
             className="mt-2"
             disabled={!canSave}

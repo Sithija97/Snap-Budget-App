@@ -31,6 +31,7 @@ export default function TransactionDetailScreen() {
   const [amount, setAmount] = useState(tx ? String(tx.amount) : "");
   const [categoryId, setCategoryId] = useState(tx?.categoryId ?? null);
   const [walletId, setWalletId] = useState(tx?.walletId ?? null);
+  const [saving, setSaving] = useState(false);
 
   const borderColor = isDark ? "#27272a" : "#e4e4e7";
   const iconColor   = isDark ? "#a1a1aa" : "#71717a";
@@ -117,17 +118,23 @@ export default function TransactionDetailScreen() {
     (c) => c.type === (isIncome ? "income" : "expense")
   );
 
-  const canSave = merchant.trim().length > 0 && parseAmount(amount) > 0 && categoryId !== null;
+  const canSave = merchant.trim().length > 0 && parseAmount(amount) > 0 && categoryId !== null && !saving;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!categoryId) return;
-    updateTransaction(tx.id, {
-      merchant: merchant.trim(),
-      amount: parseAmount(amount),
-      categoryId,
-      walletId,
-    });
-    router.back();
+    setSaving(true);
+    try {
+      await updateTransaction(tx.id, {
+        merchant: merchant.trim(),
+        amount: parseAmount(amount),
+        categoryId,
+        walletId,
+      });
+      router.back();
+    } catch (e: any) {
+      Alert.alert("Couldn't save transaction", e?.message ?? "Please try again.");
+      setSaving(false);
+    }
   };
 
   const handleDelete = () => {
@@ -136,9 +143,13 @@ export default function TransactionDetailScreen() {
       {
         text: "Delete",
         style: "destructive",
-        onPress: () => {
-          deleteTransaction(tx.id);
-          router.back();
+        onPress: async () => {
+          try {
+            await deleteTransaction(tx.id);
+            router.back();
+          } catch (e: any) {
+            Alert.alert("Couldn't delete transaction", e?.message ?? "Please try again.");
+          }
         },
       },
     ]);
@@ -213,7 +224,7 @@ export default function TransactionDetailScreen() {
             </View>
 
             <Button
-              label="Save Changes"
+              label={saving ? "Saving..." : "Save Changes"}
               variant="default"
               className="mt-2"
               disabled={!canSave}

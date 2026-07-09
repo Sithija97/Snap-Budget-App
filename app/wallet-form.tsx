@@ -25,6 +25,7 @@ export default function WalletFormScreen() {
   const [balance, setBalance] = useState(
     editing && editing.balance !== null ? String(editing.balance) : ""
   );
+  const [saving, setSaving] = useState(false);
 
   const borderColor = isDark ? "#27272a" : "#e4e4e7";
   const iconColor   = isDark ? "#a1a1aa" : "#71717a";
@@ -42,17 +43,23 @@ export default function WalletFormScreen() {
     fontSize: 15,
   } as const;
 
-  const canSave = name.trim().length > 0;
+  const canSave = name.trim().length > 0 && !saving;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Blank balance keeps null ("not set") — a typed 0 is a real value
     const parsedBalance = balance.trim() === "" ? null : parseAmount(balance);
-    if (editing) {
-      updateWallet(editing.id, { name: name.trim(), balance: parsedBalance });
-    } else {
-      addWallet({ name: name.trim(), balance: parsedBalance, isDefault: false });
+    setSaving(true);
+    try {
+      if (editing) {
+        await updateWallet(editing.id, { name: name.trim(), balance: parsedBalance });
+      } else {
+        await addWallet({ name: name.trim(), balance: parsedBalance, isDefault: false });
+      }
+      router.back();
+    } catch (e: any) {
+      Alert.alert("Couldn't save wallet", e?.message ?? "Please try again.");
+      setSaving(false);
     }
-    router.back();
   };
 
   const handleDelete = () => {
@@ -69,9 +76,13 @@ export default function WalletFormScreen() {
       {
         text: "Delete",
         style: "destructive",
-        onPress: () => {
-          deleteWallet(editing.id);
-          router.back();
+        onPress: async () => {
+          try {
+            await deleteWallet(editing.id);
+            router.back();
+          } catch (e: any) {
+            Alert.alert("Couldn't delete wallet", e?.message ?? "Please try again.");
+          }
         },
       },
     ]);
@@ -123,7 +134,7 @@ export default function WalletFormScreen() {
           />
 
           <Button
-            label="Save Wallet"
+            label={saving ? "Saving..." : "Save Wallet"}
             variant="default"
             className="mt-2"
             disabled={!canSave}

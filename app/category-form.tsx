@@ -33,6 +33,7 @@ export default function CategoryFormScreen() {
   const [name, setName] = useState(editing?.name ?? "");
   const [icon, setIcon] = useState(editing?.icon ?? ICON_KEYS[0]);
   const [parentId, setParentId] = useState<string | null>(editing?.parentId ?? null);
+  const [saving, setSaving] = useState(false);
 
   const borderColor = isDark ? "#27272a" : "#e4e4e7";
   const iconColor   = isDark ? "#a1a1aa" : "#71717a";
@@ -56,15 +57,21 @@ export default function CategoryFormScreen() {
     (c) => c.type === type && c.parentId === null && c.id !== editing?.id
   );
 
-  const canSave = name.trim().length > 0;
+  const canSave = name.trim().length > 0 && !saving;
 
-  const handleSave = () => {
-    if (editing) {
-      updateCategory(editing.id, { name: name.trim(), icon, parentId });
-    } else {
-      addCategory({ name: name.trim(), type, icon, parentId });
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      if (editing) {
+        await updateCategory(editing.id, { name: name.trim(), icon, parentId });
+      } else {
+        await addCategory({ name: name.trim(), type, icon, parentId });
+      }
+      router.back();
+    } catch (e: any) {
+      Alert.alert("Couldn't save category", e?.message ?? "Please try again.");
+      setSaving(false);
     }
-    router.back();
   };
 
   const handleDelete = () => {
@@ -81,9 +88,13 @@ export default function CategoryFormScreen() {
       {
         text: "Delete",
         style: "destructive",
-        onPress: () => {
-          deleteCategory(editing.id);
-          router.back();
+        onPress: async () => {
+          try {
+            await deleteCategory(editing.id);
+            router.back();
+          } catch (e: any) {
+            Alert.alert("Couldn't delete category", e?.message ?? "Please try again.");
+          }
         },
       },
     ]);
@@ -195,7 +206,7 @@ export default function CategoryFormScreen() {
           </ScrollView>
 
           <Button
-            label="Save Category"
+            label={saving ? "Saving..." : "Save Category"}
             variant="default"
             className="mt-2"
             disabled={!canSave}

@@ -36,6 +36,7 @@ export default function ScanScreen() {
   const { isDark } = useTheme();
   const [scanned, setScanned] = useState(false);
   const [showManual, setShowManual] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   // Manual entry state
   const [amount, setAmount]     = useState('');
@@ -49,34 +50,40 @@ export default function ScanScreen() {
     wallets.find((w) => w.isDefault)?.id ?? wallets[0]?.id ?? null;
 
   // Matches an existing category by name, or creates a new expense category
-  const resolveCategoryId = (name: string): string => {
+  const resolveCategoryId = async (name: string): Promise<string> => {
     const trimmed = name.trim();
     const { categories, addCategory } = useCategoryStore.getState();
     const existing = categories.find(
       (c) => c.name.toLowerCase() === trimmed.toLowerCase()
     );
     if (existing) return existing.id;
-    addCategory({ name: trimmed, type: "expense", icon: "ShoppingCart", parentId: null });
-    const created = useCategoryStore.getState().categories;
-    return created[created.length - 1].id;
+    const created = await addCategory({ name: trimmed, type: "expense", icon: "ShoppingCart", parentId: null });
+    return created.id;
   };
 
   const canSaveManual =
-    parseAmount(amount) > 0 && merchant.trim().length > 0 && category.trim().length > 0;
+    parseAmount(amount) > 0 && merchant.trim().length > 0 && category.trim().length > 0 && !saving;
 
-  const saveTransaction = (m: string, catName: string, amt: number) => {
-    addTransaction({
-      merchant: m,
-      categoryId: resolveCategoryId(catName),
-      walletId: defaultWalletId,
-      txType: TxType.Expense,
-      amount: amt,
-      date: todayISO(),
-      time: nowTime(),
-    });
-    Alert.alert("Saved!", "Transaction saved successfully.", [
-      { text: "OK", onPress: () => router.back() },
-    ]);
+  const saveTransaction = async (m: string, catName: string, amt: number) => {
+    setSaving(true);
+    try {
+      const categoryId = await resolveCategoryId(catName);
+      await addTransaction({
+        merchant: m,
+        categoryId,
+        walletId: defaultWalletId,
+        txType: TxType.Expense,
+        amount: amt,
+        date: todayISO(),
+        time: nowTime(),
+      });
+      Alert.alert("Saved!", "Transaction saved successfully.", [
+        { text: "OK", onPress: () => router.back() },
+      ]);
+    } catch (e: any) {
+      Alert.alert("Couldn't save transaction", e?.message ?? "Please try again.");
+      setSaving(false);
+    }
   };
 
   const borderColor = isDark ? '#27272a' : '#e4e4e7';
@@ -155,7 +162,7 @@ export default function ScanScreen() {
             />
 
             <Button
-              label="Save Transaction"
+              label={saving ? "Saving..." : "Save Transaction"}
               variant="default"
               className="mt-2"
               disabled={!canSaveManual}
@@ -221,9 +228,10 @@ export default function ScanScreen() {
                 ))}
 
                 <Button
-                  label="Save Transaction"
+                  label={saving ? "Saving..." : "Save Transaction"}
                   variant="default"
                   className="mt-4"
+                  disabled={saving}
                   onPress={() => saveTransaction("Cargills Food City", "Groceries", 3680)}
                 />
               </Card>
