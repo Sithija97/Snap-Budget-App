@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { ScrollView, View, TouchableOpacity } from "react-native";
+import { ScrollView, View, TouchableOpacity, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useTransactionStore, totalsForMonth } from "@/store/useTransactionStore";
@@ -11,9 +11,14 @@ import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { DataState } from "@/components/ui/DataState";
+import { useRefresh } from "@/hooks/useRefresh";
 
 export default function HomeScreen() {
   const transactions = useTransactionStore((s) => s.transactions);
+  const status = useTransactionStore((s) => s.status);
+  const fetchAll = useTransactionStore((s) => s.fetchAll);
+  const { refreshing, onRefresh } = useRefresh(fetchAll);
   const displayTransactions = useDisplayTransactions();
 
   const month = currentMonth();
@@ -40,6 +45,9 @@ export default function HomeScreen() {
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 96 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       >
         {/* Header */}
         <View className="flex-row items-center justify-between mb-4">
@@ -80,9 +88,7 @@ export default function HomeScreen() {
         <UIText size="xs" variant="label" className="mt-4 mb-3">Recent transactions</UIText>
 
         {recent.length === 0 ? (
-          <View className="items-center py-12">
-            <UIText size="sm" variant="muted">No transactions yet</UIText>
-          </View>
+          <DataState status={status} isEmpty onRetry={fetchAll} emptyMessage="No transactions yet" />
         ) : (
           <Card className="p-0 overflow-hidden">
             {recent.map((tx, i) => (
