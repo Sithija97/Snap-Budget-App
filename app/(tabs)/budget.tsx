@@ -12,6 +12,7 @@ import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { DataState } from "@/components/ui/DataState";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { TX_ICONS } from "@/constants/icons";
 import { useTheme } from "@/context/ThemeContext";
 import { useRefresh } from "@/hooks/useRefresh";
@@ -86,7 +87,15 @@ export default function BudgetScreen() {
   const fetchBudgets = useBudgetStore((s) => s.fetchAll);
   const categories = useCategoryStore((s) => s.categories);
   const transactions = useTransactionStore((s) => s.transactions);
+  const transactionsStatus = useTransactionStore((s) => s.status);
   const fetchTransactions = useTransactionStore((s) => s.fetchAll);
+
+  // Overview card depends on both stores — only skeleton-gate before either's
+  // first fetch resolves, not on every pull-to-refresh (see index.tsx for the
+  // same reasoning).
+  const isFirstLoad =
+    (budgetsStatus === "loading" && budgets.length === 0) ||
+    (transactionsStatus === "loading" && transactions.length === 0);
 
   const month = currentMonth();
 
@@ -164,30 +173,45 @@ export default function BudgetScreen() {
 
             {/* Monthly overview */}
             <Card>
-              <View className="flex-row items-start justify-between">
-                <View>
-                  <UIText size="lg" className="font-mono font-medium">{fmt(totalSpent)}</UIText>
-                  <UIText size="xs" variant="muted" className="mt-0.5">of {fmt(totalLimit)}</UIText>
-                </View>
-                <Badge label={`${pctUsed}%`} variant={overviewBadgeVariant} />
-              </View>
+              {isFirstLoad ? (
+                <>
+                  <View className="flex-row items-start justify-between">
+                    <View>
+                      <Skeleton width={90} height={20} />
+                      <Skeleton width={60} height={13} className="mt-2" />
+                    </View>
+                    <Skeleton width={44} height={22} />
+                  </View>
+                  <Skeleton width="100%" height={6} className="mt-3" />
+                </>
+              ) : (
+                <>
+                  <View className="flex-row items-start justify-between">
+                    <View>
+                      <UIText size="lg" className="font-mono font-medium">{fmt(totalSpent)}</UIText>
+                      <UIText size="xs" variant="muted" className="mt-0.5">of {fmt(totalLimit)}</UIText>
+                    </View>
+                    <Badge label={`${pctUsed}%`} variant={overviewBadgeVariant} />
+                  </View>
 
-              <View
-                style={{ height: 6, backgroundColor: trackBg, borderRadius: 99, marginTop: 12, overflow: 'hidden' }}
-              >
-                <View
-                  style={{
-                    height: '100%',
-                    width: `${Math.min(pctUsed, 100)}%`,
-                    backgroundColor: overviewFillColor,
-                    borderRadius: 99,
-                  }}
-                />
-              </View>
+                  <View
+                    style={{ height: 6, backgroundColor: trackBg, borderRadius: 99, marginTop: 12, overflow: 'hidden' }}
+                  >
+                    <View
+                      style={{
+                        height: '100%',
+                        width: `${Math.min(pctUsed, 100)}%`,
+                        backgroundColor: overviewFillColor,
+                        borderRadius: 99,
+                      }}
+                    />
+                  </View>
 
-              <UIText size="xs" variant="muted" className="mt-2">
-                {daysRemaining} {daysRemaining === 1 ? "day" : "days"} remaining
-              </UIText>
+                  <UIText size="xs" variant="muted" className="mt-2">
+                    {daysRemaining} {daysRemaining === 1 ? "day" : "days"} remaining
+                  </UIText>
+                </>
+              )}
             </Card>
 
             <TouchableOpacity

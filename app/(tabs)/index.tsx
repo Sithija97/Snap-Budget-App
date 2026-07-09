@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { DataState } from "@/components/ui/DataState";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { useRefresh } from "@/hooks/useRefresh";
 
 export default function HomeScreen() {
@@ -22,6 +23,12 @@ export default function HomeScreen() {
   const displayTransactions = useDisplayTransactions();
 
   const month = currentMonth();
+
+  // True only before the first fetch resolves — not on pull-to-refresh of
+  // already-loaded data (status flips back to "idle" once real data, even
+  // genuinely empty data, has loaded once). Shows a skeleton instead of a
+  // misleading "Rs 0" that would otherwise flash before real totals arrive.
+  const isFirstLoad = status === "loading" && transactions.length === 0;
 
   const { spent, income, remaining } = useMemo(
     () => totalsForMonth(transactions, month),
@@ -57,24 +64,48 @@ export default function HomeScreen() {
 
         {/* Summary card */}
         <Card>
-          <UIText size="xs" variant="label">Total spent</UIText>
-          <UIText size="2xl" className="font-mono font-medium mt-1">{fmt(spent)}</UIText>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => router.push("/scan?manual=true&type=expense")}
+          >
+            <UIText size="xs" variant="label">Total spent</UIText>
+            {isFirstLoad ? (
+              <Skeleton width={120} height={28} className="mt-1.5" />
+            ) : (
+              <UIText size="2xl" className="font-mono font-medium mt-1">{fmt(spent)}</UIText>
+            )}
+          </TouchableOpacity>
 
           <Separator className="my-3" />
 
           <View className="flex-row">
-            <View className="flex-1">
+            <TouchableOpacity
+              className="flex-1"
+              activeOpacity={0.7}
+              onPress={() => router.push("/scan?manual=true&type=income")}
+            >
               <UIText size="xs" variant="label">Income</UIText>
-              <UIText size="base" variant="heading" className="mt-0.5">{fmt(income)}</UIText>
-            </View>
+              {isFirstLoad ? (
+                <Skeleton width={70} height={18} className="mt-1" />
+              ) : (
+                <UIText size="base" variant="heading" className="mt-0.5">{fmt(income)}</UIText>
+              )}
+            </TouchableOpacity>
             <View className="flex-1">
               <UIText size="xs" variant="label">Remaining</UIText>
-              <UIText size="base" variant="unstyled" className="mt-0.5 font-medium text-positive dark:text-positive-dark">
-                {fmt(remaining)}
-              </UIText>
+              {isFirstLoad ? (
+                <Skeleton width={70} height={18} className="mt-1" />
+              ) : (
+                <UIText size="base" variant="unstyled" className="mt-0.5 font-medium text-positive dark:text-positive-dark">
+                  {fmt(remaining)}
+                </UIText>
+              )}
             </View>
           </View>
         </Card>
+        <UIText size="xs" variant="muted" className="mt-1.5">
+          Tap Total spent or Income to add a transaction
+        </UIText>
 
         <TouchableOpacity
           className="mt-2 self-start"
