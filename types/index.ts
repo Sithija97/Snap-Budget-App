@@ -31,6 +31,7 @@ export interface Transaction {
   amount:     number;
   date:       string;         // "YYYY-MM-DD"
   time:       string;         // "10:22 AM"
+  receiptKey?: string | null; // Cloudinary public_id, set only when created from a scan
 }
 
 export interface Budget {
