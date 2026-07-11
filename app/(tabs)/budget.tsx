@@ -76,6 +76,24 @@ const CategoryRow = memo(function CategoryRow({
   );
 });
 
+// Mirrors CategoryRow's layout (icon square, two text lines, percent, progress
+// track) so the list doesn't jump when real budgets replace it.
+function CategoryRowSkeleton() {
+  return (
+    <Card>
+      <View className="flex-row items-center gap-3">
+        <Skeleton width={32} height={32} className="rounded-lg" />
+        <View className="flex-1">
+          <Skeleton width={100} height={14} />
+          <Skeleton width={130} height={11} className="mt-1.5" />
+        </View>
+        <Skeleton width={30} height={12} />
+      </View>
+      <Skeleton width="100%" height={4} className="mt-2.5 rounded-full" />
+    </Card>
+  );
+}
+
 type BudgetRow =
   | { kind: "budget"; key: string; budget: Budget }
   | { kind: "unbudgeted"; key: string; categoryId: string };
@@ -233,6 +251,13 @@ export default function BudgetScreen() {
             isEmpty={rows.length === 0}
             onRetry={onRefresh}
             emptyMessage="No budgets yet"
+            loadingSkeleton={
+              <View style={{ gap: 12 }}>
+                {[0, 1, 2].map((i) => (
+                  <CategoryRowSkeleton key={i} />
+                ))}
+              </View>
+            }
           />
         }
         renderItem={({ item }) => {

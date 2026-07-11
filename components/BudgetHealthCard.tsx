@@ -31,9 +31,15 @@ export function BudgetHealthCard({ health, loading }: Props) {
   const trackColor = isDark ? "#27272a" : "#e4e4e7";
 
   if (loading) {
+    // Mirrors the loaded layout (badge top-right, gauge arc, caption) so the
+    // card doesn't reflow when real data arrives.
     return (
-      <Card className="items-center py-6">
-        <Skeleton width={190} height={95} />
+      <Card className="items-center">
+        <View className="self-end">
+          <Skeleton width={44} height={22} className="rounded-full" />
+        </View>
+        <Skeleton width={190} height={95} className="rounded-t-full mt-1" />
+        <Skeleton width={80} height={11} className="mt-3 mb-1" />
       </Card>
     );
   }

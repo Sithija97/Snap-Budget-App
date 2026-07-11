@@ -16,6 +16,8 @@ import TransactionItem from "@/components/ui/TransactionItem";
 import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
 import { DataState } from "@/components/ui/DataState";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { TransactionItemSkeleton } from "@/components/ui/TransactionItemSkeleton";
 import { Chip } from "@/components/ui/Chip";
 import { useTheme } from "@/context/ThemeContext";
 import { useRefresh } from "@/hooks/useRefresh";
@@ -120,7 +122,25 @@ export default function TransactionsScreen() {
           </>
         }
         ListEmptyComponent={
-          <DataState status={status} isEmpty={groups.length === 0} onRetry={fetchAll} emptyMessage="No transactions found" />
+          <DataState
+            status={status}
+            isEmpty={groups.length === 0}
+            onRetry={fetchAll}
+            emptyMessage="No transactions found"
+            loadingSkeleton={
+              // Mirrors a rendered group: date label, then a card of rows
+              <View className="mb-4">
+                <View className="py-2">
+                  <Skeleton width={60} height={11} />
+                </View>
+                <Card className="p-0 px-4 overflow-hidden">
+                  {[0, 1, 2, 3, 4].map((i) => (
+                    <TransactionItemSkeleton key={i} />
+                  ))}
+                </Card>
+              </View>
+            }
+          />
         }
       />
     </SafeAreaView>

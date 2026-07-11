@@ -27,6 +27,7 @@ import { Separator } from "@/components/ui/Separator";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { DataState } from "@/components/ui/DataState";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { TransactionItemSkeleton } from "@/components/ui/TransactionItemSkeleton";
 import { useRefresh } from "@/hooks/useRefresh";
 
 export default function HomeScreen() {
@@ -232,7 +233,13 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {recent.length === 0 ? (
+        {isFirstLoad ? (
+          <Card className="p-0 px-1 overflow-hidden">
+            {[0, 1, 2, 3].map((i) => (
+              <TransactionItemSkeleton key={i} />
+            ))}
+          </Card>
+        ) : recent.length === 0 ? (
           <DataState
             status={status}
             isEmpty
