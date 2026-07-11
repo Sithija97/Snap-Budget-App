@@ -38,6 +38,9 @@ Single source of truth, combining the full feature roadmap with the narrowed AI 
 | Add/Edit Budget screen | Built |
 | Transaction detail — view/edit/delete, shows receipt thumbnail when scanned | Built |
 | Analytics linked from Home and Budget | Built |
+| **2026-07-11 UI redesign** — borderless surface design app-wide (slate page bg, elevated dark cards, shared IconButton), Home summary card rework with add-transaction affordances, brand-blue scan button | Built |
+| **Budget health gauge on Home** — safe-to-spend % semicircular gauge with Good/Watch/Over badge (pure arithmetic, `utils/budgetHealth.ts`, unit-tested). A stepping stone toward §4's predictive overspend warning: same data, simpler metric (no pace projection yet) | Built |
+| Animated skeleton loading — pulsing, reduce-motion aware, layout-mirroring skeletons for lists and cards (`DataState.loadingSkeleton`) | Built |
 
 ## 4. AI features — active scope
 

@@ -17,6 +17,7 @@ The app is a **fully functional, backend-connected app**: real authentication (C
 - **Real receipt scanning** — camera capture (`expo-image-picker`), client-side resize/compress (`expo-image-manipulator`, max 1600px edge, JPEG q0.6), Gemini Vision OCR extraction (merchant/amount/date/category, matched against the user's real categories), private Cloudinary storage for the receipt image, editable review card before saving (OCR isn't assumed perfect), manual entry remains as a fallback
 - **Income logging** — the only place a transaction's type (Expense/Income) can be chosen is manual entry in `scan.tsx` (an Expense/Income `Chip` pair, defaults to Expense). Scanning is expense-only by design (you don't photograph a receipt for salary) — wallet `balance` is a separate, standalone "how much is currently in this wallet" figure and was never wired to Home's Income stat; that stat only ever reflects `txType: "inc"` transactions, which previously had no creation path anywhere in the UI. A single unified add-transaction flow with a type toggle (rather than separate Expense/Income screens) is the standard pattern in this category of app, not a shortcut — but the entry point was buried two taps deep (Scan → Manual). `scan.tsx` now also accepts `?manual=true&type=income|expense` query params so other screens can deep-link straight into the right mode; Home's "Total spent"/"Income" figures are tappable and use exactly this
 - **Live derived data** — Home totals (spent / income / remaining) and Budget progress bars compute from real transaction data for the current month; Analytics charts use real aggregation (`utils/analytics.ts`, expense-only by design), not mock data. Both summary cards show a `Skeleton` placeholder instead of a misleading `Rs 0` before their first fetch resolves (see "Loading states" below) — not on every pull-to-refresh, only before real data has ever loaded
+- **Home redesign + budget health (2026-07-11)** — summary card with hero Total-spent row (visible "+" add-expense affordance), icon-anchored Income/Remaining stats (Remaining turns red when negative); a "Budget health" section with a brand-blue semicircular gauge (safe-to-spend % from the pure, unit-tested `utils/budgetHealth.ts`; Good ≥40% left / Watch / Over badge) and See more → Analytics; recent transactions show the date ("4 July 2026") as subtitle with no separators and a "See all" header link. The same pass rolled the borderless-surface design app-wide (see "Design system") and put the login form on a Card
 - Transaction detail screen (`/transaction/[id]`) with edit mode and delete-with-confirm; shows the original receipt photo when the transaction came from a scan, loaded via an authenticated `fetch()` + data URI (not `<Image source={{headers}}>` — see "Receipt image loading" below)
 - Wallets: list + form screens, `balance: null` renders as "Balance not set", a default "My Wallet" is seeded server-side on first sign-in, the last remaining wallet can't be deleted (enforced both client- and server-side)
 - Categories: Expense/Income tabs, custom categories with icon picker and optional parent (subcategory), duplicate-proof (DB unique index on `(userId, type, lower(name))` + API pre-check), deletion blocked while referenced by transactions or budgets
@@ -219,6 +220,8 @@ The tab bar renders outside the NativeWind tree so it uses `useTheme()` + inline
 
 Screens that render a **computed numeric total** (Home's spent/income/remaining, Budget's overview card) used to render real `UIText` immediately from whatever the store held at mount — `0` before the first `fetchAll()` resolved — then silently update once data arrived. That's a "flash of wrong content": the number looked real, not loading, which reads as a bug even though it's just timing. The fix is a `Skeleton` placeholder (see Shared UI components), gated on **`status === "loading" && data.length === 0`** — true only before a store's first successful fetch, false again the instant it resolves (even to a genuinely-empty result) and false on every subsequent pull-to-refresh. This mirrors the same `status === "loading" && isEmpty` convention `DataState` already used for lists; `Skeleton` is the equivalent for a single value living inside an otherwise-static card, where swapping the whole card for a spinner would be heavier than necessary. Reintroducing local caching/persistence to avoid the flash entirely (stale-while-revalidate) was considered and rejected — it would partially undo the Phase 1 decision that the API is the sole source of truth, for a problem a skeleton already solves cleanly.
 
+**2026-07-11 evolution:** skeletons now pulse (reanimated, reduce-motion aware) and extend to whole lists — `DataState` accepts a `loadingSkeleton` node so first loads show rows shaped like the real content (`TransactionItemSkeleton`, budget's `CategoryRowSkeleton`, BudgetHealthCard's mirrored loading layout) instead of a centered spinner. The gating rule is unchanged: first load only, never pull-to-refresh.
+
 ---
 
 ## Project structure
@@ -251,7 +254,7 @@ store/            useWalletStore, useCategoryStore, useBudgetStore, useTransacti
                   — all API-backed, optimistic CRUD, status: idle|loading|error
 
 components/ui/    UIText, Card, Separator, Badge, Button, Chip, IconButton, ThemeToggle, TransactionItem,
-                  DataState, Skeleton, Gauge
+                  TransactionItemSkeleton, DataState, Skeleton, Gauge, GoogleLogo
 components/       BudgetHealthCard (domain card composing Card + Badge + Gauge)
 
 context/          ThemeContext.tsx
@@ -323,9 +326,9 @@ Every selectable chip/tab/segmented-control in the app — see "Dark mode archit
 
 ### DataState
 ```tsx
-<DataState status="idle|loading|error" isEmpty={bool} onRetry={fn} emptyMessage="..." />
+<DataState status="idle|loading|error" isEmpty={bool} onRetry={fn} emptyMessage="..." loadingSkeleton={<Rows />} />
 ```
-Unifies the loading-spinner / error+retry / empty-message states every API-backed list needs. Used as `ListEmptyComponent` in virtualized lists, or inline in plain `ScrollView` screens.
+Unifies the loading / error+retry / empty-message states every API-backed list needs. Used as `ListEmptyComponent` in virtualized lists, or inline in plain `ScrollView` screens. `loadingSkeleton` (2026-07-11) replaces the centered spinner with skeleton rows shaped like the list's real content, so nothing jumps when data arrives — Transactions passes a date-label + card-of-rows mock, Home's recent list and Budget's category list render `TransactionItemSkeleton` / `CategoryRowSkeleton` equivalents.
 
 ### Alerts (RN `Alert.alert` — an AppAlert replacement was documented here but never landed)
 All confirm/error dialogs currently use React Native's `Alert.alert` directly (settings, forms, scan, transaction detail). A themed in-app `showAlert`/`AlertHost` replacement was previously described in this file as built — **it does not exist in the codebase** (no `AppAlert.tsx`; corrected 2026-07-11). The motivation for eventually building it still stands: Android ignores the button `style` prop (destructive buttons render in the OS accent color), `react-native-web` doesn't implement `Alert` at all, and the native dialog follows the OS theme rather than the app's theme setting.
@@ -334,7 +337,9 @@ All confirm/error dialogs currently use React Native's `Alert.alert` directly (s
 ```tsx
 <Skeleton width={120} height={28} className="mt-1" />
 ```
-Neutral placeholder block for a single numeric/text value that hasn't loaded yet (Home's totals, Budget's overview card) — the alternative to `DataState`, which is for whole lists/sections, not one figure inside an otherwise-rendered card. Gate it on `status === "loading" && data.length === 0` (see "Loading states"), never on `status === "loading"` alone — that would also flash a skeleton over already-loaded data on every pull-to-refresh, which is worse than the problem it solves.
+Placeholder block for content that hasn't loaded yet (Home's totals, Budget's overview card). **Pulses gently** (reanimated 800ms opacity loop) so the wait reads as activity; automatically static under the OS reduce-motion setting. Gate it on `status === "loading" && data.length === 0` (see "Loading states"), never on `status === "loading"` alone — that would also flash a skeleton over already-loaded data on every pull-to-refresh, which is worse than the problem it solves.
+
+Composite skeletons mirror their real component's layout so the screen doesn't reflow when data lands: `TransactionItemSkeleton` (shared, components/ui), `CategoryRowSkeleton` (local to budget.tsx), and BudgetHealthCard's built-in loading state. Follow this pattern — mirror the loaded layout — when adding a skeleton for any new component.
 
 ---
 
