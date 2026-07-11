@@ -9,6 +9,7 @@ import { useCategoryStore } from "@/store/useCategoryStore";
 import { parseAmount } from "@/utils/format";
 import { currentMonth } from "@/utils/dates";
 import { UIText } from "@/components/ui/UIText";
+import { IconButton } from "@/components/ui/IconButton";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
@@ -105,13 +106,9 @@ export default function BudgetFormScreen() {
       >
         {/* Header */}
         <View className="flex-row items-center px-4 pt-3 pb-4">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="w-9 h-9 items-center justify-center rounded-lg border border-border dark:border-border-dark mr-3"
-            activeOpacity={0.7}
-          >
+          <IconButton onPress={() => router.back()} className="mr-3">
             <ChevronLeft size={20} color={iconColor} />
-          </TouchableOpacity>
+          </IconButton>
           <UIText size="base" variant="heading" className="flex-1 text-center">
             {editing ? "Edit budget" : "New budget"}
           </UIText>

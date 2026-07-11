@@ -1,15 +1,16 @@
-// Reconstructs the visual look of a bordered, rounded Card wrapping a list
+// Reconstructs the visual look of a borderless, rounded Card wrapping a list
 // of rows — for use as the outer className of each row in a virtualized
 // list (FlatList/SectionList), where a single enclosing Card is no longer
-// possible since the list itself owns scrolling.
+// possible since the list itself owns scrolling. Border color is still set
+// so callers can add "border-b" as an in-card row separator.
 export function cardRowClass(index: number, length: number): string {
   const isFirst = index === 0;
   const isLast = index === length - 1;
   return [
     "px-4",
     "bg-card dark:bg-card-dark",
-    "border-l border-r border-border dark:border-border-dark",
-    isFirst ? "border-t rounded-t-xl" : "",
-    isLast ? "border-b rounded-b-xl" : "",
+    "border-border dark:border-border-dark",
+    isFirst ? "rounded-t-xl" : "",
+    isLast ? "rounded-b-xl" : "",
   ].filter(Boolean).join(" ");
 }

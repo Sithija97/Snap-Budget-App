@@ -14,6 +14,7 @@ import { TxType, CategoryType } from "@/types";
 import { parseAmount } from "@/utils/format";
 import { todayISO, currentMonth } from "@/utils/dates";
 import { UIText } from "@/components/ui/UIText";
+import { IconButton } from "@/components/ui/IconButton";
 import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
@@ -229,7 +230,9 @@ export default function ScanScreen() {
   };
 
   const borderColor = isDark ? '#27272a' : '#e4e4e7';
-  const mutedBg     = isDark ? '#18181b' : '#f4f4f5';
+  // Viewfinder surface: card-level, not muted — the old #f4f4f5 is nearly
+  // invisible against the slate-100 page background
+  const mutedBg     = isDark ? '#18181b' : '#ffffff';
   const iconColor   = isDark ? '#a1a1aa' : '#71717a';
   const inputText   = isDark ? '#fafafa' : '#09090b';
   const inputBg     = isDark ? '#09090b' : '#ffffff';
@@ -255,13 +258,9 @@ export default function ScanScreen() {
       >
         {/* Header */}
         <View className="flex-row items-center px-4 pt-3 pb-4">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="w-9 h-9 items-center justify-center rounded-lg border border-border dark:border-border-dark mr-3"
-            activeOpacity={0.7}
-          >
+          <IconButton onPress={() => router.back()} className="mr-3">
             <ChevronLeft size={20} color={iconColor} />
-          </TouchableOpacity>
+          </IconButton>
           <UIText size="base" variant="heading" className="flex-1 text-center">Scan receipt</UIText>
           <TouchableOpacity
             onPress={() => { resetScan(); setShowManual(!showManual); }}

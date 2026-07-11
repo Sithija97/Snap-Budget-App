@@ -134,7 +134,8 @@ export default function BudgetScreen() {
 
   const pctUsed = totalLimit > 0 ? Math.round((totalSpent / totalLimit) * 100) : 0;
 
-  const trackBg  = isDark ? '#18181b' : '#f4f4f5';
+  // One step above the dark card surface (#18181b) so tracks stay visible on it
+  const trackBg  = isDark ? '#27272a' : '#f4f4f5';
   const fillFg   = isDark ? '#fafafa' : '#18181b';
   const iconColor = isDark ? '#a1a1aa' : '#71717a';
 

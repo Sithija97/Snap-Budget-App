@@ -30,6 +30,9 @@ function clerkErrorMessage(err: any, fallback: string): string {
 export default function LoginScreen() {
   const { isDark } = useTheme();
   const [mode, setMode] = useState<Mode>("signIn");
+  // Which flow the "verify" screen belongs to: email verification during
+  // sign-up, or an email-code first factor requested during sign-in
+  const [verifyFlow, setVerifyFlow] = useState<"signUp" | "signIn">("signUp");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
@@ -69,6 +72,22 @@ export default function LoginScreen() {
         await setActiveSignIn({ session: attempt.createdSessionId });
         return;
       }
+      // Clerk can require an email code on top of the password (e.g. the
+      // account's email is unverified, or verification-at-sign-in is enabled)
+      if (attempt.status === "needs_first_factor") {
+        const emailFactor = attempt.supportedFirstFactors?.find(
+          (f) => f.strategy === "email_code"
+        );
+        if (emailFactor) {
+          await signIn.prepareFirstFactor({
+            strategy: "email_code",
+            emailAddressId: emailFactor.emailAddressId,
+          });
+          setVerifyFlow("signIn");
+          switchMode("verify");
+          return;
+        }
+      }
       // e.g. 2FA or other additional factors — not implemented in this build
       Alert.alert("Additional verification required", "This account needs a sign-in method not yet supported here.");
     } catch (err: any) {
@@ -84,6 +103,7 @@ export default function LoginScreen() {
     try {
       await signUp.create({ emailAddress: email, password });
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      setVerifyFlow("signUp");
       switchMode("verify");
     } catch (err: any) {
       const exists = err?.errors?.some((e: any) => e.code === "form_identifier_exists");
@@ -99,13 +119,24 @@ export default function LoginScreen() {
   }, [signUp, email, password, signUpLoaded, submitting]);
 
   const handleVerifyCode = useCallback(async () => {
-    if (!signUpLoaded || submitting) return;
+    if (!signInLoaded || !signUpLoaded || submitting) return;
     setSubmitting(true);
     try {
-      const attempt = await signUp.attemptEmailAddressVerification({ code: code.trim() });
-      if (attempt.status === "complete") {
-        await setActiveSignUp({ session: attempt.createdSessionId });
-        return;
+      if (verifyFlow === "signIn") {
+        const attempt = await signIn.attemptFirstFactor({
+          strategy: "email_code",
+          code: code.trim(),
+        });
+        if (attempt.status === "complete") {
+          await setActiveSignIn({ session: attempt.createdSessionId });
+          return;
+        }
+      } else {
+        const attempt = await signUp.attemptEmailAddressVerification({ code: code.trim() });
+        if (attempt.status === "complete") {
+          await setActiveSignUp({ session: attempt.createdSessionId });
+          return;
+        }
       }
       Alert.alert("Verification incomplete", "Please try the code again.");
     } catch (err: any) {
@@ -113,17 +144,28 @@ export default function LoginScreen() {
     } finally {
       setSubmitting(false);
     }
-  }, [signUp, code, signUpLoaded, submitting, setActiveSignUp]);
+  }, [verifyFlow, signIn, signUp, code, signInLoaded, signUpLoaded, submitting, setActiveSignIn, setActiveSignUp]);
 
   const handleResendCode = useCallback(async () => {
-    if (!signUpLoaded) return;
+    if (!signInLoaded || !signUpLoaded) return;
     try {
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      if (verifyFlow === "signIn") {
+        const emailFactor = signIn.supportedFirstFactors?.find(
+          (f) => f.strategy === "email_code"
+        );
+        if (!emailFactor) throw new Error("No email factor available");
+        await signIn.prepareFirstFactor({
+          strategy: "email_code",
+          emailAddressId: emailFactor.emailAddressId,
+        });
+      } else {
+        await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      }
       Alert.alert("Code sent", `We've sent a new code to ${email}.`);
     } catch (err: any) {
       Alert.alert("Couldn't resend code", clerkErrorMessage(err, "Please try again."));
     }
-  }, [signUp, signUpLoaded, email]);
+  }, [verifyFlow, signIn, signUp, signInLoaded, signUpLoaded, email]);
 
   const handleGoogleAuth = useCallback(async () => {
     try {
@@ -192,8 +234,10 @@ export default function LoginScreen() {
                 <TouchableOpacity onPress={handleResendCode} activeOpacity={0.7} className="mt-4 items-center">
                   <UIText size="sm" variant="muted">Resend code</UIText>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => switchMode("signUp")} activeOpacity={0.7} className="mt-2 items-center">
-                  <UIText size="sm" variant="muted">Use a different email</UIText>
+                <TouchableOpacity onPress={() => switchMode(verifyFlow)} activeOpacity={0.7} className="mt-2 items-center">
+                  <UIText size="sm" variant="muted">
+                    {verifyFlow === "signIn" ? "Back to sign in" : "Use a different email"}
+                  </UIText>
                 </TouchableOpacity>
               </>
             ) : (

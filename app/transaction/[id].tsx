@@ -12,6 +12,7 @@ import { TxType } from "@/types";
 import { fmt, parseAmount } from "@/utils/format";
 import { API_URL } from "@/lib/api";
 import { UIText } from "@/components/ui/UIText";
+import { IconButton } from "@/components/ui/IconButton";
 import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
@@ -67,7 +68,8 @@ export default function TransactionDetailScreen() {
   }, [receiptKey, getToken]);
 
   const borderColor = isDark ? "#27272a" : "#e4e4e7";
-  const mutedBg     = isDark ? "#18181b" : "#f4f4f5";
+  // One step above the dark card surface (#18181b) so the receipt placeholder stays visible
+  const mutedBg     = isDark ? "#27272a" : "#f4f4f5";
   const iconColor   = isDark ? "#a1a1aa" : "#71717a";
   const inputText   = isDark ? "#fafafa" : "#09090b";
   const inputBg     = isDark ? "#09090b" : "#ffffff";
@@ -96,13 +98,9 @@ export default function TransactionDetailScreen() {
 
   const header = (
     <View className="flex-row items-center px-4 pt-3 pb-4">
-      <TouchableOpacity
-        onPress={() => router.back()}
-        className="w-9 h-9 items-center justify-center rounded-lg border border-border dark:border-border-dark mr-3"
-        activeOpacity={0.7}
-      >
+      <IconButton onPress={() => router.back()} className="mr-3">
         <ChevronLeft size={20} color={iconColor} />
-      </TouchableOpacity>
+      </IconButton>
       <UIText size="base" variant="heading" className="flex-1 text-center">Transaction</UIText>
       {tx ? (
         <TouchableOpacity onPress={toggleEdit} activeOpacity={0.7}>

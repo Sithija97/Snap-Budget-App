@@ -7,6 +7,7 @@ import { useWalletStore } from "@/store/useWalletStore";
 import { fmt } from "@/utils/format";
 import { cardRowClass } from "@/utils/cardRow";
 import { UIText } from "@/components/ui/UIText";
+import { IconButton } from "@/components/ui/IconButton";
 import { DataState } from "@/components/ui/DataState";
 import { useRefresh } from "@/hooks/useRefresh";
 import type { Wallet } from "@/types";
@@ -31,21 +32,13 @@ export default function WalletsScreen() {
         }
         ListHeaderComponent={
           <View className="flex-row items-center px-4 pt-3 pb-4">
-            <TouchableOpacity
-              onPress={() => router.back()}
-              className="w-9 h-9 items-center justify-center rounded-lg border border-border dark:border-border-dark mr-3"
-              activeOpacity={0.7}
-            >
+            <IconButton onPress={() => router.back()} className="mr-3">
               <ChevronLeft size={20} color={iconColor} />
-            </TouchableOpacity>
+            </IconButton>
             <UIText size="base" variant="heading" className="flex-1 text-center">Wallets</UIText>
-            <TouchableOpacity
-              onPress={() => router.push("/wallet-form")}
-              className="w-9 h-9 items-center justify-center rounded-lg border border-border dark:border-border-dark"
-              activeOpacity={0.7}
-            >
+            <IconButton onPress={() => router.push("/wallet-form")}>
               <Plus size={20} color={iconColor} />
-            </TouchableOpacity>
+            </IconButton>
           </View>
         }
         ListEmptyComponent={
