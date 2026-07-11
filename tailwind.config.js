@@ -6,12 +6,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background:  { DEFAULT: '#ffffff', dark: '#09090b' },
+        // Page bg sits one step below card so borderless white/elevated cards
+        // read as surfaces (light: slate-100 under white; dark: near-black
+        // under zinc-900). muted must stay visible ON a card, hence one step
+        // above card in dark.
+        background:  { DEFAULT: '#f1f5f9', dark: '#09090b' },
         foreground:  { DEFAULT: '#09090b', dark: '#fafafa' },
-        card:        { DEFAULT: '#ffffff', dark: '#09090b' },
+        card:        { DEFAULT: '#ffffff', dark: '#18181b' },
         border:      { DEFAULT: '#e4e4e7', dark: '#27272a' },
         input:       { DEFAULT: '#e4e4e7', dark: '#27272a' },
-        muted:       { DEFAULT: '#f4f4f5', dark: '#18181b' },
+        muted:       { DEFAULT: '#f4f4f5', dark: '#27272a' },
         mutedFg:     { DEFAULT: '#71717a', dark: '#a1a1aa' },
         accent:      { DEFAULT: '#18181b', dark: '#fafafa' },
         accentFg:    { DEFAULT: '#fafafa', dark: '#18181b' },

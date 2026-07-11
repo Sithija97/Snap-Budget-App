@@ -1,0 +1,52 @@
+import { Hono } from "hono";
+import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
+import { and, eq } from "drizzle-orm";
+import { categories } from "../db/schema";
+import { extractReceipt } from "../lib/gemini";
+import { uploadReceipt } from "../lib/cloudinary";
+import type { Env } from "../types";
+
+// Client compresses to ~1600px/JPEG q0.6 before upload (typically well under
+// 2MB base64) — this cap is a defensive ceiling against a malformed or
+// malicious client, not the expected size.
+const MAX_BASE64_LENGTH = 15_000_000;
+const scanInput = z.object({ imageBase64: z.string().min(1).max(MAX_BASE64_LENGTH) });
+
+export const scanRoute = new Hono<Env>();
+
+scanRoute.post("/", zValidator("json", scanInput), async (c) => {
+  const db = c.get("db");
+  const userId = c.get("userId");
+  const { imageBase64 } = c.req.valid("json");
+
+  const userCategories = await db
+    .select({ name: categories.name })
+    .from(categories)
+    .where(and(eq(categories.userId, userId), eq(categories.type, "expense")));
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  let extracted;
+  try {
+    extracted = await extractReceipt(
+      c.env,
+      imageBase64,
+      userCategories.map((cat) => cat.name),
+      today
+    );
+  } catch (e) {
+    console.error(e);
+    return c.json({ error: "Couldn't read that receipt. Try again or enter it manually." }, 502);
+  }
+
+  const publicId = `${userId}/${crypto.randomUUID()}`;
+  try {
+    await uploadReceipt(c.env, imageBase64, publicId);
+  } catch (e) {
+    console.error(e);
+    return c.json({ error: "Receipt image upload failed. Try again." }, 502);
+  }
+
+  return c.json({ ...extracted, receiptKey: publicId });
+});
