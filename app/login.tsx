@@ -14,9 +14,11 @@ import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import { useTheme } from "@/context/ThemeContext";
 import { UIText } from "@/components/ui/UIText";
+import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Separator } from "@/components/ui/Separator";
 import { Chip } from "@/components/ui/Chip";
+import { GoogleLogo } from "@/components/ui/GoogleLogo";
 
 // Required once per app for the OAuth browser popup to close itself properly
 WebBrowser.maybeCompleteAuthSession();
@@ -31,8 +33,9 @@ export default function LoginScreen() {
   const { isDark } = useTheme();
   const [mode, setMode] = useState<Mode>("signIn");
   // Which flow the "verify" screen belongs to: email verification during
-  // sign-up, or an email-code first factor requested during sign-in
-  const [verifyFlow, setVerifyFlow] = useState<"signUp" | "signIn">("signUp");
+  // sign-up, or an email-code first/second factor requested during sign-in
+  const [verifyFlow, setVerifyFlow] =
+    useState<"signUp" | "signInFirstFactor" | "signInSecondFactor">("signUp");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
@@ -83,13 +86,38 @@ export default function LoginScreen() {
             strategy: "email_code",
             emailAddressId: emailFactor.emailAddressId,
           });
-          setVerifyFlow("signIn");
+          setVerifyFlow("signInFirstFactor");
+          switchMode("verify");
+          return;
+        }
+      }
+      // MFA via email code (dashboard: Multi-factor → Email verification code)
+      if (attempt.status === "needs_second_factor") {
+        const emailFactor = attempt.supportedSecondFactors?.find(
+          (f) => f.strategy === "email_code"
+        );
+        if (emailFactor) {
+          await signIn.prepareSecondFactor({
+            strategy: "email_code",
+            emailAddressId: (emailFactor as any).emailAddressId,
+          } as any);
+          setVerifyFlow("signInSecondFactor");
           switchMode("verify");
           return;
         }
       }
       // e.g. 2FA or other additional factors — not implemented in this build
-      Alert.alert("Additional verification required", "This account needs a sign-in method not yet supported here.");
+      const factors =
+        attempt.supportedFirstFactors?.map((f) => f.strategy).join(", ") || "none";
+      console.log("Sign-in incomplete", {
+        status: attempt.status,
+        supportedFirstFactors: attempt.supportedFirstFactors,
+        supportedSecondFactors: attempt.supportedSecondFactors,
+      });
+      Alert.alert(
+        "Additional verification required",
+        `This account needs a sign-in step not supported here.\n\nstatus: ${attempt.status}\nfirst factors: ${factors}`
+      );
     } catch (err: any) {
       Alert.alert("Sign in failed", clerkErrorMessage(err, "Please check your email and password."));
     } finally {
@@ -122,11 +150,20 @@ export default function LoginScreen() {
     if (!signInLoaded || !signUpLoaded || submitting) return;
     setSubmitting(true);
     try {
-      if (verifyFlow === "signIn") {
+      if (verifyFlow === "signInFirstFactor") {
         const attempt = await signIn.attemptFirstFactor({
           strategy: "email_code",
           code: code.trim(),
         });
+        if (attempt.status === "complete") {
+          await setActiveSignIn({ session: attempt.createdSessionId });
+          return;
+        }
+      } else if (verifyFlow === "signInSecondFactor") {
+        const attempt = await signIn.attemptSecondFactor({
+          strategy: "email_code",
+          code: code.trim(),
+        } as any);
         if (attempt.status === "complete") {
           await setActiveSignIn({ session: attempt.createdSessionId });
           return;
@@ -149,7 +186,7 @@ export default function LoginScreen() {
   const handleResendCode = useCallback(async () => {
     if (!signInLoaded || !signUpLoaded) return;
     try {
-      if (verifyFlow === "signIn") {
+      if (verifyFlow === "signInFirstFactor") {
         const emailFactor = signIn.supportedFirstFactors?.find(
           (f) => f.strategy === "email_code"
         );
@@ -158,6 +195,15 @@ export default function LoginScreen() {
           strategy: "email_code",
           emailAddressId: emailFactor.emailAddressId,
         });
+      } else if (verifyFlow === "signInSecondFactor") {
+        const emailFactor = signIn.supportedSecondFactors?.find(
+          (f) => f.strategy === "email_code"
+        );
+        if (!emailFactor) throw new Error("No email factor available");
+        await signIn.prepareSecondFactor({
+          strategy: "email_code",
+          emailAddressId: (emailFactor as any).emailAddressId,
+        } as any);
       } else {
         await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       }
@@ -203,6 +249,8 @@ export default function LoginScreen() {
               </UIText>
             </View>
 
+            {/* Auth form on a card surface, matching the app-wide borderless design */}
+            <Card className="p-5">
             {mode !== "verify" && (
               <View className="flex-row justify-center gap-6 mb-6">
                 <Chip variant="underline" label="Sign in" selected={mode === "signIn"} onPress={() => switchMode("signIn")} />
@@ -234,9 +282,13 @@ export default function LoginScreen() {
                 <TouchableOpacity onPress={handleResendCode} activeOpacity={0.7} className="mt-4 items-center">
                   <UIText size="sm" variant="muted">Resend code</UIText>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => switchMode(verifyFlow)} activeOpacity={0.7} className="mt-2 items-center">
+                <TouchableOpacity
+                  onPress={() => switchMode(verifyFlow === "signUp" ? "signUp" : "signIn")}
+                  activeOpacity={0.7}
+                  className="mt-2 items-center"
+                >
                   <UIText size="sm" variant="muted">
-                    {verifyFlow === "signIn" ? "Back to sign in" : "Use a different email"}
+                    {verifyFlow === "signUp" ? "Use a different email" : "Back to sign in"}
                   </UIText>
                 </TouchableOpacity>
               </>
@@ -283,10 +335,12 @@ export default function LoginScreen() {
                   label="Continue with Google"
                   variant="outline"
                   className="w-full"
+                  icon={<GoogleLogo />}
                   onPress={handleGoogleAuth}
                 />
               </>
             )}
+            </Card>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
