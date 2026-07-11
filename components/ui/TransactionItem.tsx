@@ -16,9 +16,13 @@ interface Props {
   icon: string;
   isLast?: boolean;
   onPress?: () => void;
+  /** Replaces the category name on the second line when provided (e.g. Home shows the date) */
+  subtitle?: string;
+  /** Set false to drop the border between rows (still never drawn on the last row) */
+  separator?: boolean;
 }
 
-function TransactionItem({ merchant, categoryName, txType, amount, time, icon, isLast, onPress }: Props) {
+function TransactionItem({ merchant, categoryName, txType, amount, time, icon, isLast, onPress, subtitle, separator = true }: Props) {
   const { isDark } = useTheme();
   const Icon = TX_ICONS[icon] || ShoppingCart;
   const isIncome = txType === TxType.Income;
@@ -26,14 +30,14 @@ function TransactionItem({ merchant, categoryName, txType, amount, time, icon, i
 
   return (
     <TouchableOpacity onPress={onPress} disabled={!onPress} activeOpacity={0.7}>
-      <View className={`flex-row items-center gap-3 py-3 ${isLast ? '' : 'border-b border-border dark:border-border-dark'}`}>
+      <View className={`flex-row items-center gap-3 py-3 ${isLast || !separator ? '' : 'border-b border-border dark:border-border-dark'}`}>
         <View className="w-9 h-9 rounded-lg items-center justify-center bg-muted dark:bg-muted-dark">
           <Icon size={16} color={iconColor} strokeWidth={1.8} />
         </View>
 
         <View className="flex-1">
           <UIText size="sm" variant="heading">{merchant}</UIText>
-          <UIText size="xs" variant="muted" className="mt-0.5">{categoryName}</UIText>
+          <UIText size="xs" variant="muted" className="mt-0.5">{subtitle ?? categoryName}</UIText>
         </View>
 
         <View className="items-end">
