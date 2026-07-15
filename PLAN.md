@@ -96,7 +96,9 @@ Cloudflare cron triggers (already free on the Workers plan) handle recap schedul
 
 ---
 
-## 7. Automatic transaction capture (committed — later cycle)
+## 7. Automatic transaction capture (PARKED — 2026-07-15)
+
+**Status: parked, not actively worked on.** An in-progress implementation attempt was rolled back this session (2026-07-15) — no notification-listener code remains in the codebase. Still committed as a future feature, but removed from the near-term sequencing (§9); revisit after the active AI + messaging scope (§4–§6) ships, or when there's fresh appetite to pick it back up. Nothing below describes code that exists today — it's the design as last planned, kept for whenever this resumes.
 
 Digital payments (banking apps, PickMe/Uber, card taps) produce no printed receipt, so today they can only be entered manually — the core "snap" flow gives those transactions zero value. This feature detects them automatically and asks the user to approve; **nothing is ever saved without explicit confirmation**. Decided 2026-07-10; starts after the active AI + messaging scope ships. Free to run — no paid services.
 
@@ -147,4 +149,4 @@ These were considered and intentionally set aside — not rejected, just not bei
 4. **Predictive overspend warning** — next up. Can ship now that real transaction data exists; it's pure arithmetic, no messaging channel required first
 5. **Messaging channel** — Telegram first (fastest to validate), WhatsApp once ready for Meta's verification process
 6. **Weekly/monthly recap** — built last of the active scope, depends on whichever messaging channel is live
-7. **Automatic transaction capture** (§7) — committed, but starts only after 4–6 ship. The gallery/screenshot-import spinoff is small enough to slot in earlier whenever convenient
+7. **Automatic transaction capture** (§7) — **parked 2026-07-15**, no longer next-in-line after 4–6. Revisit later; not currently being built. The gallery/screenshot-import spinoff is small enough to slot in earlier whenever convenient, independent of the parked status
