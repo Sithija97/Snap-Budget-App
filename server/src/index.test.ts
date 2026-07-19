@@ -12,6 +12,9 @@ const fakeEnv: Env["Bindings"] = {
   CLOUDINARY_CLOUD_NAME: "fake",
   CLOUDINARY_API_KEY: "fake",
   CLOUDINARY_API_SECRET: "fake",
+  TELEGRAM_BOT_TOKEN: "fake",
+  TELEGRAM_WEBHOOK_SECRET: "fake-secret",
+  TELEGRAM_BOT_USERNAME: "fake_bot",
 };
 
 describe("GET /", () => {
@@ -30,6 +33,8 @@ describe("protected routes", () => {
     "/api/transactions",
     "/api/scan",
     "/api/receipts/some-key",
+    "/api/messaging/telegram",
+    "/api/assistant/ask",
   ];
 
   for (const route of routes) {
@@ -40,4 +45,28 @@ describe("protected routes", () => {
       expect(body.error).toBeTruthy();
     });
   }
+});
+
+describe("POST /webhooks/telegram", () => {
+  it("rejects a request with no secret token header (not gated by clerkAuth)", async () => {
+    const res = await app.request(
+      "/webhooks/telegram",
+      { method: "POST", body: JSON.stringify({}), headers: { "Content-Type": "application/json" } },
+      fakeEnv
+    );
+    expect(res.status).toBe(401);
+  });
+
+  it("rejects a request with the wrong secret token", async () => {
+    const res = await app.request(
+      "/webhooks/telegram",
+      {
+        method: "POST",
+        body: JSON.stringify({}),
+        headers: { "Content-Type": "application/json", "X-Telegram-Bot-Api-Secret-Token": "wrong" },
+      },
+      fakeEnv
+    );
+    expect(res.status).toBe(401);
+  });
 });

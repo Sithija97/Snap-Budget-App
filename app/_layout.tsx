@@ -18,6 +18,8 @@ import { useWalletStore } from "@/store/useWalletStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { useBudgetStore } from "@/store/useBudgetStore";
 import { useTransactionStore } from "@/store/useTransactionStore";
+import { useMessagingStore } from "@/store/useMessagingStore";
+import { useRecapStore } from "@/store/useRecapStore";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -39,9 +41,11 @@ function AuthBridge({ children }: { children: React.ReactNode }) {
       useCategoryStore.getState().reset();
       useBudgetStore.getState().reset();
       useTransactionStore.getState().reset();
+      useMessagingStore.getState().reset();
+      useRecapStore.getState().reset();
       return;
     }
-    // Fire all four fetches in parallel once signed in (and again on any
+    // Fire the four core fetches in parallel once signed in (and again on any
     // future sign-in, e.g. after a sign-out/sign-in cycle in the same session)
     Promise.all([
       useWalletStore.getState().fetchAll(),
@@ -49,6 +53,13 @@ function AuthBridge({ children }: { children: React.ReactNode }) {
       useBudgetStore.getState().fetchAll(),
       useTransactionStore.getState().fetchAll(),
     ]).catch((e) => console.error("Initial data fetch failed", e));
+
+    // Kept out of the Promise.all above: a failure here (e.g. the API not
+    // having the messaging routes deployed yet) is a real, expected
+    // possibility during rollout and shouldn't be logged as if core app data
+    // failed to load — the store's default (not linked) is a fine fallback.
+    useMessagingStore.getState().fetchStatus().catch((e) => console.warn("Messaging status fetch failed", e));
+    useRecapStore.getState().fetchAll().catch((e) => console.warn("Recap fetch failed", e));
   }, [isSignedIn]);
 
   return <>{children}</>;

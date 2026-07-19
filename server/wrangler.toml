@@ -10,6 +10,19 @@ enabled = true
 binding = "RATE_LIMIT_KV"
 id = "f46efb1707554da0ac3f1d4d8174c0e6"
 
-# DATABASE_URL and CLERK_SECRET_KEY are set via:
+[triggers]
+# Weekly: every Monday 08:00 UTC, recaps the 7 days ending yesterday.
+# Monthly: 08:05 UTC on the 1st, recaps the full calendar month that just
+# ended. Both call the same scheduled() handler in src/index.ts, which tells
+# them apart by comparing event.cron against the weekly string.
+crons = ["0 8 * * 1", "5 8 1 * *"]
+
+# DATABASE_URL, CLERK_SECRET_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET,
+# TELEGRAM_BOT_USERNAME are set via:
 #   local dev:  server/.dev.vars   (git-ignored)
 #   production: `wrangler secret put <NAME>`
+#
+# After deploying, register the webhook once (per environment) with:
+#   curl "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook" \
+#     -d "url=https://<worker-domain>/webhooks/telegram" \
+#     -d "secret_token=<TELEGRAM_WEBHOOK_SECRET>"

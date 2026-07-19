@@ -14,7 +14,7 @@ export function Card({ children, className = '', bordered = false, ...props }: C
     : 'bg-card dark:bg-card-dark';
   return (
     <View
-      className={`${frame} rounded-xl p-4 ${className}`}
+      className={`${frame} rounded-2xl p-4 ${className}`}
       {...props}
     >
       {children}

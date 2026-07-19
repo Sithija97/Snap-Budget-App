@@ -23,7 +23,7 @@ import { GoogleLogo } from "@/components/ui/GoogleLogo";
 // Required once per app for the OAuth browser popup to close itself properly
 WebBrowser.maybeCompleteAuthSession();
 
-type Mode = "signIn" | "signUp" | "verify";
+type Mode = "signIn" | "signUp" | "verify" | "forgot" | "reset";
 
 function clerkErrorMessage(err: any, fallback: string): string {
   return err?.errors?.[0]?.longMessage ?? err?.errors?.[0]?.message ?? fallback;
@@ -39,6 +39,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const { signIn, setActive: setActiveSignIn, isLoaded: signInLoaded } = useSignIn();
@@ -64,6 +65,7 @@ export default function LoginScreen() {
   const switchMode = (next: Mode) => {
     setMode(next);
     setCode("");
+    setNewPassword("");
   };
 
   const handleSignIn = useCallback(async () => {
@@ -145,6 +147,57 @@ export default function LoginScreen() {
       setSubmitting(false);
     }
   }, [signUp, email, password, signUpLoaded, submitting]);
+
+  const handleForgotPassword = useCallback(async () => {
+    if (!signInLoaded || submitting) return;
+    if (email.trim().length === 0) {
+      Alert.alert("Enter your email", "Please enter the email address for your account.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await signIn.create({ strategy: "reset_password_email_code", identifier: email.trim() });
+      switchMode("reset");
+    } catch (err: any) {
+      Alert.alert(
+        "Couldn't send reset code",
+        clerkErrorMessage(err, "Please check the email address and try again.")
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }, [signIn, email, signInLoaded, submitting]);
+
+  const handleResetPassword = useCallback(async () => {
+    if (!signInLoaded || submitting) return;
+    setSubmitting(true);
+    try {
+      const attempt = await signIn.attemptFirstFactor({
+        strategy: "reset_password_email_code",
+        code: code.trim(),
+        password: newPassword,
+      });
+      if (attempt.status === "complete") {
+        await setActiveSignIn({ session: attempt.createdSessionId });
+        return;
+      }
+      Alert.alert("Reset incomplete", "Please try the code again.");
+    } catch (err: any) {
+      Alert.alert("Couldn't reset password", clerkErrorMessage(err, "Please check the code and try again."));
+    } finally {
+      setSubmitting(false);
+    }
+  }, [signIn, code, newPassword, signInLoaded, submitting, setActiveSignIn]);
+
+  const handleResendResetCode = useCallback(async () => {
+    if (!signInLoaded) return;
+    try {
+      await signIn.create({ strategy: "reset_password_email_code", identifier: email.trim() });
+      Alert.alert("Code sent", `We've sent a new code to ${email}.`);
+    } catch (err: any) {
+      Alert.alert("Couldn't resend code", clerkErrorMessage(err, "Please try again."));
+    }
+  }, [signIn, email, signInLoaded]);
 
   const handleVerifyCode = useCallback(async () => {
     if (!signInLoaded || !signUpLoaded || submitting) return;
@@ -251,14 +304,76 @@ export default function LoginScreen() {
 
             {/* Auth form on a card surface, matching the app-wide borderless design */}
             <Card className="p-5">
-            {mode !== "verify" && (
+            {mode !== "verify" && mode !== "forgot" && mode !== "reset" && (
               <View className="flex-row justify-center gap-6 mb-6">
                 <Chip variant="underline" label="Sign in" selected={mode === "signIn"} onPress={() => switchMode("signIn")} />
                 <Chip variant="underline" label="Sign up" selected={mode === "signUp"} onPress={() => switchMode("signUp")} />
               </View>
             )}
 
-            {mode === "verify" ? (
+            {mode === "forgot" ? (
+              <>
+                <UIText size="sm" variant="muted" className="text-center mb-4">
+                  Enter your email and we'll send you a password reset code.
+                </UIText>
+                <TextInput
+                  style={inputStyle}
+                  placeholder="Email address"
+                  placeholderTextColor={placeholderClr}
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  autoFocus
+                />
+                <Button
+                  label={submitting ? "Sending..." : "Send reset code"}
+                  variant="default"
+                  className="mt-4 w-full"
+                  disabled={email.trim().length === 0 || submitting}
+                  onPress={handleForgotPassword}
+                />
+                <TouchableOpacity onPress={() => switchMode("signIn")} activeOpacity={0.7} className="mt-4 items-center">
+                  <UIText size="sm" variant="muted">Back to sign in</UIText>
+                </TouchableOpacity>
+              </>
+            ) : mode === "reset" ? (
+              <>
+                <UIText size="sm" variant="muted" className="text-center mb-4">
+                  Enter the code we sent to {email} and choose a new password.
+                </UIText>
+                <TextInput
+                  style={inputStyle}
+                  placeholder="6-digit code"
+                  placeholderTextColor={placeholderClr}
+                  value={code}
+                  onChangeText={setCode}
+                  keyboardType="number-pad"
+                  autoFocus
+                />
+                <TextInput
+                  style={{ ...inputStyle, marginTop: 8 }}
+                  placeholder="New password"
+                  placeholderTextColor={placeholderClr}
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  secureTextEntry
+                />
+                <Button
+                  label={submitting ? "Resetting..." : "Reset password"}
+                  variant="default"
+                  className="mt-4 w-full"
+                  disabled={code.trim().length === 0 || newPassword.length === 0 || submitting}
+                  onPress={handleResetPassword}
+                />
+                <TouchableOpacity onPress={handleResendResetCode} activeOpacity={0.7} className="mt-4 items-center">
+                  <UIText size="sm" variant="muted">Resend code</UIText>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => switchMode("signIn")} activeOpacity={0.7} className="mt-2 items-center">
+                  <UIText size="sm" variant="muted">Back to sign in</UIText>
+                </TouchableOpacity>
+              </>
+            ) : mode === "verify" ? (
               <>
                 <UIText size="sm" variant="muted" className="text-center mb-4">
                   Enter the code we sent to {email}
@@ -322,6 +437,16 @@ export default function LoginScreen() {
                   disabled={!canSubmitCredentials}
                   onPress={mode === "signIn" ? handleSignIn : handleSignUp}
                 />
+
+                {mode === "signIn" && (
+                  <TouchableOpacity
+                    onPress={() => switchMode("forgot")}
+                    activeOpacity={0.7}
+                    className="mt-3 items-center"
+                  >
+                    <UIText size="sm" variant="muted">Forgot password?</UIText>
+                  </TouchableOpacity>
+                )}
 
                 {/* OR */}
                 <View className="flex-row items-center gap-3 my-5">

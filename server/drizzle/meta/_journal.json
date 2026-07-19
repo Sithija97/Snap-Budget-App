@@ -29,6 +29,20 @@
       "when": 1783599445549,
       "tag": "0003_tense_wolfpack",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1784464724093,
+      "tag": "0004_stale_vance_astro",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1784502400996,
+      "tag": "0005_colorful_captain_cross",
+      "breakpoints": true
     }
   ]
 }
