@@ -27,7 +27,7 @@ import TransactionItem from "@/components/ui/TransactionItem";
 import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
+// import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { DataState } from "@/components/ui/DataState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { TransactionItemSkeleton } from "@/components/ui/TransactionItemSkeleton";
@@ -121,6 +121,10 @@ export default function HomeScreen() {
             </UIText>
           </View>
           <View className="flex-row items-center gap-2">
+            <IconButton onPress={() => router.push("/assistant")}>
+              <Sparkles size={18} color={isDark ? "#a1a1aa" : "#71717a"} />
+            </IconButton>
+            {/* <ThemeToggle /> */}
             <IconButton onPress={() => router.push("/recaps")} className="relative">
               <Bell size={18} color={isDark ? "#a1a1aa" : "#71717a"} />
               {hasUnseenRecaps && (
@@ -130,10 +134,6 @@ export default function HomeScreen() {
                 />
               )}
             </IconButton>
-            <IconButton onPress={() => router.push("/assistant")}>
-              <Sparkles size={18} color={isDark ? "#a1a1aa" : "#71717a"} />
-            </IconButton>
-            <ThemeToggle />
           </View>
         </View>
 
