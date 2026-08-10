@@ -57,7 +57,8 @@
           "photosPermission": "SnapBudget uses your photo library so you can pick an existing receipt photo to scan.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "extra": {
       "router": {},

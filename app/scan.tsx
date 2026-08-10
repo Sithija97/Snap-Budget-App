@@ -19,6 +19,7 @@ import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
+import { DateField } from "@/components/ui/DateField";
 
 const nowTime = () =>
   new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
@@ -64,6 +65,7 @@ export default function ScanScreen() {
   const [amount, setAmount]     = useState('');
   const [merchant, setMerchant] = useState('');
   const [category, setCategory] = useState('');
+  const [date, setDate]         = useState(todayISO());
 
   // Scan review state — pre-filled from Gemini's extraction, editable before save
   const [reviewMerchant, setReviewMerchant] = useState('');
@@ -96,7 +98,11 @@ export default function ScanScreen() {
   };
 
   const canSaveManual =
-    parseAmount(amount) > 0 && merchant.trim().length > 0 && category.trim().length > 0 && !saving;
+    parseAmount(amount) > 0 &&
+    merchant.trim().length > 0 &&
+    category.trim().length > 0 &&
+    DATE_RE.test(date) &&
+    !saving;
 
   const canSaveReview =
     parseAmount(reviewAmount) > 0 &&
@@ -312,13 +318,16 @@ export default function ScanScreen() {
               returnKeyType="done"
             />
 
+            <UIText size="xs" variant="label" className="mt-2">Date</UIText>
+            <DateField value={date} onChange={setDate} maxDate={new Date()} />
+
             <Button
               label={saving ? "Saving..." : "Save Transaction"}
               variant="default"
               className="mt-2"
               disabled={!canSaveManual}
               onPress={() =>
-                saveTransaction(merchant.trim(), category, parseAmount(amount), todayISO(), null, txType)
+                saveTransaction(merchant.trim(), category, parseAmount(amount), date, null, txType)
               }
             />
           </Card>
@@ -394,14 +403,7 @@ export default function ScanScreen() {
                 />
 
                 <UIText size="xs" variant="label" className="mt-2">Date</UIText>
-                <TextInput
-                  style={inputStyle}
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor={iconColor}
-                  value={reviewDate}
-                  onChangeText={setReviewDate}
-                  returnKeyType="next"
-                />
+                <DateField value={reviewDate} onChange={setReviewDate} />
 
                 <UIText size="xs" variant="label" className="mt-2">Category</UIText>
                 <TextInput

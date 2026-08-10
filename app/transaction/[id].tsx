@@ -10,6 +10,7 @@ import { useCategoryStore } from "@/store/useCategoryStore";
 import { useWalletStore } from "@/store/useWalletStore";
 import { TxType } from "@/types";
 import { fmt, parseAmount } from "@/utils/format";
+import { todayISO } from "@/utils/dates";
 import { API_URL } from "@/lib/api";
 import { UIText } from "@/components/ui/UIText";
 import { IconButton } from "@/components/ui/IconButton";
@@ -17,6 +18,7 @@ import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
+import { DateField } from "@/components/ui/DateField";
 
 export default function TransactionDetailScreen() {
   const { isDark } = useTheme();
@@ -36,6 +38,7 @@ export default function TransactionDetailScreen() {
   const [amount, setAmount] = useState(tx ? String(tx.amount) : "");
   const [categoryId, setCategoryId] = useState(tx?.categoryId ?? null);
   const [walletId, setWalletId] = useState(tx?.walletId ?? null);
+  const [date, setDate] = useState(tx?.date ?? todayISO());
   const [saving, setSaving] = useState(false);
   // RN's <Image source={{ uri, headers }}> only actually attaches those
   // headers on native — react-native-web renders a plain <img>, and browsers
@@ -92,6 +95,7 @@ export default function TransactionDetailScreen() {
       setAmount(String(tx.amount));
       setCategoryId(tx.categoryId);
       setWalletId(tx.walletId);
+      setDate(tx.date);
     }
     setIsEditing(!isEditing);
   };
@@ -145,6 +149,7 @@ export default function TransactionDetailScreen() {
         amount: parseAmount(amount),
         categoryId,
         walletId,
+        date,
       });
       router.back();
     } catch (e: any) {
@@ -217,6 +222,9 @@ export default function TransactionDetailScreen() {
                 <Chip key={c.id} label={c.name} selected={categoryId === c.id} onPress={() => setCategoryId(c.id)} />
               ))}
             </View>
+
+            <UIText size="xs" variant="label" className="mt-2">Date</UIText>
+            <DateField value={date} onChange={setDate} maxDate={new Date()} />
 
             <UIText size="xs" variant="label" className="mt-2">Wallet</UIText>
             <View className="flex-row flex-wrap gap-2">
