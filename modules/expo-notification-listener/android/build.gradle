@@ -1,0 +1,28 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+group = 'com.sithija.snapbudget.notificationlistener'
+version = '1.0.0'
+
+def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
+apply from: expoModulesCorePlugin
+applyKotlinExpoModulesCorePlugin()
+useCoreDependencies()
+useExpoPublishing()
+
+// Sets compileSdkVersion/minSdkVersion/targetSdkVersion from the root
+// project's ext values (falling back to 36/24/36) — without this, AGP never
+// finishes configuring the android {} block and useExpoPublishing()'s
+// singleVariant("release") fails looking for a component that doesn't exist yet.
+useDefaultAndroidSdkVersions()
+
+android {
+  namespace "com.sithija.snapbudget.notificationlistener"
+  defaultConfig {
+    versionCode 1
+    versionName "1.0.0"
+  }
+}
+
+dependencies {
+}

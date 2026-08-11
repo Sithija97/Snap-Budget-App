@@ -9,6 +9,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { useWalletStore } from "@/store/useWalletStore";
+import { useCaptureStore } from "@/store/useCaptureStore";
 import { api } from "@/lib/api";
 import { TxType, CategoryType } from "@/types";
 import { parseAmount } from "@/utils/format";
@@ -50,10 +51,20 @@ type Stage = "idle" | "analyzing" | "review";
 
 export default function ScanScreen() {
   const { isDark } = useTheme();
-  // Lets other screens (e.g. Home's Income/Total spent tap targets) deep-link
-  // straight into "add a transaction of this type" instead of landing on the
-  // camera view and requiring an extra tap into Manual mode first.
-  const params = useLocalSearchParams<{ manual?: string; type?: string }>();
+  // Lets other screens (e.g. Home's Income/Total spent tap targets, and the
+  // Captured-transactions inbox's "Review" action) deep-link straight into
+  // "add a transaction of this type" — optionally pre-filled — instead of
+  // landing on the camera view and requiring manual mode + typing from
+  // scratch.
+  const params = useLocalSearchParams<{
+    manual?: string;
+    type?: string;
+    amount?: string;
+    merchant?: string;
+    category?: string;
+    date?: string;
+    captureId?: string;
+  }>();
   const [stage, setStage] = useState<Stage>("idle");
   const [showManual, setShowManual] = useState(params.manual === "true");
   const [saving, setSaving] = useState(false);
@@ -62,10 +73,12 @@ export default function ScanScreen() {
   // chosen. Scanned receipts are always expenses (you don't photograph a
   // receipt for salary); income can only ever be logged here.
   const [txType, setTxType]     = useState<TxType>(params.type === "income" ? TxType.Income : TxType.Expense);
-  const [amount, setAmount]     = useState('');
-  const [merchant, setMerchant] = useState('');
-  const [category, setCategory] = useState('');
-  const [date, setDate]         = useState(todayISO());
+  const [amount, setAmount]     = useState(params.amount ?? '');
+  const [merchant, setMerchant] = useState(params.merchant ?? '');
+  const [category, setCategory] = useState(params.category ?? '');
+  const [date, setDate]         = useState(params.date && DATE_RE.test(params.date) ? params.date : todayISO());
+
+  const markCaptureSaved = useCaptureStore((s) => s.markSaved);
 
   // Scan review state — pre-filled from Gemini's extraction, editable before save
   const [reviewMerchant, setReviewMerchant] = useState('');
@@ -132,6 +145,10 @@ export default function ScanScreen() {
         time: nowTime(),
         receiptKey: key,
       });
+      // Reached via the Captured-transactions inbox's "Review" action — once
+      // the reviewed/edited fields are actually saved, the source suggestion
+      // is done and shouldn't keep showing as pending in that inbox.
+      if (params.captureId) markCaptureSaved(params.captureId).catch(() => {});
       Alert.alert("Saved!", "Transaction saved successfully.", [
         { text: "OK", onPress: () => router.back() },
       ]);

@@ -10,6 +10,8 @@ import { useCategoryStore } from "@/store/useCategoryStore";
 import { useBudgetStore } from "@/store/useBudgetStore";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { useMessagingStore } from "@/store/useMessagingStore";
+import { useCaptureStore } from "@/store/useCaptureStore";
+import { isNotificationCaptureSupportedPlatform } from "@/lib/notificationCapture";
 import { api } from "@/lib/api";
 import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
@@ -33,6 +35,7 @@ export default function SettingsScreen() {
   const budgets = useBudgetStore((s) => s.budgets);
   const transactions = useTransactionStore((s) => s.transactions);
   const telegramLinked = useMessagingStore((s) => s.telegram.linked);
+  const pendingCaptures = useCaptureStore((s) => s.suggestions.filter((sug) => sug.status === "pending").length);
 
   const iconColor   = isDark ? '#a1a1aa' : '#71717a';
   // Layout only — Chip computes selected/unselected color internally.
@@ -194,6 +197,26 @@ export default function SettingsScreen() {
             </View>
           </Card>
         </TouchableOpacity>
+
+        {/* Automatic capture — Android only, see lib/notificationCapture.ts */}
+        {isNotificationCaptureSupportedPlatform && (
+          <>
+            <UIText size="xs" variant="label" className="mt-5 mb-2">Automation</UIText>
+            <TouchableOpacity activeOpacity={0.7} onPress={() => router.push("/notification-capture")}>
+              <Card>
+                <View className="flex-row items-center justify-between">
+                  <UIText size="sm" variant="heading">Automatic capture</UIText>
+                  <View className="flex-row items-center gap-2">
+                    {pendingCaptures > 0 && (
+                      <UIText size="sm" variant="muted">{pendingCaptures} waiting</UIText>
+                    )}
+                    <ChevronRight size={16} color={iconColor} />
+                  </View>
+                </View>
+              </Card>
+            </TouchableOpacity>
+          </>
+        )}
 
         {/* Data */}
         <UIText size="xs" variant="label" className="mt-5 mb-2">Data</UIText>

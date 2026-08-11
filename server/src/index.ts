@@ -19,12 +19,17 @@ import type { Env } from "./types";
 
 const app = new Hono<Env>();
 
-// Auth is bearer-token only (no cookies), so there's no CSRF surface —
-// allowing any origin is a deliberate, documented choice, not an oversight.
+// This API has no web frontend — only the native mobile app (which doesn't
+// send an Origin header) and server-to-server calls (Telegram webhook) call
+// it. `origin: "*"` previously let any website's browser JS call authenticated
+// endpoints on behalf of a user who had a valid token (e.g. phished or
+// leaked). Returning no Access-Control-Allow-Origin blocks browser-based
+// cross-origin calls while leaving the native app, curl, and the webhook
+// route (which isn't behind this check anyway) unaffected.
 app.use(
   "*",
   cors({
-    origin: "*",
+    origin: [],
     allowMethods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
   })

@@ -14,14 +14,29 @@ import { router } from "expo-router";
 import { ChevronLeft, Send, Sparkles } from "lucide-react-native";
 import { useTheme } from "@/context/ThemeContext";
 import { api } from "@/lib/api";
+import { useTransactionStore } from "@/store/useTransactionStore";
+import { useCategoryStore } from "@/store/useCategoryStore";
 import { UIText } from "@/components/ui/UIText";
 import { IconButton } from "@/components/ui/IconButton";
 import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+
+interface TransactionDraft {
+  merchant: string;
+  amount: number;
+  categoryName: string;
+  txType: "inc" | "exp";
+  date: string;
+}
+
+type DraftStatus = "pending" | "saving" | "saved" | "cancelled";
 
 interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   text: string;
+  draft?: TransactionDraft;
+  draftStatus?: DraftStatus;
 }
 
 const SUGGESTIONS = [
@@ -29,6 +44,7 @@ const SUGGESTIONS = [
   "Will I survive until my next payday?",
   "How much have I spent on food in the last 6 months?",
   "Am I over budget on anything this month?",
+  "Spent 500 on lunch",
 ];
 
 let nextId = 0;
@@ -62,8 +78,18 @@ export default function AssistantScreen() {
       scrollToEnd();
 
       try {
-        const { reply } = await api.post<{ reply: string }>("/api/assistant/ask", { question: trimmed });
-        setMessages((prev) => [...prev, { id: newId(), role: "assistant", text: reply }]);
+        const { reply, draft } = await api.post<{ reply: string; draft?: TransactionDraft }>(
+          "/api/assistant/ask",
+          { question: trimmed }
+        );
+        setMessages((prev) => [
+          // The server keeps only one pending draft per user — asking a new
+          // question overwrites it there (see routes/assistant.ts), so any
+          // still-"pending" draft bubble in the UI is now stale and must stop
+          // offering Confirm/Cancel to avoid saving the wrong thing.
+          ...prev.map((m) => (m.draftStatus === "pending" ? { ...m, draftStatus: "cancelled" as const } : m)),
+          { id: newId(), role: "assistant", text: reply, draft, draftStatus: draft ? "pending" : undefined },
+        ]);
       } catch (e: any) {
         Alert.alert("Couldn't get an answer", e?.message ?? "Please try again.");
         setMessages((prev) => [
@@ -76,6 +102,46 @@ export default function AssistantScreen() {
       }
     },
     [asking, scrollToEnd]
+  );
+
+  const setDraftStatus = useCallback((messageId: string, status: DraftStatus) => {
+    setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, draftStatus: status } : m)));
+  }, []);
+
+  const confirmDraft = useCallback(
+    async (messageId: string, draft: TransactionDraft) => {
+      setDraftStatus(messageId, "saving");
+      try {
+        await api.post("/api/assistant/confirm", draft);
+        // The confirmed draft may have just created a brand-new category
+        // server-side (resolveCategoryId) and always adds a transaction —
+        // refetching both keeps Home/Transactions/Categories in sync exactly
+        // like every other cross-screen mutation in this app (see
+        // app/_layout.tsx's initial load and Settings' manual refresh).
+        await Promise.all([
+          useTransactionStore.getState().fetchAll(),
+          useCategoryStore.getState().fetchAll(),
+        ]);
+        setDraftStatus(messageId, "saved");
+      } catch (e: any) {
+        Alert.alert("Couldn't save transaction", e?.message ?? "Please try again.");
+        setDraftStatus(messageId, "pending");
+      }
+    },
+    [setDraftStatus]
+  );
+
+  const cancelDraft = useCallback(
+    async (messageId: string) => {
+      setDraftStatus(messageId, "cancelled");
+      try {
+        await api.post("/api/assistant/cancel", {});
+      } catch {
+        // Best-effort — the KV entry expires on its own TTL either way, so a
+        // failed cancel call has no user-visible consequence.
+      }
+    },
+    [setDraftStatus]
   );
 
   return (
@@ -101,7 +167,7 @@ export default function AssistantScreen() {
                 <Sparkles size={22} color={iconColor} />
               </View>
               <UIText size="sm" variant="muted" className="text-center">
-                Ask anything about your spending, income, or budgets — a category, a merchant, a date range, or whether you'll make it to your next payday.
+                Ask anything about your spending, income, or budgets, or just tell me what you spent — "spent 500 on lunch" — and I'll log it once you confirm.
               </UIText>
               <View className="gap-2 w-full">
                 {SUGGESTIONS.map((s) => (
@@ -127,6 +193,35 @@ export default function AssistantScreen() {
                     >
                       {m.text}
                     </UIText>
+
+                    {m.draft && m.draftStatus === "pending" && (
+                      <View className="flex-row gap-2 mt-3">
+                        <Button
+                          label="Confirm"
+                          variant="default"
+                          className="flex-1"
+                          onPress={() => confirmDraft(m.id, m.draft!)}
+                        />
+                        <Button
+                          label="Cancel"
+                          variant="outline"
+                          className="flex-1"
+                          onPress={() => cancelDraft(m.id)}
+                        />
+                      </View>
+                    )}
+                    {m.draftStatus === "saving" && (
+                      <View className="flex-row items-center gap-2 mt-3">
+                        <ActivityIndicator size="small" color={isDark ? "#fafafa" : "#18181b"} />
+                        <UIText size="xs" variant="muted">Saving...</UIText>
+                      </View>
+                    )}
+                    {m.draftStatus === "saved" && (
+                      <UIText size="xs" variant="muted" className="mt-3">✓ Saved to your transactions</UIText>
+                    )}
+                    {m.draftStatus === "cancelled" && (
+                      <UIText size="xs" variant="muted" className="mt-3">Discarded</UIText>
+                    )}
                   </Card>
                 </View>
               ))}

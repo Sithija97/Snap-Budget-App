@@ -3,8 +3,15 @@ import { and, eq, gt } from "drizzle-orm";
 import { createDb } from "../db/client";
 import { messagingLinks, messagingLinkCodes } from "../db/schema";
 import { sendTelegramMessage } from "../lib/telegram";
-import { answerQuestion } from "./assistant";
+import { answerQuestion, getPendingDraft, putPendingDraft, saveDraftTransaction, clearPendingDraft } from "./assistant";
 import type { Env } from "../types";
+
+// Telegram has no button-based confirm step in this flow, so a pending draft
+// is confirmed/cancelled by the next free-text reply — a generous set of
+// synonyms since "yes"/"y"/"confirm"/"ok" are all natural replies to "Log
+// spend of Rs 500 for lunch?".
+const CONFIRM_WORDS = new Set(["yes", "y", "yeah", "yep", "confirm", "ok", "okay", "sure"]);
+const CANCEL_WORDS = new Set(["no", "n", "nope", "cancel", "stop"]);
 
 export const webhooksRoute = new Hono<Env>();
 
@@ -60,8 +67,31 @@ webhooksRoute.post("/telegram", async (c) => {
         return c.json({ ok: true });
       }
 
-      const reply = await answerQuestion(c.env, db, link.userId, text);
-      await sendTelegramMessage(c.env, chatId, reply);
+      // A pending draft takes priority over classifying this message as a
+      // new question — "yes"/"no" would otherwise get sent to Gemini as a
+      // fresh, nonsensical query.
+      const pendingDraft = await getPendingDraft(c.env.RATE_LIMIT_KV, link.userId);
+      const normalized = text.trim().toLowerCase();
+
+      if (pendingDraft && CONFIRM_WORDS.has(normalized)) {
+        await saveDraftTransaction(c.env, db, link.userId, pendingDraft);
+        await sendTelegramMessage(c.env, chatId, "Saved!");
+        return c.json({ ok: true });
+      }
+
+      if (pendingDraft && CANCEL_WORDS.has(normalized)) {
+        await clearPendingDraft(c.env.RATE_LIMIT_KV, link.userId);
+        await sendTelegramMessage(c.env, chatId, "Okay, discarded.");
+        return c.json({ ok: true });
+      }
+
+      const result = await answerQuestion(c.env, db, link.userId, text);
+      if (result.draft) {
+        await putPendingDraft(c.env.RATE_LIMIT_KV, link.userId, result.draft);
+        await sendTelegramMessage(c.env, chatId, `${result.reply}\n\nReply "yes" to save, or "no" to discard.`);
+      } else {
+        await sendTelegramMessage(c.env, chatId, result.reply);
+      }
     } catch (e) {
       console.error(e);
       await sendTelegramMessage(c.env, chatId, "Couldn't answer that right now — try again in a moment.");

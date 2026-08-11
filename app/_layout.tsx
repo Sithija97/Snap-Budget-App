@@ -20,6 +20,12 @@ import { useBudgetStore } from "@/store/useBudgetStore";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { useMessagingStore } from "@/store/useMessagingStore";
 import { useRecapStore } from "@/store/useRecapStore";
+import { useCaptureStore } from "@/store/useCaptureStore";
+import {
+  startNotificationCapture,
+  stopNotificationCapture,
+  registerCaptureNotificationTapHandler,
+} from "@/lib/notificationCapture";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -43,6 +49,7 @@ function AuthBridge({ children }: { children: React.ReactNode }) {
       useTransactionStore.getState().reset();
       useMessagingStore.getState().reset();
       useRecapStore.getState().reset();
+      stopNotificationCapture();
       return;
     }
     // Fire the four core fetches in parallel once signed in (and again on any
@@ -60,6 +67,15 @@ function AuthBridge({ children }: { children: React.ReactNode }) {
     // failed to load — the store's default (not linked) is a fine fallback.
     useMessagingStore.getState().fetchStatus().catch((e) => console.warn("Messaging status fetch failed", e));
     useRecapStore.getState().fetchAll().catch((e) => console.warn("Recap fetch failed", e));
+
+    // Capture's allowlist/inbox is local-only (AsyncStorage, no backend), so
+    // it's hydrated rather than fetched — then the native listener (Android
+    // only, no-ops elsewhere) is started against whatever allowlist was saved.
+    useCaptureStore
+      .getState()
+      .hydrate()
+      .then(() => startNotificationCapture())
+      .catch((e) => console.warn("Capture hydration failed", e));
   }, [isSignedIn]);
 
   return <>{children}</>;
@@ -79,6 +95,8 @@ function InnerLayout() {
         <Stack.Protected guard={!!isSignedIn}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="scan" options={{ presentation: "modal" }} />
+          <Stack.Screen name="captured" />
+          <Stack.Screen name="notification-capture" />
         </Stack.Protected>
         <Stack.Protected guard={!isSignedIn}>
           <Stack.Screen name="login" />
@@ -99,6 +117,14 @@ export default function RootLayout() {
     if (!loaded) return;
     SplashScreen.hideAsync();
   }, [loaded]);
+
+  // Registered once at the root (not sign-in-gated) so a tap that arrives
+  // while the app is cold-starting isn't missed — Stack.Protected still
+  // keeps the destination screen itself behind auth.
+  useEffect(() => {
+    const subscription = registerCaptureNotificationTapHandler();
+    return () => subscription.remove();
+  }, []);
 
   if (!loaded) return null;
 
