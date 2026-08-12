@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, ScrollView, TouchableOpacity, Alert } from "react-native";
+import { View, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { Input } from "@/components/ui/Input";
+import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 
 const ICON_KEYS = Object.keys(TX_ICONS);
 
@@ -129,11 +130,11 @@ export default function CategoryFormScreen() {
               const Icon = TX_ICONS[key];
               const isActive = icon === key;
               return (
-                <TouchableOpacity
+                <AnimatedPressable
                   key={key}
                   onPress={() => setIcon(key)}
-                  activeOpacity={0.7}
-                  style={{
+                  pressScale={0.9}
+                  contentStyle={{
                     width: 40,
                     height: 40,
                     borderRadius: 8,
@@ -144,7 +145,7 @@ export default function CategoryFormScreen() {
                   }}
                 >
                   <Icon size={16} color={isActive ? accentFill : iconColor} strokeWidth={1.8} />
-                </TouchableOpacity>
+                </AnimatedPressable>
               );
             })}
           </View>

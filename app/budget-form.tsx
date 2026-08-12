@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, ScrollView, TouchableOpacity, Alert } from "react-native";
+import { View, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { Check, ChevronLeft } from "lucide-react-native";
@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { Input } from "@/components/ui/Input";
+import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 
 export default function BudgetFormScreen() {
   const { isDark } = useTheme();
@@ -126,9 +127,9 @@ export default function BudgetFormScreen() {
           </View>
 
           {/* Repeat checkbox */}
-          <TouchableOpacity
+          <AnimatedPressable
             onPress={() => setRepeat(!repeat)}
-            activeOpacity={0.7}
+            pressScale={0.98}
             className="flex-row items-center gap-3 mt-2"
           >
             <View
@@ -146,7 +147,7 @@ export default function BudgetFormScreen() {
               {repeat && <Check size={14} color={isDark ? "#18181b" : "#ffffff"} strokeWidth={2.5} />}
             </View>
             <UIText size="sm">Repeat this budget monthly</UIText>
-          </TouchableOpacity>
+          </AnimatedPressable>
 
           <Button
             label={saving ? "Saving..." : "Save Budget"}

@@ -1,18 +1,22 @@
 import { useMemo } from "react";
-import { View, ScrollView, TouchableOpacity, Alert } from "react-native";
+import { View, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { ChevronLeft, Inbox, Sparkles, Cpu } from "lucide-react-native";
 import { useTheme } from "@/context/ThemeContext";
 import { useCaptureStore } from "@/store/useCaptureStore";
+import { CaptureSource } from "@/types/capture";
 import { TxType } from "@/types";
 import { formatFullDate } from "@/utils/dates";
 import { UIText } from "@/components/ui/UIText";
 import { IconButton } from "@/components/ui/IconButton";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 
-const SOURCE_LABEL: Record<string, string> = {
+// Keyed by CaptureSource (not string) so removing/renaming a source is a
+// compile error here instead of a silently-undefined label at render time.
+const SOURCE_LABEL: Record<CaptureSource, string> = {
   regex: "Parsed on-device",
   gemini: "Parsed with AI",
 };
@@ -97,14 +101,13 @@ export default function CapturedScreen() {
 
                   <View className="flex-row gap-2 mt-3">
                     <Button label="Review" variant="default" className="flex-1" onPress={() => handleReview(s.id)} />
-                    <TouchableOpacity
-                      activeOpacity={0.7}
+                    <AnimatedPressable
                       onPress={() => handleDismiss(s.id)}
                       className="px-4 items-center justify-center"
                       hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
                     >
                       <UIText size="sm" variant="muted">Dismiss</UIText>
-                    </TouchableOpacity>
+                    </AnimatedPressable>
                   </View>
                 </Card>
               );

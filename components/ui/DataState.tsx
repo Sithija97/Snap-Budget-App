@@ -1,7 +1,8 @@
 import { ComponentType } from "react";
-import { View, ActivityIndicator, TouchableOpacity } from "react-native";
+import { View, ActivityIndicator } from "react-native";
 import { UIText } from "./UIText";
 import { useTheme } from "@/context/ThemeContext";
+import { AnimatedPressable } from "./AnimatedPressable";
 
 interface DataStateProps {
   status: "idle" | "loading" | "error";
@@ -37,9 +38,9 @@ export function DataState({ status, isEmpty, onRetry, emptyMessage = "Nothing he
     return (
       <View className="items-center py-12 gap-2">
         <UIText size="sm" variant="muted">Couldn't load data</UIText>
-        <TouchableOpacity onPress={onRetry} activeOpacity={0.7}>
+        <AnimatedPressable onPress={onRetry}>
           <UIText size="sm" variant="heading" className="underline">Retry</UIText>
-        </TouchableOpacity>
+        </AnimatedPressable>
       </View>
     );
   }

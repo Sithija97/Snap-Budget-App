@@ -1,6 +1,6 @@
-import { TouchableOpacity } from 'react-native';
 import { UIText } from './UIText';
 import { useTheme } from '@/context/ThemeContext';
+import { AnimatedPressable } from './AnimatedPressable';
 
 type Variant = 'default' | 'outline' | 'ghost' | 'destructive';
 
@@ -35,16 +35,15 @@ export function Button({ label, variant = 'default', onPress, icon, className = 
   })();
 
   return (
-    <TouchableOpacity
+    <AnimatedPressable
       className={`${containerStyles[variant]} ${disabled ? 'opacity-50' : ''} ${className}`}
       onPress={onPress}
-      activeOpacity={0.7}
       disabled={disabled}
     >
       {icon}
       <UIText size="sm" variant="unstyled" style={{ fontWeight: '500', color: textColor }}>
         {label}
       </UIText>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }

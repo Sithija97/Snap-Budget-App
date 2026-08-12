@@ -5,7 +5,6 @@ import {
   Platform,
   ScrollView,
   Alert,
-  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSignIn, useSignUp, useOAuth } from "@clerk/clerk-expo";
@@ -18,6 +17,7 @@ import { Separator } from "@/components/ui/Separator";
 import { Chip } from "@/components/ui/Chip";
 import { GoogleLogo } from "@/components/ui/GoogleLogo";
 import { Input } from "@/components/ui/Input";
+import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 
 // Required once per app for the OAuth browser popup to close itself properly
 WebBrowser.maybeCompleteAuthSession();
@@ -313,9 +313,9 @@ export default function LoginScreen() {
                   disabled={email.trim().length === 0 || submitting}
                   onPress={handleForgotPassword}
                 />
-                <TouchableOpacity onPress={() => switchMode("signIn")} activeOpacity={0.7} className="mt-4 items-center">
+                <AnimatedPressable onPress={() => switchMode("signIn")} className="mt-4 items-center">
                   <UIText size="sm" variant="muted">Back to sign in</UIText>
-                </TouchableOpacity>
+                </AnimatedPressable>
               </>
             ) : mode === "reset" ? (
               <>
@@ -343,12 +343,12 @@ export default function LoginScreen() {
                   disabled={code.trim().length === 0 || newPassword.length === 0 || submitting}
                   onPress={handleResetPassword}
                 />
-                <TouchableOpacity onPress={handleResendResetCode} activeOpacity={0.7} className="mt-4 items-center">
+                <AnimatedPressable onPress={handleResendResetCode} className="mt-4 items-center">
                   <UIText size="sm" variant="muted">Resend code</UIText>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => switchMode("signIn")} activeOpacity={0.7} className="mt-2 items-center">
+                </AnimatedPressable>
+                <AnimatedPressable onPress={() => switchMode("signIn")} className="mt-2 items-center">
                   <UIText size="sm" variant="muted">Back to sign in</UIText>
-                </TouchableOpacity>
+                </AnimatedPressable>
               </>
             ) : mode === "verify" ? (
               <>
@@ -369,18 +369,17 @@ export default function LoginScreen() {
                   disabled={!canSubmitCode}
                   onPress={handleVerifyCode}
                 />
-                <TouchableOpacity onPress={handleResendCode} activeOpacity={0.7} className="mt-4 items-center">
+                <AnimatedPressable onPress={handleResendCode} className="mt-4 items-center">
                   <UIText size="sm" variant="muted">Resend code</UIText>
-                </TouchableOpacity>
-                <TouchableOpacity
+                </AnimatedPressable>
+                <AnimatedPressable
                   onPress={() => switchMode(verifyFlow === "signUp" ? "signUp" : "signIn")}
-                  activeOpacity={0.7}
                   className="mt-2 items-center"
                 >
                   <UIText size="sm" variant="muted">
                     {verifyFlow === "signUp" ? "Use a different email" : "Back to sign in"}
                   </UIText>
-                </TouchableOpacity>
+                </AnimatedPressable>
               </>
             ) : (
               <>
@@ -411,13 +410,12 @@ export default function LoginScreen() {
                 />
 
                 {mode === "signIn" && (
-                  <TouchableOpacity
+                  <AnimatedPressable
                     onPress={() => switchMode("forgot")}
-                    activeOpacity={0.7}
                     className="mt-3 items-center"
                   >
                     <UIText size="sm" variant="muted">Forgot password?</UIText>
-                  </TouchableOpacity>
+                  </AnimatedPressable>
                 )}
 
                 {/* OR */}

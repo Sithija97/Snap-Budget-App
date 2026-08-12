@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import {
   ScrollView,
   View,
-  TouchableOpacity,
   RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -31,6 +30,7 @@ import { DataState } from "@/components/ui/DataState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { TransactionItemSkeleton } from "@/components/ui/TransactionItemSkeleton";
 import { IconButton } from "@/components/ui/IconButton";
+import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 import { useRefresh } from "@/hooks/useRefresh";
 
 function greeting(hour: number): string {
@@ -137,8 +137,7 @@ export default function HomeScreen() {
 
         {/* Summary card — hero stat + icon-anchored secondary stats */}
         <Card>
-          <TouchableOpacity
-            activeOpacity={0.7}
+          <AnimatedPressable
             onPress={() => router.push("/scan?manual=true&type=expense")}
             className="flex-row items-center justify-between"
           >
@@ -163,14 +162,13 @@ export default function HomeScreen() {
             >
               <Plus size={18} color="#ffffff" strokeWidth={2.5} />
             </View>
-          </TouchableOpacity>
+          </AnimatedPressable>
 
           <Separator className="my-4" />
 
           <View className="flex-row items-center">
-            <TouchableOpacity
+            <AnimatedPressable
               className="flex-1 flex-row items-center gap-2.5"
-              activeOpacity={0.7}
               onPress={() => router.push("/scan?manual=true&type=income")}
             >
               <View className="w-8 h-8 rounded-full items-center justify-center bg-positive/10 dark:bg-positive-dark/10">
@@ -196,7 +194,7 @@ export default function HomeScreen() {
                   </UIText>
                 )}
               </View>
-            </TouchableOpacity>
+            </AnimatedPressable>
 
             <View className="w-px h-8 bg-border dark:bg-border-dark mx-3" />
 
@@ -247,9 +245,8 @@ export default function HomeScreen() {
           <UIText size="sm" variant="heading">
             Budget health
           </UIText>
-          <TouchableOpacity
+          <AnimatedPressable
             onPress={() => router.push("/(tabs)/analytics")}
-            activeOpacity={0.7}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             className="flex-row items-center gap-0.5"
           >
@@ -257,7 +254,7 @@ export default function HomeScreen() {
               See more
             </UIText>
             <ChevronRight size={13} color={isDark ? "#a1a1aa" : "#71717a"} />
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
 
         <BudgetHealthCard health={health} loading={healthLoading} />
@@ -267,9 +264,8 @@ export default function HomeScreen() {
           <UIText size="sm" variant="heading">
             Recent transactions
           </UIText>
-          <TouchableOpacity
+          <AnimatedPressable
             onPress={() => router.push("/(tabs)/transactions")}
-            activeOpacity={0.7}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             className="flex-row items-center gap-0.5"
           >
@@ -277,7 +273,7 @@ export default function HomeScreen() {
               See all
             </UIText>
             <ChevronRight size={13} color={isDark ? "#a1a1aa" : "#71717a"} />
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
 
         {isFirstLoad ? (

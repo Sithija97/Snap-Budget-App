@@ -2,7 +2,6 @@ import { useCallback, useRef, useState } from "react";
 import {
   View,
   ScrollView,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
@@ -189,11 +188,9 @@ export default function AssistantScreen() {
               </UIText>
               <View className="gap-2 w-full">
                 {SUGGESTIONS.map((s) => (
-                  <TouchableOpacity key={s} activeOpacity={0.7} onPress={() => ask(s)}>
-                    <Card bordered className="p-3">
-                      <UIText size="sm" variant="heading">{s}</UIText>
-                    </Card>
-                  </TouchableOpacity>
+                  <Card key={s} bordered className="p-3" onPress={() => ask(s)}>
+                    <UIText size="sm" variant="heading">{s}</UIText>
+                  </Card>
                 ))}
               </View>
             </View>

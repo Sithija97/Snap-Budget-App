@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { Platform, TouchableOpacity, View } from 'react-native';
+import { Platform } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Calendar } from 'lucide-react-native';
-import { UIText } from './UIText';
-import { useTheme } from '@/context/ThemeContext';
 import { formatFullDate, toISODate } from '@/utils/dates';
+import { PickerFieldShell, usePickerFieldIconColor } from './PickerFieldShell';
 
 interface DateFieldProps {
   /** ISO "YYYY-MM-DD" */
@@ -21,15 +20,10 @@ interface DateFieldProps {
 // instead of a raw text input (which is how the scan-review date used to
 // work, and was the one field in the app still hand-typed as "YYYY-MM-DD").
 // react-native-web has no native picker at all, so web falls back to a plain
-// HTML date input rendered via View's web-only `<input>` passthrough.
+// HTML date input (see PickerFieldShell).
 export function DateField({ value, onChange, disabled = false, maxDate }: DateFieldProps) {
-  const { isDark } = useTheme();
   const [showPicker, setShowPicker] = useState(false);
-
-  const borderColor = isDark ? '#27272a' : '#e4e4e7';
-  const inputBg = isDark ? '#09090b' : '#ffffff';
-  const inputText = isDark ? '#fafafa' : '#09090b';
-  const iconColor = isDark ? '#a1a1aa' : '#71717a';
+  const iconColor = usePickerFieldIconColor();
 
   const dateValue = value ? new Date(`${value}T00:00:00`) : new Date();
 
@@ -43,67 +37,22 @@ export function DateField({ value, onChange, disabled = false, maxDate }: DateFi
     }
   };
 
-  if (Platform.OS === 'web') {
-    return (
-      <View
-        style={{
-          height: 44,
-          borderWidth: 1,
-          borderColor,
-          borderRadius: 8,
-          paddingHorizontal: 12,
-          backgroundColor: inputBg,
-          justifyContent: 'center',
-          opacity: disabled ? 0.5 : 1,
-        }}
-      >
-        <input
-          type="date"
-          value={value}
-          disabled={disabled}
-          max={maxDate ? toISODate(maxDate) : undefined}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => e.target.value && onChange(e.target.value)}
-          style={{
-            border: 'none',
-            outline: 'none',
-            background: 'transparent',
-            color: inputText,
-            fontSize: 15,
-            fontFamily: 'inherit',
-            width: '100%',
-            height: '100%',
-          }}
-        />
-      </View>
-    );
-  }
-
   return (
     <>
-      <TouchableOpacity
-        activeOpacity={0.7}
+      <PickerFieldShell
+        displayText={formatFullDate(value)}
         disabled={disabled}
         onPress={() => setShowPicker(true)}
-        style={{
-          height: 44,
-          borderWidth: 1,
-          borderColor,
-          borderRadius: 8,
-          paddingHorizontal: 12,
-          backgroundColor: inputBg,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          opacity: disabled ? 0.5 : 1,
+        icon={<Calendar size={16} color={iconColor} />}
+        webInputProps={{
+          type: 'date',
+          value,
+          onChange: (v) => onChange(v),
+          max: maxDate ? toISODate(maxDate) : undefined,
         }}
-      >
-        <UIText size="sm" variant="unstyled" style={{ color: inputText }}>
-          {formatFullDate(value)}
-        </UIText>
-        <Calendar size={16} color={iconColor} />
-      </TouchableOpacity>
+      />
 
-      {showPicker && (
+      {Platform.OS !== 'web' && showPicker && (
         <DateTimePicker
           value={dateValue}
           mode="date"

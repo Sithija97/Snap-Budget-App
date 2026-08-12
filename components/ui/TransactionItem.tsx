@@ -1,11 +1,12 @@
 import { memo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 import { ShoppingCart } from 'lucide-react-native';
 import { TxType } from '@/types';
 import { TX_ICONS } from '@/constants/icons';
 import { fmt } from '@/utils/format';
 import { useTheme } from '@/context/ThemeContext';
 import { UIText } from './UIText';
+import { AnimatedPressable } from './AnimatedPressable';
 
 interface Props {
   merchant: string;
@@ -29,7 +30,7 @@ function TransactionItem({ merchant, categoryName, txType, amount, time, icon, i
   const iconColor = isDark ? '#a1a1aa' : '#71717a';
 
   return (
-    <TouchableOpacity onPress={onPress} disabled={!onPress} activeOpacity={0.7}>
+    <AnimatedPressable onPress={onPress} disabled={!onPress} pressScale={0.98}>
       <View className={`flex-row items-center gap-3 py-3 ${isLast || !separator ? '' : 'border-b border-border dark:border-border-dark'}`}>
         <View className="w-9 h-9 rounded-lg items-center justify-center bg-muted dark:bg-muted-dark">
           <Icon size={16} color={iconColor} strokeWidth={1.8} />
@@ -51,7 +52,7 @@ function TransactionItem({ merchant, categoryName, txType, amount, time, icon, i
           <UIText size="xs" variant="muted" className="mt-0.5">{time}</UIText>
         </View>
       </View>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 

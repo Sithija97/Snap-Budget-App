@@ -1,5 +1,5 @@
 import { memo, useMemo } from "react";
-import { View, TouchableOpacity, FlatList, RefreshControl } from "react-native";
+import { View, FlatList, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { ChevronRight, Plus, TrendingUp } from "lucide-react-native";
@@ -12,6 +12,7 @@ import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { IconButton } from "@/components/ui/IconButton";
+import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 import { DataState } from "@/components/ui/DataState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { TX_ICONS } from "@/constants/icons";
@@ -41,7 +42,7 @@ const CategoryRow = memo(function CategoryRow({
   const Icon = TX_ICONS[categoryIcon];
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+    <AnimatedPressable onPress={onPress} pressScale={0.98}>
       <View className="flex-row rounded-2xl overflow-hidden bg-card dark:bg-card-dark">
         {/* Status accent: only draws attention when a category actually needs it */}
         <View style={{ width: 3, backgroundColor: isOver || isNear ? fillColor : 'transparent' }} />
@@ -81,7 +82,7 @@ const CategoryRow = memo(function CategoryRow({
           </View>
         </View>
       </View>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 });
 
@@ -244,18 +245,16 @@ export default function BudgetScreen() {
               )}
             </Card>
 
-            <TouchableOpacity onPress={() => router.push("/(tabs)/analytics")} activeOpacity={0.7}>
-              <Card className="flex-row items-center gap-3">
-                <View
-                  className="w-9 h-9 rounded-lg items-center justify-center"
-                  style={{ backgroundColor: `${BRAND_BLUE}1a` }}
-                >
-                  <TrendingUp size={16} color={BRAND_BLUE} strokeWidth={2} />
-                </View>
-                <UIText size="sm" variant="heading" className="flex-1">View spending trends</UIText>
-                <ChevronRight size={16} color={iconColor} />
-              </Card>
-            </TouchableOpacity>
+            <Card className="flex-row items-center gap-3" onPress={() => router.push("/(tabs)/analytics")}>
+              <View
+                className="w-9 h-9 rounded-lg items-center justify-center"
+                style={{ backgroundColor: `${BRAND_BLUE}1a` }}
+              >
+                <TrendingUp size={16} color={BRAND_BLUE} strokeWidth={2} />
+              </View>
+              <UIText size="sm" variant="heading" className="flex-1">View spending trends</UIText>
+              <ChevronRight size={16} color={iconColor} />
+            </Card>
 
             {/* Categories */}
             <UIText size="xs" variant="label" className="mt-2">Categories</UIText>
@@ -297,31 +296,30 @@ export default function BudgetScreen() {
           if (!cat) return null;
           const Icon = TX_ICONS[cat.icon];
           return (
-            <TouchableOpacity
+            <Card
+              bordered
+              className="flex-row items-center gap-3"
               onPress={() => router.push(`/budget-form?categoryId=${item.categoryId}`)}
-              activeOpacity={0.7}
             >
-              <Card bordered className="flex-row items-center gap-3">
-                <View
-                  className="w-9 h-9 rounded-lg items-center justify-center"
-                  style={{ backgroundColor: trackBg }}
-                >
-                  {Icon && <Icon size={16} color={iconColor} strokeWidth={1.8} />}
-                </View>
-                <View className="flex-1">
-                  <UIText size="sm" variant="heading">{cat.name}</UIText>
-                  <UIText size="xs" variant="muted" className="mt-0.5">
-                    {fmt(spentByCategory[item.categoryId] ?? 0)} spent · no limit set
-                  </UIText>
-                </View>
-                <View className="flex-row items-center gap-1">
-                  <Plus size={13} color={BRAND_BLUE} strokeWidth={2.5} />
-                  <UIText size="xs" style={{ color: BRAND_BLUE }} className="font-medium">
-                    Set budget
-                  </UIText>
-                </View>
-              </Card>
-            </TouchableOpacity>
+              <View
+                className="w-9 h-9 rounded-lg items-center justify-center"
+                style={{ backgroundColor: trackBg }}
+              >
+                {Icon && <Icon size={16} color={iconColor} strokeWidth={1.8} />}
+              </View>
+              <View className="flex-1">
+                <UIText size="sm" variant="heading">{cat.name}</UIText>
+                <UIText size="xs" variant="muted" className="mt-0.5">
+                  {fmt(spentByCategory[item.categoryId] ?? 0)} spent · no limit set
+                </UIText>
+              </View>
+              <View className="flex-row items-center gap-1">
+                <Plus size={13} color={BRAND_BLUE} strokeWidth={2.5} />
+                <UIText size="xs" style={{ color: BRAND_BLUE }} className="font-medium">
+                  Set budget
+                </UIText>
+              </View>
+            </Card>
           );
         }}
       />

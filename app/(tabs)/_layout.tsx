@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, Text } from "react-native";
+import { View, Text } from "react-native";
 import { Tabs, router } from "expo-router";
 import {
   House,
@@ -9,6 +9,7 @@ import {
 } from "lucide-react-native";
 import { useTheme } from "@/context/ThemeContext";
 import { BRAND_BLUE } from "@/constants/colors";
+import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 
 type LucideIcon = React.ComponentType<{
   size?: number;
@@ -58,16 +59,17 @@ function CustomTabBar({
       {TABS.map((tab) => {
         if (tab.isAction) {
           return (
-            <TouchableOpacity
+            <AnimatedPressable
               key={tab.name}
+              pressScale={0.9}
               style={{
                 flex: 1,
                 alignItems: "center",
                 justifyContent: "center",
                 marginTop: 10,
               }}
+              contentStyle={{ alignItems: "center" }}
               onPress={() => router.push("/scan")}
-              activeOpacity={0.7}
             >
               <View
                 style={{
@@ -91,7 +93,7 @@ function CustomTabBar({
               >
                 {/* {tab.label} */}
               </Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
           );
         }
 
@@ -100,11 +102,12 @@ function CustomTabBar({
         const color = isFocused ? activeColor : inactiveColor;
 
         return (
-          <TouchableOpacity
+          <AnimatedPressable
             key={tab.name}
+            pressScale={0.92}
             style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+            contentStyle={{ alignItems: "center" }}
             onPress={() => navigation.navigate(tab.name)}
-            activeOpacity={0.7}
           >
             <tab.Icon
               size={22}
@@ -121,7 +124,7 @@ function CustomTabBar({
             >
               {tab.label}
             </Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         );
       })}
     </View>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { View, ScrollView, TouchableOpacity, Alert, Image, ActivityIndicator } from "react-native";
+import { View, ScrollView, Alert, Image, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { DateField } from "@/components/ui/DateField";
 import { Input } from "@/components/ui/Input";
+import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 
 export default function TransactionDetailScreen() {
   const { isDark } = useTheme();
@@ -94,9 +95,9 @@ export default function TransactionDetailScreen() {
       </IconButton>
       <UIText size="base" variant="heading" className="flex-1 text-center">Transaction</UIText>
       {tx ? (
-        <TouchableOpacity onPress={toggleEdit} activeOpacity={0.7}>
+        <AnimatedPressable onPress={toggleEdit}>
           <UIText size="sm" variant="muted">{isEditing ? "Cancel" : "Edit"}</UIText>
-        </TouchableOpacity>
+        </AnimatedPressable>
       ) : (
         <View className="w-9" />
       )}

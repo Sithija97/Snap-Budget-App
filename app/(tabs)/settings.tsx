@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { View, ScrollView, TouchableOpacity, Alert, Share } from "react-native";
+import { View, ScrollView, Alert, Share, Switch, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { ChevronRight, Download, LogOut, Trash2 } from "lucide-react-native";
+import * as Notifications from "expo-notifications";
+import { ChevronRight, Download, LogOut, Trash2, Sunrise, Sunset } from "lucide-react-native";
 import { useUser, useClerk } from "@clerk/clerk-expo";
 import { useTheme } from "@/context/ThemeContext";
 import { useWalletStore } from "@/store/useWalletStore";
@@ -11,7 +12,9 @@ import { useBudgetStore } from "@/store/useBudgetStore";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { useMessagingStore } from "@/store/useMessagingStore";
 import { useCaptureStore } from "@/store/useCaptureStore";
+import { useReminderStore } from "@/store/useReminderStore";
 import { isNotificationCaptureSupportedPlatform } from "@/lib/notificationCapture";
+import { syncFinanceReminders } from "@/lib/financeReminders";
 import { api } from "@/lib/api";
 import { BRAND_BLUE } from "@/constants/colors";
 import { UIText } from "@/components/ui/UIText";
@@ -19,6 +22,7 @@ import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
+import { TimeField } from "@/components/ui/TimeField";
 
 type ThemeOption = 'light' | 'system' | 'dark';
 const THEME_OPTIONS: ThemeOption[] = ['light', 'system', 'dark'];
@@ -37,6 +41,14 @@ export default function SettingsScreen() {
   const transactions = useTransactionStore((s) => s.transactions);
   const telegramLinked = useMessagingStore((s) => s.telegram.linked);
   const pendingCaptures = useCaptureStore((s) => s.suggestions.filter((sug) => sug.status === "pending").length);
+
+  const reminderEnabled = useReminderStore((s) => s.enabled);
+  const morningHour = useReminderStore((s) => s.morningHour);
+  const morningMinute = useReminderStore((s) => s.morningMinute);
+  const eveningHour = useReminderStore((s) => s.eveningHour);
+  const eveningMinute = useReminderStore((s) => s.eveningMinute);
+  const updateReminders = useReminderStore((s) => s.update);
+  const [togglingReminders, setTogglingReminders] = useState(false);
 
   const iconColor   = isDark ? '#a1a1aa' : '#71717a';
   // Layout only — Chip computes selected/unselected color internally.
@@ -116,6 +128,42 @@ export default function SettingsScreen() {
     );
   };
 
+  const handleToggleReminders = async (next: boolean) => {
+    setTogglingReminders(true);
+    try {
+      if (next) {
+        // Local scheduled notifications still need the same OS permission as
+        // any other notification — request it here rather than assuming
+        // whatever was granted (or not) for the capture feature applies.
+        const { status } = await Notifications.requestPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert("Notifications disabled", "Enable notifications for SnapBudget in your device settings to get reminders.");
+          return;
+        }
+      }
+      await updateReminders({ enabled: next });
+      await syncFinanceReminders(useReminderStore.getState().settings());
+    } catch {
+      Alert.alert("Couldn't update reminders", "Please try again.");
+    } finally {
+      setTogglingReminders(false);
+    }
+  };
+
+  const handleReminderTimeChange = async (period: "morning" | "evening", hour: number, minute: number) => {
+    setTogglingReminders(true);
+    try {
+      await updateReminders(
+        period === "morning" ? { morningHour: hour, morningMinute: minute } : { eveningHour: hour, eveningMinute: minute }
+      );
+      await syncFinanceReminders(useReminderStore.getState().settings());
+    } catch {
+      Alert.alert("Couldn't update reminder time", "Please try again.");
+    } finally {
+      setTogglingReminders(false);
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["top"]}>
       <ScrollView
@@ -172,82 +220,124 @@ export default function SettingsScreen() {
         {/* Manage */}
         <UIText size="xs" variant="label" className="mt-5 mb-2">Manage</UIText>
         <View className="gap-2">
-          <TouchableOpacity activeOpacity={0.7} onPress={() => router.push("/wallets")}>
-            <Card>
-              <View className="flex-row items-center justify-between">
-                <UIText size="sm" variant="heading">Wallets</UIText>
-                <ChevronRight size={16} color={iconColor} />
-              </View>
-            </Card>
-          </TouchableOpacity>
-          <TouchableOpacity activeOpacity={0.7} onPress={() => router.push("/categories")}>
-            <Card>
-              <View className="flex-row items-center justify-between">
-                <UIText size="sm" variant="heading">Categories</UIText>
-                <ChevronRight size={16} color={iconColor} />
-              </View>
-            </Card>
-          </TouchableOpacity>
+          <Card onPress={() => router.push("/wallets")}>
+            <View className="flex-row items-center justify-between">
+              <UIText size="sm" variant="heading">Wallets</UIText>
+              <ChevronRight size={16} color={iconColor} />
+            </View>
+          </Card>
+          <Card onPress={() => router.push("/categories")}>
+            <View className="flex-row items-center justify-between">
+              <UIText size="sm" variant="heading">Categories</UIText>
+              <ChevronRight size={16} color={iconColor} />
+            </View>
+          </Card>
         </View>
 
         {/* Connected apps */}
         <UIText size="xs" variant="label" className="mt-5 mb-2">Connected apps</UIText>
-        <TouchableOpacity activeOpacity={0.7} onPress={() => router.push("/telegram-link")}>
-          <Card>
-            <View className="flex-row items-center justify-between">
-              <UIText size="sm" variant="heading">Telegram</UIText>
-              <View className="flex-row items-center gap-2">
-                <UIText size="sm" variant="muted">{telegramLinked ? "Connected" : "Not connected"}</UIText>
-                <ChevronRight size={16} color={iconColor} />
-              </View>
+        <Card onPress={() => router.push("/telegram-link")}>
+          <View className="flex-row items-center justify-between">
+            <UIText size="sm" variant="heading">Telegram</UIText>
+            <View className="flex-row items-center gap-2">
+              <UIText size="sm" variant="muted">{telegramLinked ? "Connected" : "Not connected"}</UIText>
+              <ChevronRight size={16} color={iconColor} />
             </View>
-          </Card>
-        </TouchableOpacity>
+          </View>
+        </Card>
 
         {/* Automatic capture — Android only, see lib/notificationCapture.ts */}
         {isNotificationCaptureSupportedPlatform && (
           <>
             <UIText size="xs" variant="label" className="mt-5 mb-2">Automation</UIText>
-            <TouchableOpacity activeOpacity={0.7} onPress={() => router.push("/notification-capture")}>
-              <Card>
-                <View className="flex-row items-center justify-between">
-                  <UIText size="sm" variant="heading">Automatic capture</UIText>
-                  <View className="flex-row items-center gap-2">
-                    {pendingCaptures > 0 && (
-                      <UIText size="sm" variant="muted">{pendingCaptures} waiting</UIText>
-                    )}
-                    <ChevronRight size={16} color={iconColor} />
-                  </View>
+            <Card onPress={() => router.push("/notification-capture")}>
+              <View className="flex-row items-center justify-between">
+                <UIText size="sm" variant="heading">Automatic capture</UIText>
+                <View className="flex-row items-center gap-2">
+                  {pendingCaptures > 0 && (
+                    <UIText size="sm" variant="muted">{pendingCaptures} waiting</UIText>
+                  )}
+                  <ChevronRight size={16} color={iconColor} />
                 </View>
-              </Card>
-            </TouchableOpacity>
+              </View>
+            </Card>
           </>
         )}
+
+        {/* Finance-tip reminders — local scheduled notifications, see lib/financeReminders.ts */}
+        <UIText size="xs" variant="label" className="mt-5 mb-2">Reminders</UIText>
+        <Card>
+          <View className="flex-row items-center justify-between">
+            <View className="flex-1 pr-3">
+              <UIText size="sm" variant="heading">Daily finance tips</UIText>
+              <UIText size="xs" variant="muted" className="mt-0.5">
+                A morning and evening notification with a tip on building financial freedom
+              </UIText>
+            </View>
+            <Switch
+              value={reminderEnabled}
+              onValueChange={handleToggleReminders}
+              disabled={togglingReminders}
+              trackColor={{ false: isDark ? "#27272a" : "#e4e4e7", true: BRAND_BLUE }}
+              thumbColor={Platform.OS === "android" ? "#ffffff" : undefined}
+            />
+          </View>
+
+          {reminderEnabled && (
+            <>
+              <Separator className="my-3" />
+              <View className="flex-row items-center gap-3 mb-3">
+                <View className="w-8 h-8 rounded-full items-center justify-center bg-amber-100 dark:bg-amber-900/30">
+                  <Sunrise size={15} color={isDark ? "#fbbf24" : "#d97706"} strokeWidth={2} />
+                </View>
+                <UIText size="sm" variant="default" className="flex-1">Morning</UIText>
+                <View style={{ width: 130 }}>
+                  <TimeField
+                    hour={morningHour}
+                    minute={morningMinute}
+                    onChange={(h, m) => handleReminderTimeChange("morning", h, m)}
+                    disabled={togglingReminders}
+                  />
+                </View>
+              </View>
+              <View className="flex-row items-center gap-3">
+                <View className="w-8 h-8 rounded-full items-center justify-center bg-indigo-100 dark:bg-indigo-900/30">
+                  <Sunset size={15} color={isDark ? "#a5b4fc" : "#4f46e5"} strokeWidth={2} />
+                </View>
+                <UIText size="sm" variant="default" className="flex-1">Evening</UIText>
+                <View style={{ width: 130 }}>
+                  <TimeField
+                    hour={eveningHour}
+                    minute={eveningMinute}
+                    onChange={(h, m) => handleReminderTimeChange("evening", h, m)}
+                    disabled={togglingReminders}
+                  />
+                </View>
+              </View>
+            </>
+          )}
+        </Card>
 
         {/* Data */}
         <UIText size="xs" variant="label" className="mt-5 mb-2">Data</UIText>
         <View className="gap-2">
-          <TouchableOpacity activeOpacity={0.7} onPress={handleExport} disabled={exporting}>
-            <Card className="flex-row items-center gap-3">
-              <View className="w-9 h-9 rounded-lg items-center justify-center bg-muted dark:bg-muted-dark">
-                <Download size={16} color={iconColor} strokeWidth={1.8} />
-              </View>
-              <UIText size="sm" variant="heading" className="flex-1">
-                {exporting ? "Preparing export..." : "Export data"}
-              </UIText>
-              <ChevronRight size={16} color={iconColor} />
-            </Card>
-          </TouchableOpacity>
-          <TouchableOpacity activeOpacity={0.7} onPress={handleClearData} disabled={clearing}>
-            <Card className="flex-row items-center gap-3">
-              <View className="w-9 h-9 rounded-lg items-center justify-center bg-red-100 dark:bg-red-900/30">
-                <Trash2 size={16} color={isDark ? "#f87171" : "#dc2626"} strokeWidth={1.8} />
-              </View>
-              <UIText size="sm" variant="unstyled" className="flex-1 font-medium text-destructive">
-                {clearing ? "Clearing..." : "Clear all data"}
-              </UIText>
-            </Card>
-          </TouchableOpacity>
+          <Card className="flex-row items-center gap-3" onPress={handleExport} disabled={exporting}>
+            <View className="w-9 h-9 rounded-lg items-center justify-center bg-muted dark:bg-muted-dark">
+              <Download size={16} color={iconColor} strokeWidth={1.8} />
+            </View>
+            <UIText size="sm" variant="heading" className="flex-1">
+              {exporting ? "Preparing export..." : "Export data"}
+            </UIText>
+            <ChevronRight size={16} color={iconColor} />
+          </Card>
+          <Card className="flex-row items-center gap-3" onPress={handleClearData} disabled={clearing}>
+            <View className="w-9 h-9 rounded-lg items-center justify-center bg-red-100 dark:bg-red-900/30">
+              <Trash2 size={16} color={isDark ? "#f87171" : "#dc2626"} strokeWidth={1.8} />
+            </View>
+            <UIText size="sm" variant="unstyled" className="flex-1 font-medium text-destructive">
+              {clearing ? "Clearing..." : "Clear all data"}
+            </UIText>
+          </Card>
         </View>
 
         {/* Account */}

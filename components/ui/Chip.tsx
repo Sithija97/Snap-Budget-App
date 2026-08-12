@@ -1,7 +1,8 @@
-import { TouchableOpacity, ViewStyle, StyleProp } from 'react-native';
+import { ViewStyle, StyleProp } from 'react-native';
 import { UIText } from './UIText';
 import { useTheme } from '@/context/ThemeContext';
 import { BRAND_BLUE } from '@/constants/colors';
+import { AnimatedPressable } from './AnimatedPressable';
 
 type Variant = 'pill' | 'underline';
 type Size = 'xs' | 'sm' | 'base';
@@ -71,11 +72,11 @@ export function Chip({
   const textColor = variant === 'pill' ? (selected ? accentText : mutedText) : selected ? foreground : mutedText;
 
   return (
-    <TouchableOpacity
+    <AnimatedPressable
       onPress={onPress}
-      activeOpacity={0.7}
       disabled={disabled}
-      style={[containerStyle, style]}
+      contentStyle={containerStyle}
+      style={style}
     >
       <UIText
         size={size}
@@ -85,6 +86,6 @@ export function Chip({
       >
         {label}
       </UIText>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }

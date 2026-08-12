@@ -1,10 +1,11 @@
-import { View, TouchableOpacity } from "react-native";
+import { View } from "react-native";
 import { router } from "expo-router";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Gauge } from "@/components/ui/Gauge";
 import { UIText } from "@/components/ui/UIText";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 import { useTheme } from "@/context/ThemeContext";
 import { BRAND_BLUE } from "@/constants/colors";
 import { BudgetHealth } from "@/utils/budgetHealth";
@@ -50,15 +51,14 @@ export function BudgetHealthCard({ health, loading }: Props) {
         <UIText size="sm" variant="muted">
           Set a monthly budget to see how much is safe to spend.
         </UIText>
-        <TouchableOpacity
+        <AnimatedPressable
           className="mt-2 self-start"
-          activeOpacity={0.7}
           onPress={() => router.push("/budget-form")}
         >
           <UIText size="sm" variant="heading">
             Set a budget
           </UIText>
-        </TouchableOpacity>
+        </AnimatedPressable>
       </Card>
     );
   }

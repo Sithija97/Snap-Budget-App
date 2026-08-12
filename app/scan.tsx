@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, ScrollView, Alert, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, ScrollView, Alert, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { DateField } from "@/components/ui/DateField";
 import { Input } from "@/components/ui/Input";
+import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 
 const nowTime = () =>
   new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
@@ -450,11 +451,11 @@ export default function ScanScreen() {
                   onPress={handleSaveReview}
                 />
 
-                <TouchableOpacity onPress={resetScan} activeOpacity={0.7} disabled={saving}>
+                <AnimatedPressable onPress={resetScan} disabled={saving}>
                   <UIText size="sm" variant="muted" className="text-center py-1">
                     Retake photo
                   </UIText>
-                </TouchableOpacity>
+                </AnimatedPressable>
               </Card>
             )}
           </>

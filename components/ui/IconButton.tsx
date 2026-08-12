@@ -1,7 +1,8 @@
 import { ReactNode } from 'react';
-import { TouchableOpacity, TouchableOpacityProps } from 'react-native';
+import { PressableProps } from 'react-native';
+import { AnimatedPressable } from './AnimatedPressable';
 
-interface IconButtonProps extends TouchableOpacityProps {
+interface IconButtonProps extends PressableProps {
   children: ReactNode;
   /** Layout-only additions (margins); the surface styling is fixed here */
   className?: string;
@@ -13,12 +14,11 @@ interface IconButtonProps extends TouchableOpacityProps {
 // the borderless design language.
 export function IconButton({ children, className = '', ...props }: IconButtonProps) {
   return (
-    <TouchableOpacity
-      activeOpacity={0.7}
+    <AnimatedPressable
       className={`w-9 h-9 items-center justify-center rounded-lg bg-card dark:bg-card-dark ${className}`}
       {...props}
     >
       {children}
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }

@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, FlatList, RefreshControl } from "react-native";
+import { View, FlatList, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react-native";
@@ -9,6 +9,7 @@ import { cardRowClass } from "@/utils/cardRow";
 import { UIText } from "@/components/ui/UIText";
 import { IconButton } from "@/components/ui/IconButton";
 import { DataState } from "@/components/ui/DataState";
+import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 import { useRefresh } from "@/hooks/useRefresh";
 import type { Wallet } from "@/types";
 
@@ -45,7 +46,7 @@ export default function WalletsScreen() {
           <DataState status={status} isEmpty={wallets.length === 0} onRetry={fetchAll} emptyMessage="No wallets yet" />
         }
         renderItem={({ item: w, index }: { item: Wallet; index: number }) => (
-          <TouchableOpacity onPress={() => router.push(`/wallet-form?id=${w.id}`)} activeOpacity={0.7}>
+          <AnimatedPressable onPress={() => router.push(`/wallet-form?id=${w.id}`)} pressScale={0.98}>
             <View
               className={`flex-row items-center gap-3 py-3 mx-4 ${cardRowClass(index, wallets.length)} ${
                 index === wallets.length - 1 ? "" : "border-b"
@@ -61,7 +62,7 @@ export default function WalletsScreen() {
               </View>
               <ChevronRight size={16} color={iconColor} />
             </View>
-          </TouchableOpacity>
+          </AnimatedPressable>
         )}
       />
     </SafeAreaView>

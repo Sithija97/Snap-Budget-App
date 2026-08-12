@@ -1,6 +1,6 @@
 import "../global.css";
 import { useEffect } from "react";
-import { View } from "react-native";
+import { View, AppState } from "react-native";
 import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import {
@@ -27,6 +27,8 @@ import {
   stopNotificationCapture,
   registerCaptureNotificationTapHandler,
 } from "@/lib/notificationCapture";
+import { useReminderStore } from "@/store/useReminderStore";
+import { syncFinanceReminders, shouldResyncFinanceReminders } from "@/lib/financeReminders";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -140,6 +142,30 @@ export default function RootLayout() {
   useEffect(() => {
     const subscription = registerCaptureNotificationTapHandler();
     return () => subscription.remove();
+  }, []);
+
+  // Morning/evening finance-tip reminders are device-local settings (like
+  // theme), not user data — hydrated and synced here regardless of sign-in
+  // state. DAILY triggers are OS-native repeating alarms that persist and
+  // refire on their own, so the foreground listener only re-syncs when
+  // shouldResyncFinanceReminders() says enough time has passed to be worth
+  // rotating in a fresh random tip — not on every single foreground return.
+  useEffect(() => {
+    useReminderStore
+      .getState()
+      .hydrate()
+      .then(() => syncFinanceReminders(useReminderStore.getState().settings()))
+      .catch((e) => console.warn("Failed to hydrate finance reminders", e));
+
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state !== "active") return;
+      if (!useReminderStore.getState().hydrated) return;
+      if (!shouldResyncFinanceReminders()) return;
+      syncFinanceReminders(useReminderStore.getState().settings()).catch((e) =>
+        console.warn("Failed to sync finance reminders", e)
+      );
+    });
+    return () => sub.remove();
   }, []);
 
   if (!loaded) return null;

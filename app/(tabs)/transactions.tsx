@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { View, TouchableOpacity, FlatList, RefreshControl } from "react-native";
+import { View, FlatList, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Search, X, Receipt } from "lucide-react-native";
@@ -21,6 +21,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { TransactionItemSkeleton } from "@/components/ui/TransactionItemSkeleton";
 import { Chip } from "@/components/ui/Chip";
 import { Input } from "@/components/ui/Input";
+import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 import { useTheme } from "@/context/ThemeContext";
 import { useRefresh } from "@/hooks/useRefresh";
 
@@ -113,14 +114,13 @@ export default function TransactionsScreen() {
                 returnKeyType="search"
               />
               {searchQuery.length > 0 && (
-                <TouchableOpacity
+                <AnimatedPressable
                   onPress={() => setSearchQuery('')}
-                  activeOpacity={0.7}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   style={{ position: "absolute", right: 12 }}
                 >
                   <X size={15} color={iconColor} />
-                </TouchableOpacity>
+                </AnimatedPressable>
               )}
             </View>
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { View, ScrollView, Alert, TouchableOpacity, AppState } from "react-native";
+import { View, ScrollView, Alert, AppState } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import * as Notifications from "expo-notifications";
@@ -247,15 +247,13 @@ export default function NotificationCaptureScreen() {
           </UIText>
         </Card>
 
-        <TouchableOpacity activeOpacity={0.7} onPress={() => router.push("/captured")}>
-          <Card className="mx-4 mt-4 flex-row items-center gap-3">
-            <View className="w-9 h-9 rounded-lg items-center justify-center bg-muted dark:bg-muted-dark">
-              <Bell size={16} color={iconColor} strokeWidth={1.8} />
-            </View>
-            <UIText size="sm" variant="heading" className="flex-1">Review captured transactions</UIText>
-            <ChevronRight size={16} color={iconColor} />
-          </Card>
-        </TouchableOpacity>
+        <Card className="mx-4 mt-4 flex-row items-center gap-3" onPress={() => router.push("/captured")}>
+          <View className="w-9 h-9 rounded-lg items-center justify-center bg-muted dark:bg-muted-dark">
+            <Bell size={16} color={iconColor} strokeWidth={1.8} />
+          </View>
+          <UIText size="sm" variant="heading" className="flex-1">Review captured transactions</UIText>
+          <ChevronRight size={16} color={iconColor} />
+        </Card>
       </ScrollView>
     </SafeAreaView>
   );
