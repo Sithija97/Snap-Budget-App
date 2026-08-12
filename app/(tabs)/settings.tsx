@@ -2,7 +2,7 @@ import { useState } from "react";
 import { View, ScrollView, TouchableOpacity, Alert, Share } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { ChevronRight } from "lucide-react-native";
+import { ChevronRight, Download, LogOut, Trash2 } from "lucide-react-native";
 import { useUser, useClerk } from "@clerk/clerk-expo";
 import { useTheme } from "@/context/ThemeContext";
 import { useWalletStore } from "@/store/useWalletStore";
@@ -13,6 +13,7 @@ import { useMessagingStore } from "@/store/useMessagingStore";
 import { useCaptureStore } from "@/store/useCaptureStore";
 import { isNotificationCaptureSupportedPlatform } from "@/lib/notificationCapture";
 import { api } from "@/lib/api";
+import { BRAND_BLUE } from "@/constants/colors";
 import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
@@ -126,8 +127,13 @@ export default function SettingsScreen() {
         {/* Profile */}
         <Card>
           <View className="flex-row items-center gap-3">
-            <View className="w-10 h-10 rounded-full bg-muted dark:bg-muted-dark items-center justify-center">
-              <UIText size="sm" variant="heading">{initials}</UIText>
+            <View
+              className="w-12 h-12 rounded-full items-center justify-center"
+              style={{ backgroundColor: `${BRAND_BLUE}1a` }}
+            >
+              <UIText size="sm" variant="unstyled" className="font-semibold" style={{ color: BRAND_BLUE }}>
+                {initials}
+              </UIText>
             </View>
             <View>
               <UIText size="base" variant="heading">{displayName}</UIText>
@@ -222,13 +228,22 @@ export default function SettingsScreen() {
         <UIText size="xs" variant="label" className="mt-5 mb-2">Data</UIText>
         <View className="gap-2">
           <TouchableOpacity activeOpacity={0.7} onPress={handleExport} disabled={exporting}>
-            <Card>
-              <UIText size="sm" variant="heading">{exporting ? "Preparing export..." : "Export data"}</UIText>
+            <Card className="flex-row items-center gap-3">
+              <View className="w-9 h-9 rounded-lg items-center justify-center bg-muted dark:bg-muted-dark">
+                <Download size={16} color={iconColor} strokeWidth={1.8} />
+              </View>
+              <UIText size="sm" variant="heading" className="flex-1">
+                {exporting ? "Preparing export..." : "Export data"}
+              </UIText>
+              <ChevronRight size={16} color={iconColor} />
             </Card>
           </TouchableOpacity>
           <TouchableOpacity activeOpacity={0.7} onPress={handleClearData} disabled={clearing}>
-            <Card>
-              <UIText size="sm" variant="unstyled" className="text-destructive">
+            <Card className="flex-row items-center gap-3">
+              <View className="w-9 h-9 rounded-lg items-center justify-center bg-red-100 dark:bg-red-900/30">
+                <Trash2 size={16} color={isDark ? "#f87171" : "#dc2626"} strokeWidth={1.8} />
+              </View>
+              <UIText size="sm" variant="unstyled" className="flex-1 font-medium text-destructive">
                 {clearing ? "Clearing..." : "Clear all data"}
               </UIText>
             </Card>
@@ -240,6 +255,7 @@ export default function SettingsScreen() {
         <Button
           label={signingOut ? "Signing out..." : "Sign out"}
           variant="outline"
+          icon={<LogOut size={16} color={isDark ? "#fafafa" : "#09090b"} strokeWidth={1.8} />}
           disabled={signingOut}
           onPress={handleSignOut}
         />

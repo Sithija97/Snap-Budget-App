@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, ScrollView, TextInput, TouchableOpacity, Alert } from "react-native";
+import { View, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { Check, ChevronLeft } from "lucide-react-native";
@@ -13,6 +13,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
+import { Input } from "@/components/ui/Input";
 
 export default function BudgetFormScreen() {
   const { isDark } = useTheme();
@@ -36,20 +37,7 @@ export default function BudgetFormScreen() {
 
   const borderColor = isDark ? "#27272a" : "#e4e4e7";
   const iconColor   = isDark ? "#a1a1aa" : "#71717a";
-  const inputText   = isDark ? "#fafafa" : "#09090b";
-  const inputBg     = isDark ? "#09090b" : "#ffffff";
   const accentFill  = isDark ? "#fafafa" : "#18181b";
-
-  const inputStyle = {
-    height: 44,
-    borderWidth: 1,
-    borderColor,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    backgroundColor: inputBg,
-    color: inputText,
-    fontSize: 15,
-  } as const;
 
   // Budgets are for expense categories only
   const expenseCategories = categories.filter((c) => c.type === "expense");
@@ -124,10 +112,8 @@ export default function BudgetFormScreen() {
           </View>
 
           <UIText size="xs" variant="label" className="mt-2">Monthly limit</UIText>
-          <TextInput
-            style={inputStyle}
+          <Input
             placeholder="Rs 0"
-            placeholderTextColor={iconColor}
             value={amount}
             onChangeText={(v) => setAmount(v.replace(/[^0-9.]/g, ""))}
             keyboardType="numeric"

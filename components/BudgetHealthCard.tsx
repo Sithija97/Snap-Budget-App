@@ -75,7 +75,7 @@ export function BudgetHealthCard({ health, loading }: Props) {
         color={BRAND_BLUE}
         trackColor={trackColor}
       >
-        <UIText size="2xl" className="font-mono font-medium">
+        <UIText size="2xl" className="font-mono font-semibold">
           {health.safePercent}%
         </UIText>
         <UIText size="xs" variant="label" className="mt-0.5">

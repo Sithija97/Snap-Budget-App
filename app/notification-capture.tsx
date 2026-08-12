@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { View, ScrollView, Alert, TouchableOpacity, TextInput, AppState } from "react-native";
+import { View, ScrollView, Alert, TouchableOpacity, AppState } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import * as Notifications from "expo-notifications";
-import { ChevronLeft, Bell } from "lucide-react-native";
+import { ChevronLeft, ChevronRight, Bell } from "lucide-react-native";
 import { useTheme } from "@/context/ThemeContext";
 import { useCaptureStore } from "@/store/useCaptureStore";
 import {
@@ -19,6 +19,7 @@ import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Chip } from "@/components/ui/Chip";
+import { Input } from "@/components/ui/Input";
 
 export default function NotificationCaptureScreen() {
   const { isDark } = useTheme();
@@ -70,18 +71,6 @@ export default function NotificationCaptureScreen() {
   const customApps = allowlist.filter(
     (a) => !KNOWN_CAPTURE_APPS.some((known) => known.packageName === a.packageName)
   );
-
-  const inputStyle = {
-    flex: 1,
-    height: 40,
-    borderWidth: 1,
-    borderColor: isDark ? "#27272a" : "#e4e4e7",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    backgroundColor: isDark ? "#09090b" : "#ffffff",
-    color: isDark ? "#fafafa" : "#09090b",
-    fontSize: 14,
-  } as const;
 
   if (!isNotificationCaptureSupportedPlatform) {
     return (
@@ -186,10 +175,9 @@ export default function NotificationCaptureScreen() {
           <Separator className="my-3" />
           <UIText size="xs" variant="label" className="mb-2">Add another app</UIText>
           <View className="flex-row gap-2">
-            <TextInput
-              style={inputStyle}
+            <Input
+              style={{ flex: 1 }}
               placeholder="e.g. com.yourbank.app"
-              placeholderTextColor={iconColor}
               value={customPackage}
               onChangeText={setCustomPackage}
               autoCapitalize="none"
@@ -197,15 +185,7 @@ export default function NotificationCaptureScreen() {
               returnKeyType="done"
               onSubmitEditing={addCustomPackage}
             />
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={addCustomPackage}
-              className="px-4 items-center justify-center rounded-lg bg-accent dark:bg-accent-dark"
-            >
-              <UIText size="sm" variant="unstyled" className="text-accentFg dark:text-accentFg-dark font-medium">
-                Add
-              </UIText>
-            </TouchableOpacity>
+            <Button label="Add" variant="default" onPress={addCustomPackage} />
           </View>
           <UIText size="xs" variant="muted" className="mt-2">
             Find this in the app's Play Store URL, e.g. play.google.com/store/apps/details?id=<UIText size="xs" variant="unstyled" className="font-medium">com.yourbank.app</UIText>
@@ -216,7 +196,7 @@ export default function NotificationCaptureScreen() {
           <Card className="mx-4 mt-4">
             <View className="flex-row items-center justify-between">
               <UIText size="sm" variant="heading">Review captured transactions</UIText>
-              <ChevronLeft size={16} color={iconColor} style={{ transform: [{ rotate: "180deg" }] }} />
+              <ChevronRight size={16} color={iconColor} />
             </View>
           </Card>
         </TouchableOpacity>

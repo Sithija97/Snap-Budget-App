@@ -1,7 +1,6 @@
 import { useCallback, useState } from "react";
 import {
   View,
-  TextInput,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -12,13 +11,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useSignIn, useSignUp, useOAuth } from "@clerk/clerk-expo";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
-import { useTheme } from "@/context/ThemeContext";
 import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Separator } from "@/components/ui/Separator";
 import { Chip } from "@/components/ui/Chip";
 import { GoogleLogo } from "@/components/ui/GoogleLogo";
+import { Input } from "@/components/ui/Input";
 
 // Required once per app for the OAuth browser popup to close itself properly
 WebBrowser.maybeCompleteAuthSession();
@@ -30,7 +29,6 @@ function clerkErrorMessage(err: any, fallback: string): string {
 }
 
 export default function LoginScreen() {
-  const { isDark } = useTheme();
   const [mode, setMode] = useState<Mode>("signIn");
   // Which flow the "verify" screen belongs to: email verification during
   // sign-up, or an email-code first/second factor requested during sign-in
@@ -45,22 +43,6 @@ export default function LoginScreen() {
   const { signIn, setActive: setActiveSignIn, isLoaded: signInLoaded } = useSignIn();
   const { signUp, setActive: setActiveSignUp, isLoaded: signUpLoaded } = useSignUp();
   const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
-
-  const inputBg        = isDark ? '#09090b' : '#ffffff';
-  const inputBorder    = isDark ? '#27272a' : '#e4e4e7';
-  const inputText      = isDark ? '#fafafa' : '#09090b';
-  const placeholderClr = isDark ? '#71717a' : '#a1a1aa';
-
-  const inputStyle = {
-    height: 44,
-    borderWidth: 1,
-    borderColor: inputBorder,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    backgroundColor: inputBg,
-    color: inputText,
-    fontSize: 15,
-  } as const;
 
   const switchMode = (next: Mode) => {
     setMode(next);
@@ -316,10 +298,8 @@ export default function LoginScreen() {
                 <UIText size="sm" variant="muted" className="text-center mb-4">
                   Enter your email and we'll send you a password reset code.
                 </UIText>
-                <TextInput
-                  style={inputStyle}
+                <Input
                   placeholder="Email address"
-                  placeholderTextColor={placeholderClr}
                   value={email}
                   onChangeText={setEmail}
                   autoCapitalize="none"
@@ -342,19 +322,16 @@ export default function LoginScreen() {
                 <UIText size="sm" variant="muted" className="text-center mb-4">
                   Enter the code we sent to {email} and choose a new password.
                 </UIText>
-                <TextInput
-                  style={inputStyle}
+                <Input
                   placeholder="6-digit code"
-                  placeholderTextColor={placeholderClr}
                   value={code}
                   onChangeText={setCode}
                   keyboardType="number-pad"
                   autoFocus
                 />
-                <TextInput
-                  style={{ ...inputStyle, marginTop: 8 }}
+                <Input
+                  style={{ marginTop: 8 }}
                   placeholder="New password"
-                  placeholderTextColor={placeholderClr}
                   value={newPassword}
                   onChangeText={setNewPassword}
                   secureTextEntry
@@ -378,10 +355,8 @@ export default function LoginScreen() {
                 <UIText size="sm" variant="muted" className="text-center mb-4">
                   Enter the code we sent to {email}
                 </UIText>
-                <TextInput
-                  style={inputStyle}
+                <Input
                   placeholder="6-digit code"
-                  placeholderTextColor={placeholderClr}
                   value={code}
                   onChangeText={setCode}
                   keyboardType="number-pad"
@@ -410,10 +385,8 @@ export default function LoginScreen() {
             ) : (
               <>
                 {/* Email */}
-                <TextInput
-                  style={inputStyle}
+                <Input
                   placeholder="Email address"
-                  placeholderTextColor={placeholderClr}
                   value={email}
                   onChangeText={setEmail}
                   autoCapitalize="none"
@@ -421,10 +394,9 @@ export default function LoginScreen() {
                 />
 
                 {/* Password */}
-                <TextInput
-                  style={{ ...inputStyle, marginTop: 8 }}
+                <Input
+                  style={{ marginTop: 8 }}
                   placeholder="Password"
-                  placeholderTextColor={placeholderClr}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry

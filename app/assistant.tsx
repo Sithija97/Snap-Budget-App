@@ -2,17 +2,17 @@ import { useCallback, useRef, useState } from "react";
 import {
   View,
   ScrollView,
-  TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { ChevronLeft, Send, Sparkles } from "lucide-react-native";
+import { ChevronLeft, Send, Sparkles, User } from "lucide-react-native";
 import { useTheme } from "@/context/ThemeContext";
+import { BRAND_BLUE } from "@/constants/colors";
 import { api } from "@/lib/api";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
@@ -20,6 +20,7 @@ import { UIText } from "@/components/ui/UIText";
 import { IconButton } from "@/components/ui/IconButton";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 
 interface TransactionDraft {
   merchant: string;
@@ -50,18 +51,35 @@ const SUGGESTIONS = [
 let nextId = 0;
 const newId = () => `m-${nextId++}`;
 
+// Fixed baseline space below the input row, on top of the device's own
+// bottom safe-area inset (home indicator / gesture bar) — this is what keeps
+// the input from sitting flush against the very edge on every device,
+// without hardcoding a device-specific number that would look inconsistent
+// across phones with different inset heights.
+const INPUT_BOTTOM_PADDING = 16;
+
 export default function AssistantScreen() {
   const { isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [asking, setAsking] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   const iconColor = isDark ? "#a1a1aa" : "#71717a";
-  const inputBg = isDark ? "#09090b" : "#ffffff";
-  const inputBorder = isDark ? "#27272a" : "#e4e4e7";
-  const inputText = isDark ? "#fafafa" : "#09090b";
-  const placeholderClr = isDark ? "#71717a" : "#a1a1aa";
+
+  // Bubble background + text are resolved together from one source per role
+  // (matches Button/Chip's convention) so they can never fall out of sync —
+  // this is what the old bg-accent className override (fighting Card's own
+  // bg-card class) used to get wrong. User bubbles use a neutral card-toned
+  // surface (light: white bubble/black text, dark: dark bubble/light text —
+  // the theme-appropriate surface, not an inverted one). AI replies get a
+  // blue tint (the app's one accent color, BRAND_BLUE) so the two roles read
+  // as distinct, not just left/right-aligned.
+  const userBubbleBg = isDark ? "#27272a" : "#ffffff";
+  const userBubbleText = isDark ? "#fafafa" : "#09090b";
+  const aiBubbleBg = isDark ? "#132a4d" : "#eaf2ff";
+  const aiBubbleText = isDark ? "#bfdbfe" : BRAND_BLUE;
 
   const scrollToEnd = useCallback(() => {
     requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
@@ -181,76 +199,92 @@ export default function AssistantScreen() {
             </View>
           ) : (
             <View className="gap-3">
-              {messages.map((m) => (
-                <View key={m.id} className={m.role === "user" ? "items-end" : "items-start"}>
-                  <Card
-                    className={`p-3 max-w-[85%] ${m.role === "user" ? "bg-accent dark:bg-accent-dark" : ""}`}
+              {messages.map((m) => {
+                const isUser = m.role === "user";
+                return (
+                  <View
+                    key={m.id}
+                    className={`flex-row items-center gap-2 ${isUser ? "flex-row-reverse" : ""}`}
                   >
-                    <UIText
-                      size="sm"
-                      variant="unstyled"
-                      style={{ color: m.role === "user" ? (isDark ? "#18181b" : "#ffffff") : inputText }}
+                    <View
+                      className="w-7 h-7 rounded-full items-center justify-center shrink-0"
+                      style={{ backgroundColor: isUser ? (isDark ? "#27272a" : "#e4e4e7") : aiBubbleBg }}
                     >
-                      {m.text}
-                    </UIText>
+                      {isUser ? (
+                        <User size={14} color={iconColor} strokeWidth={2} />
+                      ) : (
+                        <Sparkles size={14} color={aiBubbleText} strokeWidth={2} />
+                      )}
+                    </View>
 
-                    {m.draft && m.draftStatus === "pending" && (
-                      <View className="flex-row gap-2 mt-3">
-                        <Button
-                          label="Confirm"
-                          variant="default"
-                          className="flex-1"
-                          onPress={() => confirmDraft(m.id, m.draft!)}
-                        />
-                        <Button
-                          label="Cancel"
-                          variant="outline"
-                          className="flex-1"
-                          onPress={() => cancelDraft(m.id)}
-                        />
-                      </View>
-                    )}
-                    {m.draftStatus === "saving" && (
-                      <View className="flex-row items-center gap-2 mt-3">
-                        <ActivityIndicator size="small" color={isDark ? "#fafafa" : "#18181b"} />
-                        <UIText size="xs" variant="muted">Saving...</UIText>
-                      </View>
-                    )}
-                    {m.draftStatus === "saved" && (
-                      <UIText size="xs" variant="muted" className="mt-3">✓ Saved to your transactions</UIText>
-                    )}
-                    {m.draftStatus === "cancelled" && (
-                      <UIText size="xs" variant="muted" className="mt-3">Discarded</UIText>
-                    )}
-                  </Card>
-                </View>
-              ))}
+                    <View
+                      className="p-3 max-w-[78%] rounded-2xl"
+                      style={{ backgroundColor: isUser ? userBubbleBg : aiBubbleBg }}
+                    >
+                      <UIText
+                        size="sm"
+                        variant="unstyled"
+                        style={{ color: isUser ? userBubbleText : aiBubbleText }}
+                      >
+                        {m.text}
+                      </UIText>
+
+                      {m.draft && m.draftStatus === "pending" && (
+                        <View className="flex-row gap-2 mt-3">
+                          <Button
+                            label="Confirm"
+                            variant="default"
+                            className="flex-1"
+                            onPress={() => confirmDraft(m.id, m.draft!)}
+                          />
+                          <Button
+                            label="Cancel"
+                            variant="outline"
+                            className="flex-1"
+                            onPress={() => cancelDraft(m.id)}
+                          />
+                        </View>
+                      )}
+                      {m.draftStatus === "saving" && (
+                        <View className="flex-row items-center gap-2 mt-3">
+                          <ActivityIndicator size="small" color={aiBubbleText} />
+                          <UIText size="xs" variant="muted">Saving...</UIText>
+                        </View>
+                      )}
+                      {m.draftStatus === "saved" && (
+                        <UIText size="xs" variant="muted" className="mt-3">✓ Saved to your transactions</UIText>
+                      )}
+                      {m.draftStatus === "cancelled" && (
+                        <UIText size="xs" variant="muted" className="mt-3">Discarded</UIText>
+                      )}
+                    </View>
+                  </View>
+                );
+              })}
               {asking && (
-                <View className="items-start">
-                  <Card className="p-3">
-                    <ActivityIndicator size="small" color={isDark ? "#fafafa" : "#18181b"} />
-                  </Card>
+                <View className="flex-row items-center gap-2">
+                  <View
+                    className="w-7 h-7 rounded-full items-center justify-center shrink-0"
+                    style={{ backgroundColor: aiBubbleBg }}
+                  >
+                    <Sparkles size={14} color={aiBubbleText} strokeWidth={2} />
+                  </View>
+                  <View className="p-3 rounded-2xl" style={{ backgroundColor: aiBubbleBg }}>
+                    <ActivityIndicator size="small" color={aiBubbleText} />
+                  </View>
                 </View>
               )}
             </View>
           )}
         </ScrollView>
 
-        <View className="flex-row items-center gap-2 px-4 pb-4 pt-2">
-          <TextInput
-            style={{
-              flex: 1,
-              height: 44,
-              borderWidth: 1,
-              borderColor: inputBorder,
-              borderRadius: 8,
-              paddingHorizontal: 12,
-              backgroundColor: inputBg,
-              color: inputText,
-              fontSize: 15,
-            }}
+        <View
+          className="flex-row items-center gap-2 px-4 pt-2"
+          style={{ paddingBottom: INPUT_BOTTOM_PADDING + insets.bottom }}
+        >
+          <Input
+            style={{ flex: 1 }}
             placeholder="Ask a question..."
-            placeholderTextColor={placeholderClr}
             value={input}
             onChangeText={setInput}
             onSubmitEditing={() => ask(input)}

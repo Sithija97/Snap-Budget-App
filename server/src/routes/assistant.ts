@@ -3,7 +3,7 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { and, eq, sql } from "drizzle-orm";
 import { transactions, categories, wallets, budgets } from "../db/schema";
-import { classifyIntent, phraseAnswer, extractTransactionFromText, UNSUPPORTED_REPLY, TransactionDraft } from "../lib/assistant";
+import { classifyIntent, phraseAnswer, extractTransactionFromText, UNSUPPORTED_REPLY, TransactionDraft, GeminiQuotaError } from "../lib/assistant";
 import { runQuery, survivalEstimate, budgetStatusForMonth, TxRow, BudgetRow } from "../lib/insights";
 import type { Env } from "../types";
 import type { Db } from "../db/client";
@@ -195,6 +195,9 @@ assistantRoute.post("/ask", zValidator("json", askInput), async (c) => {
     return c.json(result);
   } catch (e) {
     console.error(e);
+    if (e instanceof GeminiQuotaError) {
+      return c.json({ error: "The assistant has hit its daily usage limit. Please try again later." }, 429);
+    }
     return c.json({ error: "Couldn't answer that right now. Try again in a moment." }, 502);
   }
 });

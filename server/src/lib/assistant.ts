@@ -59,6 +59,16 @@ function validateDraft(rawDraft: unknown, fallbackDate: string): TransactionDraf
   };
 }
 
+// Thrown instead of a bare Error so route handlers can tell "Gemini's daily
+// free-tier quota is exhausted" (transient, resets on its own) apart from
+// any other failure without string-matching the message.
+export class GeminiQuotaError extends Error {
+  constructor(detail: string) {
+    super(detail);
+    this.name = "GeminiQuotaError";
+  }
+}
+
 async function callGemini(env: Bindings, prompt: string, responseSchema: object): Promise<string> {
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${env.GEMINI_API_KEY}`,
@@ -73,6 +83,7 @@ async function callGemini(env: Bindings, prompt: string, responseSchema: object)
     }
   );
 
+  if (res.status === 429) throw new GeminiQuotaError(await res.text());
   if (!res.ok) throw new Error(`Gemini request failed (${res.status}): ${await res.text()}`);
 
   const data = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };

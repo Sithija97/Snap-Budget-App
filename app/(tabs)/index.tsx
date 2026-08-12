@@ -8,7 +8,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
-import { Plus, ArrowDownLeft, Wallet, Sparkles, Bell } from "lucide-react-native";
+import { Plus, ArrowDownLeft, Wallet, Sparkles, Bell, ChevronRight } from "lucide-react-native";
 import { useTheme } from "@/context/ThemeContext";
 import { BRAND_BLUE } from "@/constants/colors";
 import {
@@ -27,7 +27,6 @@ import TransactionItem from "@/components/ui/TransactionItem";
 import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
-// import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { DataState } from "@/components/ui/DataState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { TransactionItemSkeleton } from "@/components/ui/TransactionItemSkeleton";
@@ -124,7 +123,6 @@ export default function HomeScreen() {
             <IconButton onPress={() => router.push("/assistant")}>
               <Sparkles size={18} color={isDark ? "#a1a1aa" : "#71717a"} />
             </IconButton>
-            {/* <ThemeToggle /> */}
             <IconButton onPress={() => router.push("/recaps")} className="relative">
               <Bell size={18} color={isDark ? "#a1a1aa" : "#71717a"} />
               {hasUnseenRecaps && (
@@ -151,7 +149,7 @@ export default function HomeScreen() {
               {isFirstLoad ? (
                 <Skeleton width={120} height={28} className="mt-1.5" />
               ) : (
-                <UIText size="2xl" className="font-mono font-medium mt-1">
+                <UIText size="2xl" className="font-mono font-semibold mt-1">
                   {fmt(spent)}
                 </UIText>
               )}
@@ -253,10 +251,12 @@ export default function HomeScreen() {
             onPress={() => router.push("/(tabs)/analytics")}
             activeOpacity={0.7}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            className="flex-row items-center gap-0.5"
           >
             <UIText size="xs" variant="muted">
               See more
             </UIText>
+            <ChevronRight size={13} color={isDark ? "#a1a1aa" : "#71717a"} />
           </TouchableOpacity>
         </View>
 
@@ -271,10 +271,12 @@ export default function HomeScreen() {
             onPress={() => router.push("/(tabs)/transactions")}
             activeOpacity={0.7}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            className="flex-row items-center gap-0.5"
           >
             <UIText size="xs" variant="muted">
               See all
             </UIText>
+            <ChevronRight size={13} color={isDark ? "#a1a1aa" : "#71717a"} />
           </TouchableOpacity>
         </View>
 

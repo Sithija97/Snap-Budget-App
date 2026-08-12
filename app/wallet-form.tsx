@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, ScrollView, TextInput, Alert } from "react-native";
+import { View, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
@@ -10,6 +10,7 @@ import { UIText } from "@/components/ui/UIText";
 import { IconButton } from "@/components/ui/IconButton";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 
 export default function WalletFormScreen() {
   const { isDark } = useTheme();
@@ -28,21 +29,7 @@ export default function WalletFormScreen() {
   );
   const [saving, setSaving] = useState(false);
 
-  const borderColor = isDark ? "#27272a" : "#e4e4e7";
   const iconColor   = isDark ? "#a1a1aa" : "#71717a";
-  const inputText   = isDark ? "#fafafa" : "#09090b";
-  const inputBg     = isDark ? "#09090b" : "#ffffff";
-
-  const inputStyle = {
-    height: 44,
-    borderWidth: 1,
-    borderColor,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    backgroundColor: inputBg,
-    color: inputText,
-    fontSize: 15,
-  } as const;
 
   const canSave = name.trim().length > 0 && !saving;
 
@@ -109,10 +96,8 @@ export default function WalletFormScreen() {
 
         <Card className="mx-4 mt-4 gap-3">
           <UIText size="xs" variant="label">Name</UIText>
-          <TextInput
-            style={inputStyle}
+          <Input
             placeholder="e.g. Cash"
-            placeholderTextColor={iconColor}
             value={name}
             onChangeText={setName}
             autoCapitalize="words"
@@ -120,10 +105,8 @@ export default function WalletFormScreen() {
           />
 
           <UIText size="xs" variant="label" className="mt-2">Balance (optional)</UIText>
-          <TextInput
-            style={inputStyle}
+          <Input
             placeholder="Leave blank if not set"
-            placeholderTextColor={iconColor}
             value={balance}
             onChangeText={(v) => setBalance(v.replace(/[^0-9.]/g, ""))}
             keyboardType="numeric"

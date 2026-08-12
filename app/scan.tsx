@@ -1,16 +1,17 @@
 import { useState } from "react";
-import { View, ScrollView, Alert, TouchableOpacity, TextInput, ActivityIndicator } from "react-native";
+import { View, ScrollView, Alert, TouchableOpacity, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
-import { ChevronLeft, ScanLine, CheckCircle2 } from "lucide-react-native";
+import { ChevronLeft, ScanLine, CheckCircle2, Camera } from "lucide-react-native";
 import { useTheme } from "@/context/ThemeContext";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { useWalletStore } from "@/store/useWalletStore";
 import { useCaptureStore } from "@/store/useCaptureStore";
 import { api } from "@/lib/api";
+import { BRAND_BLUE } from "@/constants/colors";
 import { TxType, CategoryType } from "@/types";
 import { parseAmount } from "@/utils/format";
 import { todayISO, currentMonth } from "@/utils/dates";
@@ -21,6 +22,7 @@ import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { DateField } from "@/components/ui/DateField";
+import { Input } from "@/components/ui/Input";
 
 const nowTime = () =>
   new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
@@ -257,20 +259,7 @@ export default function ScanScreen() {
   // invisible against the slate-100 page background
   const mutedBg     = isDark ? '#18181b' : '#ffffff';
   const iconColor   = isDark ? '#a1a1aa' : '#71717a';
-  const inputText   = isDark ? '#fafafa' : '#09090b';
-  const inputBg     = isDark ? '#09090b' : '#ffffff';
   const accentFill  = isDark ? '#fafafa' : '#18181b';
-
-  const inputStyle = {
-    height: 44,
-    borderWidth: 1,
-    borderColor,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    backgroundColor: inputBg,
-    color: inputText,
-    fontSize: 15,
-  } as const;
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["top"]}>
@@ -285,16 +274,34 @@ export default function ScanScreen() {
             <ChevronLeft size={20} color={iconColor} />
           </IconButton>
           <UIText size="base" variant="heading" className="flex-1 text-center">Scan receipt</UIText>
-          <TouchableOpacity
-            onPress={() => { resetScan(); setShowManual(!showManual); }}
-            activeOpacity={0.7}
-          >
-            <UIText size="sm" variant="muted">{showManual ? 'Scan' : 'Manual'}</UIText>
-          </TouchableOpacity>
+          <View className="w-9" />
         </View>
 
+        {/* Mode switch — the primary choice on this screen, so it gets a full
+            segmented control rather than a corner text link */}
+        {stage === "idle" && (
+          <View
+            className="flex-row mx-4 mb-2"
+            style={{ backgroundColor: isDark ? '#09090b' : '#f4f4f5', borderRadius: 8, padding: 3 }}
+          >
+            <Chip
+              bordered={false}
+              style={{ flex: 1, alignItems: 'center', borderRadius: 6, paddingVertical: 7 }}
+              label="Scan receipt"
+              selected={!showManual}
+              onPress={() => { resetScan(); setShowManual(false); }}
+            />
+            <Chip
+              bordered={false}
+              style={{ flex: 1, alignItems: 'center', borderRadius: 6, paddingVertical: 7 }}
+              label="Manual entry"
+              selected={showManual}
+              onPress={() => { resetScan(); setShowManual(true); }}
+            />
+          </View>
+        )}
+
         {showManual ? (
-          /* Manual entry — real TextInputs */
           <Card className="mx-4 mt-4 gap-3">
             <UIText size="xs" variant="label">Type</UIText>
             <View className="flex-row gap-2">
@@ -303,10 +310,8 @@ export default function ScanScreen() {
             </View>
 
             <UIText size="xs" variant="label" className="mt-2">Amount</UIText>
-            <TextInput
-              style={inputStyle}
+            <Input
               placeholder="Rs 0"
-              placeholderTextColor={iconColor}
               value={amount}
               onChangeText={setAmount}
               keyboardType="numeric"
@@ -314,10 +319,8 @@ export default function ScanScreen() {
             />
 
             <UIText size="xs" variant="label" className="mt-2">Merchant</UIText>
-            <TextInput
-              style={inputStyle}
+            <Input
               placeholder="Merchant name"
-              placeholderTextColor={iconColor}
               value={merchant}
               onChangeText={setMerchant}
               autoCapitalize="words"
@@ -325,10 +328,8 @@ export default function ScanScreen() {
             />
 
             <UIText size="xs" variant="label" className="mt-2">Category</UIText>
-            <TextInput
-              style={inputStyle}
+            <Input
               placeholder={txType === TxType.Income ? "e.g. Salary" : "e.g. Groceries"}
-              placeholderTextColor={iconColor}
               value={category}
               onChangeText={setCategory}
               autoCapitalize="words"
@@ -355,16 +356,22 @@ export default function ScanScreen() {
               <>
                 <View
                   className="mx-4 mt-4 rounded-xl overflow-hidden"
-                  style={{ height: 220, backgroundColor: mutedBg, borderWidth: 1, borderColor }}
+                  style={{ height: 240, backgroundColor: mutedBg, borderWidth: 1, borderColor }}
                 >
                   {CORNER_POSITIONS.map((s, i) => (
                     <View
                       key={i}
-                      style={{ position: 'absolute', width: 20, height: 20, borderColor, ...s }}
+                      style={{ position: 'absolute', width: 24, height: 24, borderColor: BRAND_BLUE, ...s }}
                     />
                   ))}
-                  <View className="flex-1 items-center justify-center">
-                    <ScanLine size={32} color={iconColor} />
+                  <View className="flex-1 items-center justify-center gap-3">
+                    <View
+                      className="w-16 h-16 rounded-full items-center justify-center"
+                      style={{ backgroundColor: `${BRAND_BLUE}1a` }}
+                    >
+                      <ScanLine size={28} color={BRAND_BLUE} strokeWidth={1.8} />
+                    </View>
+                    <UIText size="sm" variant="muted">Position receipt in frame</UIText>
                   </View>
                 </View>
 
@@ -375,6 +382,7 @@ export default function ScanScreen() {
                 <Button
                   label="Capture Receipt"
                   variant="default"
+                  icon={<Camera size={16} color={isDark ? "#18181b" : "#ffffff"} strokeWidth={2} />}
                   className="mx-4 mt-4"
                   onPress={handleCapture}
                 />
@@ -383,8 +391,13 @@ export default function ScanScreen() {
 
             {/* Analyzing — awaiting the OCR call */}
             {stage === "analyzing" && (
-              <View className="items-center py-16 gap-3">
-                <ActivityIndicator color={accentFill} />
+              <View className="items-center py-16 gap-4">
+                <View
+                  className="w-16 h-16 rounded-full items-center justify-center"
+                  style={{ backgroundColor: `${BRAND_BLUE}1a` }}
+                >
+                  <ActivityIndicator color={BRAND_BLUE} />
+                </View>
                 <UIText size="sm" variant="muted">Analyzing receipt...</UIText>
               </View>
             )}
@@ -393,16 +406,16 @@ export default function ScanScreen() {
             {stage === "review" && (
               <Card className="mx-4 mt-4 gap-3">
                 <View className="flex-row items-center gap-2 mb-1">
-                  <CheckCircle2 size={14} color={isDark ? '#22c55e' : '#16a34a'} />
+                  <View className="w-6 h-6 rounded-full items-center justify-center bg-positive/10 dark:bg-positive-dark/10">
+                    <CheckCircle2 size={14} color={isDark ? '#22c55e' : '#16a34a'} />
+                  </View>
                   <UIText size="sm" variant="heading">Receipt detected</UIText>
                 </View>
 
                 <Separator className="my-1" />
 
                 <UIText size="xs" variant="label">Amount</UIText>
-                <TextInput
-                  style={inputStyle}
-                  placeholderTextColor={iconColor}
+                <Input
                   value={reviewAmount}
                   onChangeText={setReviewAmount}
                   keyboardType="numeric"
@@ -410,9 +423,7 @@ export default function ScanScreen() {
                 />
 
                 <UIText size="xs" variant="label" className="mt-2">Merchant</UIText>
-                <TextInput
-                  style={inputStyle}
-                  placeholderTextColor={iconColor}
+                <Input
                   value={reviewMerchant}
                   onChangeText={setReviewMerchant}
                   autoCapitalize="words"
@@ -423,10 +434,8 @@ export default function ScanScreen() {
                 <DateField value={reviewDate} onChange={setReviewDate} />
 
                 <UIText size="xs" variant="label" className="mt-2">Category</UIText>
-                <TextInput
-                  style={inputStyle}
+                <Input
                   placeholder="e.g. Groceries"
-                  placeholderTextColor={iconColor}
                   value={reviewCategory}
                   onChangeText={setReviewCategory}
                   autoCapitalize="words"

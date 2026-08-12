@@ -82,7 +82,12 @@ function CustomTabBar({
                 <tab.Icon size={20} color="#ffffff" strokeWidth={2} />
               </View>
               <Text
-                style={{ fontSize: 11, color: inactiveColor, marginTop: 2 }}
+                style={{
+                  fontSize: 11,
+                  color: inactiveColor,
+                  marginTop: 2,
+                  fontFamily: "DMSans_400Regular",
+                }}
               >
                 {/* {tab.label} */}
               </Text>
@@ -111,7 +116,7 @@ function CustomTabBar({
                 fontSize: 11,
                 color,
                 marginTop: 2,
-                fontWeight: isFocused ? "500" : "400",
+                fontFamily: isFocused ? "DMSans_500Medium" : "DMSans_400Regular",
               }}
             >
               {tab.label}

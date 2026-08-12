@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
-import { View, TextInput, TouchableOpacity, FlatList, RefreshControl } from "react-native";
+import { View, TouchableOpacity, FlatList, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { Search, X } from "lucide-react-native";
+import { Search, X, Receipt } from "lucide-react-native";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { useDisplayTransactions } from "@/hooks/useDisplayTransactions";
 import {
@@ -12,6 +12,7 @@ import {
 } from "@/hooks/useTransactionFilters";
 import { TransactionGroup } from "@/utils/dates";
 import { DisplayTransaction } from "@/hooks/useDisplayTransactions";
+import { TxType } from "@/types";
 import TransactionItem from "@/components/ui/TransactionItem";
 import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
@@ -19,6 +20,7 @@ import { DataState } from "@/components/ui/DataState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { TransactionItemSkeleton } from "@/components/ui/TransactionItemSkeleton";
 import { Chip } from "@/components/ui/Chip";
+import { Input } from "@/components/ui/Input";
 import { useTheme } from "@/context/ThemeContext";
 import { useRefresh } from "@/hooks/useRefresh";
 
@@ -45,30 +47,41 @@ export default function TransactionsScreen() {
   const handleFilterChange = useCallback((f: FilterOption) => setFilter(f), [setFilter]);
 
   const iconColor   = isDark ? '#a1a1aa' : '#71717a';
-  const inputText   = isDark ? '#fafafa' : '#09090b';
 
   const renderGroup = useCallback(
-    ({ item: g }: { item: TransactionGroup<DisplayTransaction> }) => (
-      <View className="mb-4">
-        <UIText size="xs" variant="label" className="py-2">{g.label}</UIText>
-        <Card className="p-0 overflow-hidden">
-          {g.txs.map((tx, i) => (
-            <View key={tx.id} className="px-4">
-              <TransactionItem
-                merchant={tx.merchant}
-                categoryName={tx.categoryName}
-                txType={tx.txType}
-                amount={tx.amount}
-                time={tx.time}
-                icon={tx.categoryIcon}
-                isLast={i === g.txs.length - 1}
-                onPress={() => router.push({ pathname: "/transaction/[id]", params: { id: tx.id } })}
-              />
-            </View>
-          ))}
-        </Card>
-      </View>
-    ),
+    ({ item: g }: { item: TransactionGroup<DisplayTransaction> }) => {
+      const net = g.txs.reduce((sum, tx) => sum + (tx.txType === TxType.Income ? tx.amount : -tx.amount), 0);
+      return (
+        <View className="mb-4">
+          <View className="flex-row items-center justify-between py-2">
+            <UIText size="xs" variant="label">{g.label}</UIText>
+            <UIText
+              size="xs"
+              variant="unstyled"
+              className={`font-mono ${net < 0 ? "text-negative dark:text-negative-dark" : "text-positive dark:text-positive-dark"}`}
+            >
+              {net < 0 ? "−" : "+"}{Math.abs(net).toLocaleString("en-US")}
+            </UIText>
+          </View>
+          <Card className="p-0 overflow-hidden">
+            {g.txs.map((tx, i) => (
+              <View key={tx.id} className="px-4">
+                <TransactionItem
+                  merchant={tx.merchant}
+                  categoryName={tx.categoryName}
+                  txType={tx.txType}
+                  amount={tx.amount}
+                  time={tx.time}
+                  icon={tx.categoryIcon}
+                  isLast={i === g.txs.length - 1}
+                  onPress={() => router.push({ pathname: "/transaction/[id]", params: { id: tx.id } })}
+                />
+              </View>
+            ))}
+          </Card>
+        </View>
+      );
+    },
     []
   );
 
@@ -89,23 +102,27 @@ export default function TransactionsScreen() {
             <UIText size="xl" variant="heading" className="mb-4">Transactions</UIText>
 
             {/* Search bar */}
-            <Card className="py-2.5 flex-row items-center gap-2">
-              <Search size={16} color={iconColor} />
-              <TextInput
-                style={{ flex: 1, color: inputText, fontSize: 15 }}
+            <View className="relative justify-center">
+              <Search size={16} color={iconColor} style={{ position: "absolute", left: 12, zIndex: 1 }} />
+              <Input
+                style={{ paddingLeft: 36, paddingRight: searchQuery.length > 0 ? 36 : 12 }}
                 placeholder="Search transactions..."
-                placeholderTextColor={iconColor}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 autoCapitalize="none"
                 returnKeyType="search"
               />
               {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => setSearchQuery('')} activeOpacity={0.7}>
+                <TouchableOpacity
+                  onPress={() => setSearchQuery('')}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  style={{ position: "absolute", right: 12 }}
+                >
                   <X size={15} color={iconColor} />
                 </TouchableOpacity>
               )}
-            </Card>
+            </View>
 
             {/* Filter chips */}
             <FlatList
@@ -126,7 +143,8 @@ export default function TransactionsScreen() {
             status={status}
             isEmpty={groups.length === 0}
             onRetry={fetchAll}
-            emptyMessage="No transactions found"
+            emptyMessage={searchQuery.trim().length > 0 ? "No matching transactions" : "No transactions yet"}
+            emptyIcon={Receipt}
             loadingSkeleton={
               // Mirrors a rendered group: date label, then a card of rows
               <View className="mb-4">
