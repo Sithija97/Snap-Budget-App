@@ -109,6 +109,22 @@ describe("parseNotificationText", () => {
       expect(result?.merchant).toBe("Uber Eats");
       expect(result?.date).toBe("2026-08-04");
     });
+
+    it("classifies a 'Credit for Rs X' incoming-transfer SMS as income, not an expense (regression, 2026-08-12)", () => {
+      // Real ComBank sample: an incoming transfer (e.g. a salary conversion)
+      // uses the noun "Credit for", not "credited" — previously unrecognized
+      // by the credit template entirely, so this fell through to the "at
+      // <merchant>" debit template, which matched "to 8021406412 at ..." as
+      // if the masked account number were a merchant and misclassified a
+      // large real credit as an expense.
+      const result = parseNotificationText(
+        "combank.com.combankdigital",
+        "Credit for Rs. 300,755.00 to 8021406412 at 21:23 at DIGITAL BANKING DIVISION"
+      );
+      expect(result?.txType).toBe(TxType.Income);
+      expect(result?.amount).toBe(300755);
+      expect(result?.merchant).toBeNull();
+    });
   });
 });
 

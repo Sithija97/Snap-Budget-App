@@ -46,7 +46,7 @@ async function notifyCaptured(suggestion: CapturedSuggestion) {
   const { status } = await Notifications.getPermissionsAsync();
   if (status !== "granted") return;
 
-  const amountText = suggestion.amount !== null ? `Rs ${suggestion.amount.toLocaleString("en-US")}` : "a";
+  const amountText = `Rs ${suggestion.amount.toLocaleString("en-US")}`;
   const merchantText = suggestion.merchant ? ` from ${suggestion.merchant}` : "";
 
   await Notifications.scheduleNotificationAsync({
@@ -69,7 +69,7 @@ async function handleNotification(event: CapturedNotification) {
   let merchant = parsed?.merchant ?? null;
   let categoryName: string | null = null;
   let txType: TxType = parsed?.txType ?? TxType.Expense;
-  let source: CapturedSuggestion["source"] = parsed ? "regex" : "unparsed";
+  let source: CapturedSuggestion["source"] = parsed ? "regex" : "gemini";
   // Prefer the date printed in the notification text (e.g. a card
   // authorisation SMS's "on 07/08/26") over when Android delivered it — a
   // delayed SMS relay would otherwise misattribute the transaction to the
@@ -77,10 +77,12 @@ async function handleNotification(event: CapturedNotification) {
   let date = parsed?.date ?? toISODate(new Date(event.postTime));
 
   if (!parsed && fullText) {
-    // On-device regex found nothing — try the Gemini fallback (server/src/lib/assistant.ts's
-    // extractTransactionFromText). A network/API failure here just leaves the
-    // suggestion as "unparsed" rather than dropping it — the graceful-degradation
-    // path from PLAN.md §7 still gives the user something to review.
+    // On-device regex found nothing — try the Gemini fallback
+    // (server/src/lib/assistant.ts's extractTransactionFromText), which also
+    // classifies the notification (OTP, marketing, statement-ready, etc. all
+    // come back as isTransaction: false / draft: undefined) rather than just
+    // attempting extraction — a network/API failure here just means this
+    // notification is silently skipped, same as any other non-transaction.
     try {
       const { draft } = await api.post<{ draft: null | { merchant: string; amount: number; categoryName: string; txType: "inc" | "exp"; date: string } }>(
         "/api/assistant/parse-notification",
@@ -92,25 +94,31 @@ async function handleNotification(event: CapturedNotification) {
         categoryName = draft.categoryName;
         txType = draft.txType === "inc" ? TxType.Income : TxType.Expense;
         date = draft.date;
-        source = "gemini";
       }
     } catch (e) {
       console.warn("Notification Gemini fallback failed", e);
     }
   }
 
-  if (amount !== null) {
-    // Re-read from the store rather than a snapshot taken before the Gemini
-    // fallback's await — two near-simultaneous notifications for the same
-    // payment (e.g. an app push + an SMS relay) can both reach here after
-    // both took the async fallback path, and a pre-await snapshot would miss
-    // whichever one's addSuggestion() already landed in the meantime.
-    const dupHistory = useCaptureStore
-      .getState()
-      .suggestions.filter((s) => s.status !== "dismissed")
-      .map((s) => ({ amount: s.amount ?? -1, postTimeMs: s.postTimeMs }));
-    if (isDuplicateNotification(amount, event.postTime, dupHistory)) return;
-  }
+  // Neither the on-device templates nor Gemini found a real transaction
+  // amount — this covers OTPs, marketing, balance-check confirmations,
+  // and every other non-transactional notification from an allowlisted
+  // app/source. Only a confirmed amount ever reaches the review inbox or
+  // triggers a "Transaction captured" push, per the app's "only capture
+  // real transactions" contract — nothing generic gets surfaced just
+  // because it came from a watched package.
+  if (amount === null) return;
+
+  // Re-read from the store rather than a snapshot taken before the Gemini
+  // fallback's await — two near-simultaneous notifications for the same
+  // payment (e.g. an app push + an SMS relay) can both reach here after
+  // both took the async fallback path, and a pre-await snapshot would miss
+  // whichever one's addSuggestion() already landed in the meantime.
+  const dupHistory = useCaptureStore
+    .getState()
+    .suggestions.filter((s) => s.status !== "dismissed")
+    .map((s) => ({ amount: s.amount ?? -1, postTimeMs: s.postTimeMs }));
+  if (isDuplicateNotification(amount, event.postTime, dupHistory)) return;
 
   const appLabel = allowlist.find((a) => a.packageName === event.packageName)?.label ?? event.packageName;
 

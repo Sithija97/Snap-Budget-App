@@ -156,26 +156,34 @@ const TEMPLATES: BankTemplate[] = [
     // account" is just as common and was previously falling through to the
     // "at <merchant>" debit template below, misclassifying income as an
     // expense (caught via a real notification sample, 2026-08-11).
-    pattern: /(?:(?:credited|received|deposit of)\D{0,20}(?:rs\.?|lkr)\s?([\d,]+(?:\.\d{1,2})?))|(?:(?:rs\.?|lkr)\s?([\d,]+(?:\.\d{1,2})?)\D{0,20}(?:credited|received))/i,
+    // "credit for"/"credit of" also covers ComBank's incoming-transfer
+    // wording ("Credit for Rs. 300,755.00 to <acct> at ... DIGITAL BANKING
+    // DIVISION") — the noun "Credit", not the past-tense "credited", which
+    // this template previously missed entirely, letting the debit template
+    // below misclassify a salary/transfer credit as an expense (caught via a
+    // real notification sample, 2026-08-12).
+    pattern: /(?:(?:credited|received|deposit of|credit (?:for|of))\D{0,20}(?:rs\.?|lkr)\s?([\d,]+(?:\.\d{1,2})?))|(?:(?:rs\.?|lkr)\s?([\d,]+(?:\.\d{1,2})?)\D{0,20}(?:credited|received))/i,
     amountGroups: [1, 2],
     txType: TxType.Income,
     // No getMerchant here, deliberately: a credit's trailing "to X" is
-    // typically your own account ("credited to your Savings account"), not
-    // a counterparty — unlike a debit's "at/to X", which is the merchant.
-    // Applying the same trailing-merchant heuristic here would prefill
-    // nonsense like merchant "Your Savings Account" for income.
+    // typically your own account ("credited to your Savings account", "to
+    // 8021406412 at DIGITAL BANKING DIVISION"), not a counterparty — unlike
+    // a debit's "at/to X", which is the merchant. Applying the same
+    // trailing-merchant heuristic here would prefill nonsense like merchant
+    // "8021406412" or "Your Savings Account" for income.
   },
   {
     bank: "Generic 'at <merchant>' debit",
     packageName: "*",
     // Excludes text containing a credit-indicating word — this template only
     // recognizes "Rs X at/to Y" shapes, which a genuine credit notification
-    // ("Rs 5,000 credited to your Savings account") can also incidentally
-    // match ("to your Savings account" looks like "to <merchant>"). Without
-    // this guard, any credit phrasing the credit template above doesn't
-    // anticipate gets silently misclassified as an expense instead of
-    // falling through to the Gemini fallback.
-    pattern: /^(?!.*(?:credited|received|deposit)).*(?:rs\.?|lkr)\s?([\d,]+(?:\.\d{1,2})?)\D{0,10}(?:at|to)\s+([a-z0-9 &'.\-]{2,40})/i,
+    // ("Rs 5,000 credited to your Savings account", "Credit for Rs X to
+    // <acct> at <branch>") can also incidentally match ("to your Savings
+    // account" / "to <acct> at <branch>" both look like "to <merchant>").
+    // Without this guard, any credit phrasing the credit template above
+    // doesn't anticipate gets silently misclassified as an expense instead
+    // of falling through to the Gemini fallback.
+    pattern: /^(?!.*(?:credited|received|deposit|credit (?:for|of))).*(?:rs\.?|lkr)\s?([\d,]+(?:\.\d{1,2})?)\D{0,10}(?:at|to)\s+([a-z0-9 &'.\-]{2,40})/i,
     amountGroups: [1],
     txType: TxType.Expense,
     getMerchant: (m) => (m[2] ? cleanMerchant(m[2]) : null),

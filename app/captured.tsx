@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { View, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { ChevronLeft, Sparkles, HelpCircle } from "lucide-react-native";
+import { ChevronLeft, Inbox, Sparkles, Cpu } from "lucide-react-native";
 import { useTheme } from "@/context/ThemeContext";
 import { useCaptureStore } from "@/store/useCaptureStore";
 import { TxType } from "@/types";
@@ -10,13 +10,11 @@ import { formatFullDate } from "@/utils/dates";
 import { UIText } from "@/components/ui/UIText";
 import { IconButton } from "@/components/ui/IconButton";
 import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 
 const SOURCE_LABEL: Record<string, string> = {
   regex: "Parsed on-device",
   gemini: "Parsed with AI",
-  unparsed: "Couldn't parse",
 };
 
 export default function CapturedScreen() {
@@ -35,8 +33,12 @@ export default function CapturedScreen() {
   const handleReview = (suggestionId: string) => {
     const s = pending.find((x) => x.id === suggestionId);
     if (!s) return;
-    const params = new URLSearchParams({ manual: "true", type: s.txType === TxType.Income ? "income" : "expense", captureId: s.id });
-    if (s.amount !== null) params.set("amount", String(s.amount));
+    const params = new URLSearchParams({
+      manual: "true",
+      type: s.txType === TxType.Income ? "income" : "expense",
+      captureId: s.id,
+      amount: String(s.amount),
+    });
     if (s.merchant) params.set("merchant", s.merchant);
     if (s.categoryName) params.set("category", s.categoryName);
     if (s.date) params.set("date", s.date);
@@ -55,57 +57,58 @@ export default function CapturedScreen() {
 
       <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24, flexGrow: 1 }}>
         {pending.length === 0 ? (
-          <View className="items-center py-12 gap-2">
-            <Sparkles size={20} color={iconColor} />
-            <UIText size="sm" variant="muted" className="text-center">
+          <View className="flex-1 items-center justify-center gap-3 py-12">
+            <View className="w-12 h-12 rounded-full bg-muted dark:bg-muted-dark items-center justify-center">
+              <Inbox size={22} color={iconColor} />
+            </View>
+            <UIText size="sm" variant="muted" className="text-center px-8">
               Nothing waiting for review. Payments detected from your allowlisted apps will show up here.
             </UIText>
           </View>
         ) : (
           <View className="gap-3 mt-1">
-            {pending.map((s) => (
-              <Card key={s.id} className="p-4">
-                <View className="flex-row items-center justify-between mb-2">
-                  <UIText size="sm" variant="muted">{s.appLabel}</UIText>
-                  <View className="flex-row items-center gap-1.5">
-                    {s.source === "unparsed" && <HelpCircle size={12} color={iconColor} />}
-                    <Badge
-                      label={SOURCE_LABEL[s.source]}
-                      variant={s.source === "unparsed" ? "outline" : "default"}
-                    />
+            {pending.map((s) => {
+              const isIncome = s.txType === TxType.Income;
+              return (
+                <Card key={s.id} className="p-4">
+                  <View className="flex-row items-center justify-between mb-2">
+                    <UIText size="xs" variant="label">{s.appLabel}</UIText>
+                    <View className="flex-row items-center gap-1">
+                      {s.source === "gemini" ? (
+                        <Sparkles size={11} color={iconColor} />
+                      ) : (
+                        <Cpu size={11} color={iconColor} />
+                      )}
+                      <UIText size="xs" variant="muted">{SOURCE_LABEL[s.source]}</UIText>
+                    </View>
                   </View>
-                </View>
 
-                {s.amount !== null ? (
-                  <UIText size="lg" variant="heading">
-                    {s.txType === TxType.Income ? "+" : "-"}Rs {s.amount.toLocaleString("en-US")}
-                  </UIText>
-                ) : (
-                  <UIText size="sm" variant="muted">Amount not detected — enter it on review</UIText>
-                )}
-                {s.merchant && <UIText size="sm" variant="default">{s.merchant}</UIText>}
-                <UIText size="xs" variant="muted" className="mt-1">
-                  {formatFullDate(s.date)}
-                </UIText>
-
-                {s.source === "unparsed" && (
-                  <UIText size="xs" variant="muted" className="mt-2" numberOfLines={2}>
-                    "{s.rawText}"
-                  </UIText>
-                )}
-
-                <View className="flex-row gap-2 mt-3">
-                  <Button label="Review" variant="default" className="flex-1" onPress={() => handleReview(s.id)} />
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    onPress={() => handleDismiss(s.id)}
-                    className="px-4 items-center justify-center"
+                  <UIText
+                    size="lg"
+                    variant="unstyled"
+                    className={`font-mono font-semibold ${isIncome ? "text-positive dark:text-positive-dark" : "text-negative dark:text-negative-dark"}`}
                   >
-                    <UIText size="sm" variant="muted">Dismiss</UIText>
-                  </TouchableOpacity>
-                </View>
-              </Card>
-            ))}
+                    {isIncome ? "+" : "−"}Rs {s.amount.toLocaleString("en-US")}
+                  </UIText>
+                  {s.merchant && <UIText size="sm" variant="default" className="mt-0.5">{s.merchant}</UIText>}
+                  <UIText size="xs" variant="muted" className="mt-1">
+                    {formatFullDate(s.date)}
+                  </UIText>
+
+                  <View className="flex-row gap-2 mt-3">
+                    <Button label="Review" variant="default" className="flex-1" onPress={() => handleReview(s.id)} />
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={() => handleDismiss(s.id)}
+                      className="px-4 items-center justify-center"
+                      hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                    >
+                      <UIText size="sm" variant="muted">Dismiss</UIText>
+                    </TouchableOpacity>
+                  </View>
+                </Card>
+              );
+            })}
           </View>
         )}
       </ScrollView>
