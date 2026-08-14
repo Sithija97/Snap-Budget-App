@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { View, TouchableOpacity, FlatList, RefreshControl } from "react-native";
+import { View, FlatList, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react-native";
@@ -13,6 +13,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { Card } from "@/components/ui/Card";
 import { DataState } from "@/components/ui/DataState";
 import { Chip } from "@/components/ui/Chip";
+import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 import { useRefresh } from "@/hooks/useRefresh";
 
 const TYPES: { key: CategoryType; label: string }[] = [
@@ -64,17 +65,15 @@ export default function CategoriesScreen() {
               </View>
             </View>
 
-            <TouchableOpacity
+            <Card
+              className="mx-4 mb-3 flex-row items-center gap-3"
               onPress={() => router.push(`/category-form?type=${type}`)}
-              activeOpacity={0.7}
             >
-              <Card className="mx-4 mb-3 flex-row items-center gap-3">
-                <View className="w-9 h-9 rounded-lg items-center justify-center bg-muted dark:bg-muted-dark">
-                  <Plus size={16} color={iconColor} strokeWidth={1.8} />
-                </View>
-                <UIText size="sm" variant="heading">New category</UIText>
-              </Card>
-            </TouchableOpacity>
+              <View className="w-9 h-9 rounded-lg items-center justify-center bg-muted dark:bg-muted-dark">
+                <Plus size={16} color={iconColor} strokeWidth={1.8} />
+              </View>
+              <UIText size="sm" variant="heading">New category</UIText>
+            </Card>
           </>
         }
         ListEmptyComponent={
@@ -86,7 +85,7 @@ export default function CategoriesScreen() {
           />
         }
         renderItem={({ item: c, index }: { item: Category; index: number }) => (
-          <TouchableOpacity onPress={() => router.push(`/category-form?id=${c.id}`)} activeOpacity={0.7}>
+          <AnimatedPressable onPress={() => router.push(`/category-form?id=${c.id}`)} pressScale={0.98}>
             <View
               className={`flex-row items-center gap-3 py-3 mx-4 ${cardRowClass(index, filtered.length)} ${
                 index === filtered.length - 1 ? "" : "border-b"
@@ -108,7 +107,7 @@ export default function CategoriesScreen() {
               </View>
               <ChevronRight size={16} color={iconColor} />
             </View>
-          </TouchableOpacity>
+          </AnimatedPressable>
         )}
       />
     </SafeAreaView>

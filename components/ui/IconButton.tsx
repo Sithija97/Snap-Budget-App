@@ -1,7 +1,8 @@
 import { ReactNode } from 'react';
-import { TouchableOpacity, TouchableOpacityProps } from 'react-native';
+import { PressableProps } from 'react-native';
+import { AnimatedPressable } from './AnimatedPressable';
 
-interface IconButtonProps extends TouchableOpacityProps {
+interface IconButtonProps extends PressableProps {
   children: ReactNode;
   /** Layout-only additions (margins); the surface styling is fixed here */
   className?: string;
@@ -10,15 +11,18 @@ interface IconButtonProps extends TouchableOpacityProps {
 // Single source of truth for the square icon button (screen-header back
 // buttons, edit/add actions, theme toggle). Previously hand-rolled as an
 // outlined TouchableOpacity in 8 files; now a filled card surface to match
-// the borderless design language.
-export function IconButton({ children, className = '', ...props }: IconButtonProps) {
+// the borderless design language. The visible surface stays 36x36 (matches
+// the compact header rhythm every screen was built around), but hitSlop pads
+// the actual touch target out to the 44x44 minimum from iOS HIG / Material —
+// callers don't need to opt in individually.
+export function IconButton({ children, className = '', hitSlop, ...props }: IconButtonProps) {
   return (
-    <TouchableOpacity
-      activeOpacity={0.7}
+    <AnimatedPressable
       className={`w-9 h-9 items-center justify-center rounded-lg bg-card dark:bg-card-dark ${className}`}
+      hitSlop={hitSlop ?? { top: 4, bottom: 4, left: 4, right: 4 }}
       {...props}
     >
       {children}
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }

@@ -9,6 +9,9 @@ export type Env = {
     CLOUDINARY_CLOUD_NAME: string;
     CLOUDINARY_API_KEY: string;
     CLOUDINARY_API_SECRET: string;
+    TELEGRAM_BOT_TOKEN: string;
+    TELEGRAM_WEBHOOK_SECRET: string;
+    TELEGRAM_BOT_USERNAME: string;
   };
   Variables: { userId: string; db: ReturnType<typeof createDb> };
 };

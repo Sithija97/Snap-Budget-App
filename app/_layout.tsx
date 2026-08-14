@@ -1,11 +1,12 @@
 import "../global.css";
 import { useEffect } from "react";
-import { View } from "react-native";
+import { View, AppState } from "react-native";
 import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import {
   DMSans_400Regular,
   DMSans_500Medium,
+  DMSans_600SemiBold,
 } from "@expo-google-fonts/dm-sans";
 import { DMMono_400Regular } from "@expo-google-fonts/dm-mono";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -18,6 +19,16 @@ import { useWalletStore } from "@/store/useWalletStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { useBudgetStore } from "@/store/useBudgetStore";
 import { useTransactionStore } from "@/store/useTransactionStore";
+import { useMessagingStore } from "@/store/useMessagingStore";
+import { useRecapStore } from "@/store/useRecapStore";
+import { useCaptureStore } from "@/store/useCaptureStore";
+import {
+  startNotificationCapture,
+  stopNotificationCapture,
+  registerCaptureNotificationTapHandler,
+} from "@/lib/notificationCapture";
+import { useReminderStore } from "@/store/useReminderStore";
+import { syncFinanceReminders, shouldResyncFinanceReminders } from "@/lib/financeReminders";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -39,9 +50,12 @@ function AuthBridge({ children }: { children: React.ReactNode }) {
       useCategoryStore.getState().reset();
       useBudgetStore.getState().reset();
       useTransactionStore.getState().reset();
+      useMessagingStore.getState().reset();
+      useRecapStore.getState().reset();
+      stopNotificationCapture();
       return;
     }
-    // Fire all four fetches in parallel once signed in (and again on any
+    // Fire the four core fetches in parallel once signed in (and again on any
     // future sign-in, e.g. after a sign-out/sign-in cycle in the same session)
     Promise.all([
       useWalletStore.getState().fetchAll(),
@@ -49,6 +63,22 @@ function AuthBridge({ children }: { children: React.ReactNode }) {
       useBudgetStore.getState().fetchAll(),
       useTransactionStore.getState().fetchAll(),
     ]).catch((e) => console.error("Initial data fetch failed", e));
+
+    // Kept out of the Promise.all above: a failure here (e.g. the API not
+    // having the messaging routes deployed yet) is a real, expected
+    // possibility during rollout and shouldn't be logged as if core app data
+    // failed to load — the store's default (not linked) is a fine fallback.
+    useMessagingStore.getState().fetchStatus().catch((e) => console.warn("Messaging status fetch failed", e));
+    useRecapStore.getState().fetchAll().catch((e) => console.warn("Recap fetch failed", e));
+
+    // Capture's allowlist/inbox is local-only (AsyncStorage, no backend), so
+    // it's hydrated rather than fetched — then the native listener (Android
+    // only, no-ops elsewhere) is started against whatever allowlist was saved.
+    useCaptureStore
+      .getState()
+      .hydrate()
+      .then(() => startNotificationCapture())
+      .catch((e) => console.warn("Capture hydration failed", e));
   }, [isSignedIn]);
 
   return <>{children}</>;
@@ -56,7 +86,19 @@ function AuthBridge({ children }: { children: React.ReactNode }) {
 
 function InnerLayout() {
   const { isSignedIn } = useAuth();
-  const { isDark } = useTheme();
+  const { isDark, hydrated } = useTheme();
+
+  // Splash screen stays up (see RootLayout) until fonts AND the saved theme
+  // are both ready — hides here, inside ThemeProvider, since that's the only
+  // place `hydrated` is available. Gating hideAsync() on this is what
+  // prevents the "wrong theme for a moment" flash on cold start: the first
+  // frame the user ever sees already has the correct dark: resolution.
+  useEffect(() => {
+    if (!hydrated) return;
+    // hideAsync() can reject (e.g. called when there's no splash screen left
+    // to hide) — never let that surface as an unhandled promise rejection.
+    SplashScreen.hideAsync().catch(() => {});
+  }, [hydrated]);
 
   // NativeWind's colorScheme.set() (see ThemeContext) drives dark: variant
   // resolution on native, but on web Tailwind's darkMode:"class" strategy
@@ -68,6 +110,8 @@ function InnerLayout() {
         <Stack.Protected guard={!!isSignedIn}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="scan" options={{ presentation: "modal" }} />
+          <Stack.Screen name="captured" />
+          <Stack.Screen name="notification-capture" />
         </Stack.Protected>
         <Stack.Protected guard={!isSignedIn}>
           <Stack.Screen name="login" />
@@ -78,16 +122,51 @@ function InnerLayout() {
 }
 
 export default function RootLayout() {
+  // Blocks first render — DM Sans is used everywhere (headings, body text),
+  // so it must be ready before anything paints. DM Mono is split into its
+  // own non-blocking call below: it's only used for money amounts, which
+  // are never shown before real data arrives (skeletons cover that gap on
+  // every screen), and it's unused on the login screen entirely — loading it
+  // here would otherwise serialize font-loading in front of Clerk's own
+  // (larger) init instead of letting the two overlap.
   const [loaded] = useFonts({
     DMSans_400Regular,
     DMSans_500Medium,
-    DMMono_400Regular,
+    DMSans_600SemiBold,
   });
+  useFonts({ DMMono_400Regular });
 
+  // Registered once at the root (not sign-in-gated) so a tap that arrives
+  // while the app is cold-starting isn't missed — Stack.Protected still
+  // keeps the destination screen itself behind auth.
   useEffect(() => {
-    if (!loaded) return;
-    SplashScreen.hideAsync();
-  }, [loaded]);
+    const subscription = registerCaptureNotificationTapHandler();
+    return () => subscription.remove();
+  }, []);
+
+  // Morning/evening finance-tip reminders are device-local settings (like
+  // theme), not user data — hydrated and synced here regardless of sign-in
+  // state. DAILY triggers are OS-native repeating alarms that persist and
+  // refire on their own, so the foreground listener only re-syncs when
+  // shouldResyncFinanceReminders() says enough time has passed to be worth
+  // rotating in a fresh random tip — not on every single foreground return.
+  useEffect(() => {
+    useReminderStore
+      .getState()
+      .hydrate()
+      .then(() => syncFinanceReminders(useReminderStore.getState().settings()))
+      .catch((e) => console.warn("Failed to hydrate finance reminders", e));
+
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state !== "active") return;
+      if (!useReminderStore.getState().hydrated) return;
+      if (!shouldResyncFinanceReminders()) return;
+      syncFinanceReminders(useReminderStore.getState().settings()).catch((e) =>
+        console.warn("Failed to sync finance reminders", e)
+      );
+    });
+    return () => sub.remove();
+  }, []);
 
   if (!loaded) return null;
 

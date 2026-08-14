@@ -26,9 +26,10 @@ module.exports = {
         warning:     { DEFAULT: '#d97706', dark: '#fbbf24' },
       },
       fontFamily: {
-        sans:   ["DMSans_400Regular"],
-        medium: ["DMSans_500Medium"],
-        mono:   ["DMMono_400Regular"],
+        sans:     ["DMSans_400Regular"],
+        medium:   ["DMSans_500Medium"],
+        semibold: ["DMSans_600SemiBold"],
+        mono:     ["DMMono_400Regular"],
       },
     },
   },

@@ -1,23 +1,89 @@
-import { useState } from "react";
-import { View, ScrollView, TouchableOpacity, Alert, Share } from "react-native";
+import { useState, ReactNode } from "react";
+import { View, ScrollView, Alert, Switch, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { ChevronRight } from "lucide-react-native";
+import * as Notifications from "expo-notifications";
+import {
+  ChevronRight,
+  Download,
+  LogOut,
+  Trash2,
+  Sunrise,
+  Sunset,
+  Sparkles,
+  WalletCards,
+  Shapes,
+  Send,
+  BellRing,
+  Bell,
+} from "lucide-react-native";
 import { useUser, useClerk } from "@clerk/clerk-expo";
 import { useTheme } from "@/context/ThemeContext";
 import { useWalletStore } from "@/store/useWalletStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { useBudgetStore } from "@/store/useBudgetStore";
 import { useTransactionStore } from "@/store/useTransactionStore";
+import { useMessagingStore } from "@/store/useMessagingStore";
+import { useCaptureStore } from "@/store/useCaptureStore";
+import { useReminderStore } from "@/store/useReminderStore";
+import { isNotificationCaptureSupportedPlatform } from "@/lib/notificationCapture";
+import { syncFinanceReminders } from "@/lib/financeReminders";
+import { exportDataAsExcel } from "@/utils/exportExcel";
 import { api } from "@/lib/api";
+import { BRAND_BLUE } from "@/constants/colors";
 import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
+import { TimeField } from "@/components/ui/TimeField";
+import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 
 type ThemeOption = 'light' | 'system' | 'dark';
 const THEME_OPTIONS: ThemeOption[] = ['light', 'system', 'dark'];
+
+// One row inside a multi-row settings Card — icon, label, optional trailing
+// value, and a chevron. Keeps the "Data & automation" / "Data management"
+// groups visually consistent instead of each screen hand-rolling row markup.
+function SettingsRow({
+  icon,
+  iconBgClassName = 'bg-muted dark:bg-muted-dark',
+  label,
+  labelClassName = '',
+  value,
+  onPress,
+  disabled,
+  hideChevron,
+  iconColor,
+}: {
+  icon: ReactNode;
+  iconBgClassName?: string;
+  label: string;
+  labelClassName?: string;
+  value?: string;
+  onPress: () => void;
+  disabled?: boolean;
+  hideChevron?: boolean;
+  iconColor: string;
+}) {
+  return (
+    <AnimatedPressable
+      className="flex-row items-center gap-3 px-4 py-3.5"
+      onPress={onPress}
+      disabled={disabled}
+      pressScale={0.99}
+    >
+      <View className={`w-9 h-9 rounded-lg items-center justify-center ${iconBgClassName}`}>
+        {icon}
+      </View>
+      <UIText size="sm" variant={labelClassName ? "unstyled" : "heading"} className={`flex-1 ${labelClassName ? `font-medium ${labelClassName}` : ''}`}>
+        {label}
+      </UIText>
+      {value && <UIText size="sm" variant="muted">{value}</UIText>}
+      {!hideChevron && <ChevronRight size={16} color={iconColor} />}
+    </AnimatedPressable>
+  );
+}
 
 export default function SettingsScreen() {
   const { theme, setTheme, isDark } = useTheme();
@@ -31,6 +97,16 @@ export default function SettingsScreen() {
   const categories = useCategoryStore((s) => s.categories);
   const budgets = useBudgetStore((s) => s.budgets);
   const transactions = useTransactionStore((s) => s.transactions);
+  const telegramLinked = useMessagingStore((s) => s.telegram.linked);
+  const pendingCaptures = useCaptureStore((s) => s.suggestions.filter((sug) => sug.status === "pending").length);
+
+  const reminderEnabled = useReminderStore((s) => s.enabled);
+  const morningHour = useReminderStore((s) => s.morningHour);
+  const morningMinute = useReminderStore((s) => s.morningMinute);
+  const eveningHour = useReminderStore((s) => s.eveningHour);
+  const eveningMinute = useReminderStore((s) => s.eveningMinute);
+  const updateReminders = useReminderStore((s) => s.update);
+  const [togglingReminders, setTogglingReminders] = useState(false);
 
   const iconColor   = isDark ? '#a1a1aa' : '#71717a';
   // Layout only — Chip computes selected/unselected color internally.
@@ -62,19 +138,9 @@ export default function SettingsScreen() {
   const handleExport = async () => {
     setExporting(true);
     try {
-      const payload = {
-        exportedAt: new Date().toISOString(),
-        wallets,
-        categories,
-        budgets,
-        transactions,
-      };
-      await Share.share({
-        title: "SnapBudget data export",
-        message: JSON.stringify(payload, null, 2),
-      });
-    } catch {
-      Alert.alert("Couldn't export data", "Please try again.");
+      await exportDataAsExcel({ wallets, categories, budgets, transactions });
+    } catch (e) {
+      Alert.alert("Couldn't export data", e instanceof Error ? e.message : "Please try again.");
     } finally {
       setExporting(false);
     }
@@ -110,6 +176,49 @@ export default function SettingsScreen() {
     );
   };
 
+  const handleToggleReminders = async (next: boolean) => {
+    setTogglingReminders(true);
+    try {
+      if (next) {
+        // Local scheduled notifications still need the same OS permission as
+        // any other notification — request it here rather than assuming
+        // whatever was granted (or not) for the capture feature applies.
+        const { status } = await Notifications.requestPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert("Notifications disabled", "Enable notifications for SnapBudget in your device settings to get reminders.");
+          return;
+        }
+      }
+      await updateReminders({ enabled: next });
+      await syncFinanceReminders(useReminderStore.getState().settings());
+    } catch (e) {
+      // Includes the underlying error message (not just "please try again")
+      // since this is the only failure in the app that's essentially
+      // impossible to reproduce outside a release build — a silent generic
+      // alert here means every report requires a full EAS build cycle just
+      // to learn what actually went wrong.
+      console.error("Failed to update reminders", e);
+      Alert.alert("Couldn't update reminders", e instanceof Error ? e.message : "Please try again.");
+    } finally {
+      setTogglingReminders(false);
+    }
+  };
+
+  const handleReminderTimeChange = async (period: "morning" | "evening", hour: number, minute: number) => {
+    setTogglingReminders(true);
+    try {
+      await updateReminders(
+        period === "morning" ? { morningHour: hour, morningMinute: minute } : { eveningHour: hour, eveningMinute: minute }
+      );
+      await syncFinanceReminders(useReminderStore.getState().settings());
+    } catch (e) {
+      console.error("Failed to update reminder time", e);
+      Alert.alert("Couldn't update reminder time", e instanceof Error ? e.message : "Please try again.");
+    } finally {
+      setTogglingReminders(false);
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["top"]}>
       <ScrollView
@@ -121,8 +230,13 @@ export default function SettingsScreen() {
         {/* Profile */}
         <Card>
           <View className="flex-row items-center gap-3">
-            <View className="w-10 h-10 rounded-full bg-muted dark:bg-muted-dark items-center justify-center">
-              <UIText size="sm" variant="heading">{initials}</UIText>
+            <View
+              className="w-12 h-12 rounded-full items-center justify-center"
+              style={{ backgroundColor: `${BRAND_BLUE}1a` }}
+            >
+              <UIText size="sm" variant="unstyled" className="font-semibold" style={{ color: BRAND_BLUE }}>
+                {initials}
+              </UIText>
             </View>
             <View>
               <UIText size="base" variant="heading">{displayName}</UIText>
@@ -133,8 +247,8 @@ export default function SettingsScreen() {
 
         <Separator className="my-4" />
 
-        {/* Appearance */}
-        <UIText size="xs" variant="label" className="mb-2">Appearance</UIText>
+        {/* Preferences — how the app looks and speaks up, grouped together */}
+        <UIText size="xs" variant="label" className="mb-2">Preferences</UIText>
         <Card>
           <UIText size="sm" variant="heading">Theme</UIText>
           <View
@@ -156,51 +270,139 @@ export default function SettingsScreen() {
               />
             ))}
           </View>
+
+          <Separator className="my-4" />
+
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center gap-3 flex-1 pr-3">
+              <View className="w-9 h-9 rounded-lg items-center justify-center bg-muted dark:bg-muted-dark">
+                <BellRing size={16} color={iconColor} strokeWidth={1.8} />
+              </View>
+              <View className="flex-1">
+                <UIText size="sm" variant="heading">Daily finance tips</UIText>
+                <UIText size="xs" variant="muted" className="mt-0.5">
+                  Morning and evening reminders with a tip on building financial freedom
+                </UIText>
+              </View>
+            </View>
+            <Switch
+              value={reminderEnabled}
+              onValueChange={handleToggleReminders}
+              disabled={togglingReminders}
+              trackColor={{ false: isDark ? "#27272a" : "#e4e4e7", true: BRAND_BLUE }}
+              thumbColor={Platform.OS === "android" ? "#ffffff" : undefined}
+            />
+          </View>
+
+          {reminderEnabled && (
+            <>
+              <Separator className="my-3" />
+              <View className="flex-row items-center gap-3 mb-3">
+                <View className="w-8 h-8 rounded-full items-center justify-center bg-amber-100 dark:bg-amber-900/30">
+                  <Sunrise size={15} color={isDark ? "#fbbf24" : "#d97706"} strokeWidth={2} />
+                </View>
+                <UIText size="sm" variant="default" className="flex-1">Morning</UIText>
+                <View style={{ width: 130 }}>
+                  <TimeField
+                    hour={morningHour}
+                    minute={morningMinute}
+                    onChange={(h, m) => handleReminderTimeChange("morning", h, m)}
+                    disabled={togglingReminders}
+                  />
+                </View>
+              </View>
+              <View className="flex-row items-center gap-3">
+                <View className="w-8 h-8 rounded-full items-center justify-center bg-indigo-100 dark:bg-indigo-900/30">
+                  <Sunset size={15} color={isDark ? "#a5b4fc" : "#4f46e5"} strokeWidth={2} />
+                </View>
+                <UIText size="sm" variant="default" className="flex-1">Evening</UIText>
+                <View style={{ width: 130 }}>
+                  <TimeField
+                    hour={eveningHour}
+                    minute={eveningMinute}
+                    onChange={(h, m) => handleReminderTimeChange("evening", h, m)}
+                    disabled={togglingReminders}
+                  />
+                </View>
+              </View>
+            </>
+          )}
         </Card>
 
-        {/* Manage */}
-        <UIText size="xs" variant="label" className="mt-5 mb-2">Manage</UIText>
-        <View className="gap-2">
-          <TouchableOpacity activeOpacity={0.7} onPress={() => router.push("/wallets")}>
-            <Card>
-              <View className="flex-row items-center justify-between">
-                <UIText size="sm" variant="heading">Wallets</UIText>
-                <ChevronRight size={16} color={iconColor} />
-              </View>
-            </Card>
-          </TouchableOpacity>
-          <TouchableOpacity activeOpacity={0.7} onPress={() => router.push("/categories")}>
-            <Card>
-              <View className="flex-row items-center justify-between">
-                <UIText size="sm" variant="heading">Categories</UIText>
-                <ChevronRight size={16} color={iconColor} />
-              </View>
-            </Card>
-          </TouchableOpacity>
-        </View>
+        {/* Data & automation — everything that feeds transactions/budgets in, one scannable card */}
+        <UIText size="xs" variant="label" className="mt-5 mb-2">Data & automation</UIText>
+        <Card className="p-0 overflow-hidden">
+          <SettingsRow
+            icon={<WalletCards size={16} color={iconColor} strokeWidth={1.8} />}
+            label="Wallets"
+            onPress={() => router.push("/wallets")}
+            iconColor={iconColor}
+          />
+          <Separator />
+          <SettingsRow
+            icon={<Shapes size={16} color={iconColor} strokeWidth={1.8} />}
+            label="Categories"
+            onPress={() => router.push("/categories")}
+            iconColor={iconColor}
+          />
+          <Separator />
+          <SettingsRow
+            icon={<Send size={16} color={iconColor} strokeWidth={1.8} />}
+            label="Telegram"
+            value={telegramLinked ? "Connected" : "Not connected"}
+            onPress={() => router.push("/telegram-link")}
+            iconColor={iconColor}
+          />
+          {isNotificationCaptureSupportedPlatform && (
+            <>
+              <Separator />
+              <SettingsRow
+                icon={<Bell size={16} color={iconColor} strokeWidth={1.8} />}
+                label="Automatic capture"
+                value={pendingCaptures > 0 ? `${pendingCaptures} waiting` : undefined}
+                onPress={() => router.push("/notification-capture")}
+                iconColor={iconColor}
+              />
+            </>
+          )}
+        </Card>
 
-        {/* Data */}
-        <UIText size="xs" variant="label" className="mt-5 mb-2">Data</UIText>
-        <View className="gap-2">
-          <TouchableOpacity activeOpacity={0.7} onPress={handleExport} disabled={exporting}>
-            <Card>
-              <UIText size="sm" variant="heading">{exporting ? "Preparing export..." : "Export data"}</UIText>
-            </Card>
-          </TouchableOpacity>
-          <TouchableOpacity activeOpacity={0.7} onPress={handleClearData} disabled={clearing}>
-            <Card>
-              <UIText size="sm" variant="unstyled" className="text-destructive">
-                {clearing ? "Clearing..." : "Clear all data"}
-              </UIText>
-            </Card>
-          </TouchableOpacity>
-        </View>
+        {/* Data management — export, disclosure, and the destructive action, kept apart from data sources above */}
+        <UIText size="xs" variant="label" className="mt-5 mb-2">Data management</UIText>
+        <Card className="p-0 overflow-hidden">
+          <SettingsRow
+            icon={<Sparkles size={16} color={iconColor} strokeWidth={1.8} />}
+            label="AI & data"
+            onPress={() => router.push("/ai-disclosure")}
+            iconColor={iconColor}
+          />
+          <Separator />
+          <SettingsRow
+            icon={<Download size={16} color={iconColor} strokeWidth={1.8} />}
+            label={exporting ? "Preparing Excel file..." : "Export data (Excel)"}
+            onPress={handleExport}
+            disabled={exporting}
+            iconColor={iconColor}
+          />
+          <Separator />
+          <SettingsRow
+            icon={<Trash2 size={16} color={isDark ? "#f87171" : "#dc2626"} strokeWidth={1.8} />}
+            iconBgClassName="bg-red-100 dark:bg-red-900/30"
+            label={clearing ? "Clearing..." : "Clear all data"}
+            labelClassName="text-destructive"
+            onPress={handleClearData}
+            disabled={clearing}
+            iconColor={iconColor}
+            hideChevron
+          />
+        </Card>
 
         {/* Account */}
         <UIText size="xs" variant="label" className="mt-5 mb-2">Account</UIText>
         <Button
           label={signingOut ? "Signing out..." : "Sign out"}
           variant="outline"
+          icon={<LogOut size={16} color={isDark ? "#fafafa" : "#09090b"} strokeWidth={1.8} />}
           disabled={signingOut}
           onPress={handleSignOut}
         />

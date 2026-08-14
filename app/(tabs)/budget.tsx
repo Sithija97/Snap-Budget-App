@@ -1,8 +1,8 @@
 import { memo, useMemo } from "react";
-import { View, TouchableOpacity, FlatList, RefreshControl } from "react-native";
+import { View, FlatList, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { Plus } from "lucide-react-native";
+import { ChevronRight, Plus, TrendingUp, PiggyBank } from "lucide-react-native";
 import { useBudgetStore, budgetsForMonth } from "@/store/useBudgetStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { useTransactionStore, spentByCategoryInMonth } from "@/store/useTransactionStore";
@@ -11,11 +11,16 @@ import { fmt } from "@/utils/format";
 import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { IconButton } from "@/components/ui/IconButton";
+import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 import { DataState } from "@/components/ui/DataState";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { AnimatedBar } from "@/components/ui/AnimatedBar";
 import { TX_ICONS } from "@/constants/icons";
 import { useTheme } from "@/context/ThemeContext";
 import { useRefresh } from "@/hooks/useRefresh";
+import { BRAND_BLUE } from "@/constants/colors";
+import { chartTheme, budgetFillColor } from "@/constants/chartTheme";
 import type { Budget } from "@/types";
 
 interface CategoryRowProps {
@@ -24,55 +29,62 @@ interface CategoryRowProps {
   spent: number;
   limit: number;
   trackBg: string;
-  fillFg: string;
+  isDark: boolean;
   iconColor: string;
   onPress: () => void;
 }
 
 const CategoryRow = memo(function CategoryRow({
-  categoryName, categoryIcon, spent, limit, trackBg, fillFg, iconColor, onPress,
+  categoryName, categoryIcon, spent, limit, trackBg, isDark, iconColor, onPress,
 }: CategoryRowProps) {
   const pct = limit > 0 ? Math.round((spent / limit) * 100) : 0;
-  const fillColor = pct > 100 ? '#ef4444' : pct >= 80 ? '#d97706' : fillFg;
+  const isOver = pct > 100;
+  const isNear = pct >= 80 && !isOver;
+  const fillColor = budgetFillColor(pct, isDark);
   const Icon = TX_ICONS[categoryIcon];
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
-      <Card>
-        <View className="flex-row items-center gap-3">
+    <AnimatedPressable onPress={onPress} pressScale={0.98}>
+      <View className="flex-row rounded-2xl overflow-hidden bg-card dark:bg-card-dark">
+        {/* Status accent: only draws attention when a category actually needs it */}
+        <View style={{ width: 3, backgroundColor: isOver || isNear ? fillColor : 'transparent' }} />
+        <View className="flex-1 p-4">
+          <View className="flex-row items-center gap-3">
+            <View
+              className="w-9 h-9 rounded-lg items-center justify-center"
+              style={{ backgroundColor: trackBg }}
+            >
+              {Icon && <Icon size={16} color={iconColor} strokeWidth={1.8} />}
+            </View>
+
+            <View className="flex-1">
+              <UIText size="sm" variant="heading">{categoryName}</UIText>
+              <UIText size="xs" variant="muted" className="mt-0.5">
+                {fmt(spent)} of {fmt(limit)}
+              </UIText>
+            </View>
+
+            <Badge
+              label={`${pct}%`}
+              variant={isOver ? 'destructive' : isNear ? 'warning' : 'outline'}
+            />
+          </View>
+
           <View
-            className="w-8 h-8 rounded-lg items-center justify-center"
-            style={{ backgroundColor: trackBg }}
+            style={{ height: 6, backgroundColor: trackBg, borderRadius: 99, marginTop: 12, overflow: 'hidden' }}
           >
-            {Icon && <Icon size={15} color={iconColor} strokeWidth={1.8} />}
+            <AnimatedBar
+              axis="width"
+              size={`${Math.min(pct, 100)}%`}
+              color={fillColor}
+              style={{ height: '100%', borderRadius: 99 }}
+              accessibilityLabel={`${categoryName} budget usage`}
+              accessibilityValue={{ min: 0, max: 100, now: Math.min(pct, 100), text: `${pct}%` }}
+            />
           </View>
-
-          <View className="flex-1">
-            <UIText size="sm" variant="heading">{categoryName}</UIText>
-            <UIText size="xs" variant="muted" className="mt-0.5">
-              {fmt(spent)} of {fmt(limit)}
-            </UIText>
-          </View>
-
-          <UIText size="xs" variant="unstyled" className="font-mono text-mutedFg dark:text-mutedFg-dark">
-            {pct}%
-          </UIText>
         </View>
-
-        <View
-          style={{ height: 4, backgroundColor: trackBg, borderRadius: 99, marginTop: 10, overflow: 'hidden' }}
-        >
-          <View
-            style={{
-              height: '100%',
-              width: `${Math.min(pct, 100)}%`,
-              backgroundColor: fillColor,
-              borderRadius: 99,
-            }}
-          />
-        </View>
-      </Card>
-    </TouchableOpacity>
+      </View>
+    </AnimatedPressable>
   );
 });
 
@@ -82,14 +94,14 @@ function CategoryRowSkeleton() {
   return (
     <Card>
       <View className="flex-row items-center gap-3">
-        <Skeleton width={32} height={32} className="rounded-lg" />
+        <Skeleton width={36} height={36} className="rounded-lg" />
         <View className="flex-1">
           <Skeleton width={100} height={14} />
           <Skeleton width={130} height={11} className="mt-1.5" />
         </View>
-        <Skeleton width={30} height={12} />
+        <Skeleton width={44} height={20} className="rounded-lg" />
       </View>
-      <Skeleton width="100%" height={4} className="mt-2.5 rounded-full" />
+      <Skeleton width="100%" height={6} className="mt-3 rounded-full" />
     </Card>
   );
 }
@@ -154,13 +166,9 @@ export default function BudgetScreen() {
 
   // One step above the dark card surface (#18181b) so tracks stay visible on it
   const trackBg  = isDark ? '#27272a' : '#f4f4f5';
-  const fillFg   = isDark ? '#fafafa' : '#18181b';
   const iconColor = isDark ? '#a1a1aa' : '#71717a';
 
-  const overviewFillColor =
-    pctUsed > 100 ? '#ef4444' :
-    pctUsed >= 80 ? '#d97706' :
-    fillFg;
+  const overviewFillColor = budgetFillColor(pctUsed, isDark);
 
   const overviewBadgeVariant: 'outline' | 'warning' | 'destructive' =
     pctUsed > 100 ? 'destructive' :
@@ -181,65 +189,70 @@ export default function BudgetScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListHeaderComponent={
-          <View className="mb-4" style={{ gap: 4 }}>
+          <View className="mb-4" style={{ gap: 12 }}>
             {/* Header */}
-            <View className="flex-row items-center justify-between mb-4">
+            <View className="flex-row items-center justify-between">
               <UIText size="xl" variant="heading">Budget</UIText>
-              <TouchableOpacity onPress={() => router.push("/budget-form")} activeOpacity={0.7}>
-                <UIText size="sm" variant="muted">Add</UIText>
-              </TouchableOpacity>
+              <IconButton onPress={() => router.push("/budget-form")}>
+                <Plus size={18} color={iconColor} strokeWidth={2} />
+              </IconButton>
             </View>
 
             {/* Monthly overview */}
             <Card>
               {isFirstLoad ? (
                 <>
-                  <View className="flex-row items-start justify-between">
+                  <Skeleton width={70} height={12} />
+                  <View className="flex-row items-end justify-between mt-2">
                     <View>
-                      <Skeleton width={90} height={20} />
-                      <Skeleton width={60} height={13} className="mt-2" />
+                      <Skeleton width={150} height={38} />
+                      <Skeleton width={70} height={13} className="mt-1.5" />
                     </View>
-                    <Skeleton width={44} height={22} />
+                    <Skeleton width={64} height={24} className="rounded-lg" />
                   </View>
-                  <Skeleton width="100%" height={6} className="mt-3" />
+                  <Skeleton width="100%" height={8} className="mt-4" />
                 </>
               ) : (
                 <>
-                  <View className="flex-row items-start justify-between">
+                  <UIText size="xs" variant="label">This month</UIText>
+                  <View className="flex-row items-end justify-between mt-1.5">
                     <View>
-                      <UIText size="lg" className="font-mono font-medium">{fmt(totalSpent)}</UIText>
-                      <UIText size="xs" variant="muted" className="mt-0.5">of {fmt(totalLimit)}</UIText>
+                      <UIText size="3xl" className="font-mono font-semibold">{fmt(totalSpent)}</UIText>
+                      <UIText size="xs" variant="muted" className="mt-0.5">of {fmt(totalLimit)} budgeted</UIText>
                     </View>
                     <Badge label={`${pctUsed}%`} variant={overviewBadgeVariant} />
                   </View>
 
                   <View
-                    style={{ height: 6, backgroundColor: trackBg, borderRadius: 99, marginTop: 12, overflow: 'hidden' }}
+                    style={{ height: 8, backgroundColor: trackBg, borderRadius: 99, marginTop: 14, overflow: 'hidden' }}
                   >
-                    <View
-                      style={{
-                        height: '100%',
-                        width: `${Math.min(pctUsed, 100)}%`,
-                        backgroundColor: overviewFillColor,
-                        borderRadius: 99,
-                      }}
+                    <AnimatedBar
+                      axis="width"
+                      size={`${Math.min(pctUsed, 100)}%`}
+                      color={overviewFillColor}
+                      style={{ height: '100%', borderRadius: 99 }}
+                      accessibilityLabel="Monthly budget usage"
+                      accessibilityValue={{ min: 0, max: 100, now: Math.min(pctUsed, 100), text: `${pctUsed}%` }}
                     />
                   </View>
 
                   <UIText size="xs" variant="muted" className="mt-2">
-                    {daysRemaining} {daysRemaining === 1 ? "day" : "days"} remaining
+                    {daysRemaining} {daysRemaining === 1 ? "day" : "days"} remaining this month
                   </UIText>
                 </>
               )}
             </Card>
 
-            <TouchableOpacity
-              className="mt-2 self-start"
-              onPress={() => router.push("/(tabs)/analytics")}
-              activeOpacity={0.7}
-            >
-              <UIText size="sm" variant="muted" className="py-2">View trends</UIText>
-            </TouchableOpacity>
+            <Card className="flex-row items-center gap-3" onPress={() => router.push("/(tabs)/analytics")}>
+              <View
+                className="w-9 h-9 rounded-lg items-center justify-center"
+                style={{ backgroundColor: `${BRAND_BLUE}1a` }}
+              >
+                <TrendingUp size={16} color={BRAND_BLUE} strokeWidth={2} />
+              </View>
+              <UIText size="sm" variant="heading" className="flex-1">View spending trends</UIText>
+              <ChevronRight size={16} color={iconColor} />
+            </Card>
 
             {/* Categories */}
             <UIText size="xs" variant="label" className="mt-2">Categories</UIText>
@@ -251,6 +264,7 @@ export default function BudgetScreen() {
             isEmpty={rows.length === 0}
             onRetry={onRefresh}
             emptyMessage="No budgets yet"
+            emptyIcon={PiggyBank}
             loadingSkeleton={
               <View style={{ gap: 12 }}>
                 {[0, 1, 2].map((i) => (
@@ -271,7 +285,7 @@ export default function BudgetScreen() {
                 spent={spentByCategory[b.categoryId] ?? 0}
                 limit={b.limitAmount}
                 trackBg={trackBg}
-                fillFg={fillFg}
+                isDark={isDark}
                 iconColor={iconColor}
                 onPress={() => router.push(`/budget-form?id=${b.id}`)}
               />
@@ -279,29 +293,32 @@ export default function BudgetScreen() {
           }
           const cat = catById.get(item.categoryId);
           if (!cat) return null;
+          const Icon = TX_ICONS[cat.icon];
           return (
-            <TouchableOpacity
+            <Card
+              bordered
+              className="flex-row items-center gap-3"
               onPress={() => router.push(`/budget-form?categoryId=${item.categoryId}`)}
-              activeOpacity={0.7}
             >
-              <Card>
-                <View className="flex-row items-center gap-3">
-                  <View
-                    className="w-8 h-8 rounded-lg items-center justify-center"
-                    style={{ backgroundColor: trackBg }}
-                  >
-                    <Plus size={15} color={iconColor} strokeWidth={1.8} />
-                  </View>
-                  <View className="flex-1">
-                    <UIText size="sm" variant="heading">{cat.name}</UIText>
-                    <UIText size="xs" variant="muted" className="mt-0.5">
-                      {fmt(spentByCategory[item.categoryId] ?? 0)} spent · no limit set
-                    </UIText>
-                  </View>
-                  <UIText size="xs" variant="muted">Add budget</UIText>
-                </View>
-              </Card>
-            </TouchableOpacity>
+              <View
+                className="w-9 h-9 rounded-lg items-center justify-center"
+                style={{ backgroundColor: trackBg }}
+              >
+                {Icon && <Icon size={16} color={iconColor} strokeWidth={1.8} />}
+              </View>
+              <View className="flex-1">
+                <UIText size="sm" variant="heading">{cat.name}</UIText>
+                <UIText size="xs" variant="muted" className="mt-0.5">
+                  {fmt(spentByCategory[item.categoryId] ?? 0)} spent · no limit set
+                </UIText>
+              </View>
+              <View className="flex-row items-center gap-1">
+                <Plus size={13} color={BRAND_BLUE} strokeWidth={2.5} />
+                <UIText size="xs" style={{ color: BRAND_BLUE }} className="font-medium">
+                  Set budget
+                </UIText>
+              </View>
+            </Card>
           );
         }}
       />

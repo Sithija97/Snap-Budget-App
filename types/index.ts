@@ -42,6 +42,27 @@ export interface Budget {
   repeat:      boolean;
 }
 
+export interface TelegramLinkStatus {
+  linked:      boolean;
+  displayName?: string | null;
+  linkedAt?:    string;
+}
+
+export interface TelegramLinkCode {
+  code:      string;
+  expiresAt: string;
+  deepLink:  string;
+}
+
+export interface Recap {
+  id:          string;
+  periodType:  "weekly" | "monthly";
+  periodStart: string;   // "YYYY-MM-DD"
+  periodEnd:   string;   // "YYYY-MM-DD"
+  message:     string;
+  createdAt:   string;
+}
+
 export interface MonthlySpending {
   month:  string;
   amount: number;

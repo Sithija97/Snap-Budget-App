@@ -1,7 +1,7 @@
-import { View, TouchableOpacity, FlatList, RefreshControl } from "react-native";
+import { View, FlatList, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react-native";
+import { ChevronLeft, ChevronRight, Plus, WalletCards } from "lucide-react-native";
 import { useTheme } from "@/context/ThemeContext";
 import { useWalletStore } from "@/store/useWalletStore";
 import { fmt } from "@/utils/format";
@@ -9,8 +9,25 @@ import { cardRowClass } from "@/utils/cardRow";
 import { UIText } from "@/components/ui/UIText";
 import { IconButton } from "@/components/ui/IconButton";
 import { DataState } from "@/components/ui/DataState";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 import { useRefresh } from "@/hooks/useRefresh";
 import type { Wallet } from "@/types";
+
+function WalletRowSkeleton({ index, total }: { index: number; total: number }) {
+  return (
+    <View
+      className={`flex-row items-center gap-3 py-3 mx-4 ${cardRowClass(index, total)} ${
+        index === total - 1 ? "" : "border-b"
+      }`}
+    >
+      <View className="flex-1">
+        <Skeleton width={110} height={14} />
+        <Skeleton width={80} height={11} className="mt-1.5" />
+      </View>
+    </View>
+  );
+}
 
 export default function WalletsScreen() {
   const { isDark } = useTheme();
@@ -42,10 +59,23 @@ export default function WalletsScreen() {
           </View>
         }
         ListEmptyComponent={
-          <DataState status={status} isEmpty={wallets.length === 0} onRetry={fetchAll} emptyMessage="No wallets yet" />
+          <DataState
+            status={status}
+            isEmpty={wallets.length === 0}
+            onRetry={fetchAll}
+            emptyMessage="No wallets yet"
+            emptyIcon={WalletCards}
+            loadingSkeleton={
+              <View>
+                {[0, 1, 2].map((i) => (
+                  <WalletRowSkeleton key={i} index={i} total={3} />
+                ))}
+              </View>
+            }
+          />
         }
         renderItem={({ item: w, index }: { item: Wallet; index: number }) => (
-          <TouchableOpacity onPress={() => router.push(`/wallet-form?id=${w.id}`)} activeOpacity={0.7}>
+          <AnimatedPressable onPress={() => router.push(`/wallet-form?id=${w.id}`)} pressScale={0.98}>
             <View
               className={`flex-row items-center gap-3 py-3 mx-4 ${cardRowClass(index, wallets.length)} ${
                 index === wallets.length - 1 ? "" : "border-b"
@@ -61,7 +91,7 @@ export default function WalletsScreen() {
               </View>
               <ChevronRight size={16} color={iconColor} />
             </View>
-          </TouchableOpacity>
+          </AnimatedPressable>
         )}
       />
     </SafeAreaView>

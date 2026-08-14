@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, ScrollView, TextInput, TouchableOpacity, Alert } from "react-native";
+import { View, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
@@ -13,6 +13,9 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
+import { Input } from "@/components/ui/Input";
+import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
+import { brandBlue } from "@/constants/colors";
 
 const ICON_KEYS = Object.keys(TX_ICONS);
 
@@ -39,20 +42,7 @@ export default function CategoryFormScreen() {
 
   const borderColor = isDark ? "#27272a" : "#e4e4e7";
   const iconColor   = isDark ? "#a1a1aa" : "#71717a";
-  const inputText   = isDark ? "#fafafa" : "#09090b";
-  const inputBg     = isDark ? "#09090b" : "#ffffff";
-  const accentFill  = isDark ? "#fafafa" : "#18181b";
-
-  const inputStyle = {
-    height: 44,
-    borderWidth: 1,
-    borderColor,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    backgroundColor: inputBg,
-    color: inputText,
-    fontSize: 15,
-  } as const;
+  const accentFill  = brandBlue(isDark);
 
   // Same-type, top-level categories only — a subcategory can't be a parent
   const parentOptions = categories.filter(
@@ -127,10 +117,8 @@ export default function CategoryFormScreen() {
           </View>
 
           <UIText size="xs" variant="label" className="mt-2">Name</UIText>
-          <TextInput
-            style={inputStyle}
+          <Input
             placeholder="e.g. Groceries"
-            placeholderTextColor={iconColor}
             value={name}
             onChangeText={setName}
             autoCapitalize="words"
@@ -143,11 +131,11 @@ export default function CategoryFormScreen() {
               const Icon = TX_ICONS[key];
               const isActive = icon === key;
               return (
-                <TouchableOpacity
+                <AnimatedPressable
                   key={key}
                   onPress={() => setIcon(key)}
-                  activeOpacity={0.7}
-                  style={{
+                  pressScale={0.9}
+                  contentStyle={{
                     width: 40,
                     height: 40,
                     borderRadius: 8,
@@ -158,7 +146,7 @@ export default function CategoryFormScreen() {
                   }}
                 >
                   <Icon size={16} color={isActive ? accentFill : iconColor} strokeWidth={1.8} />
-                </TouchableOpacity>
+                </AnimatedPressable>
               );
             })}
           </View>

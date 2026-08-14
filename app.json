@@ -36,7 +36,11 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#ffffff",
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#09090b"
+          }
         }
       ],
       [
@@ -44,7 +48,8 @@
         {
           "android": {
             "enableMinifyInReleaseBuilds": true,
-            "enableShrinkResourcesInReleaseBuilds": true
+            "enableShrinkResourcesInReleaseBuilds": true,
+            "extraProguardRules": "# expo-notifications ships its own proguard-rules.pro but does NOT wire it as a consumerProguardFiles entry, so it is never applied to a minified build unless repeated here — without this, R8 can strip/rename its internal scheduling/trigger classes (e.g. DailyTrigger, used by the daily finance-reminder notifications), which are round-tripped through AlarmManager PendingIntent extras by class name.\n-keep class expo.modules.notifications.** { *; }\n# Custom native module (modules/expo-notification-listener) — defensively kept in full so its NotificationListenerService (instantiated by Android via the class name in its AndroidManifest.xml) can't be broken by a rename.\n-keep class com.sithija.snapbudget.notificationlistener.** { *; }"
           }
         }
       ],
@@ -57,7 +62,14 @@
           "photosPermission": "SnapBudget uses your photo library so you can pick an existing receipt photo to scan.",
           "microphonePermission": false
         }
-      ]
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#1070F8"
+        }
+      ],
+      "./plugins/withAndroidBrandTheme.js"
     ],
     "extra": {
       "router": {},

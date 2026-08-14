@@ -10,7 +10,7 @@ export function cardRowClass(index: number, length: number): string {
     "px-4",
     "bg-card dark:bg-card-dark",
     "border-border dark:border-border-dark",
-    isFirst ? "rounded-t-xl" : "",
-    isLast ? "rounded-b-xl" : "",
+    isFirst ? "rounded-t-2xl" : "",
+    isLast ? "rounded-b-2xl" : "",
   ].filter(Boolean).join(" ");
 }

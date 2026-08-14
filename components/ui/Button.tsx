@@ -1,6 +1,6 @@
-import { TouchableOpacity } from 'react-native';
 import { UIText } from './UIText';
 import { useTheme } from '@/context/ThemeContext';
+import { AnimatedPressable } from './AnimatedPressable';
 
 type Variant = 'default' | 'outline' | 'ghost' | 'destructive';
 
@@ -35,16 +35,21 @@ export function Button({ label, variant = 'default', onPress, icon, className = 
   })();
 
   return (
-    <TouchableOpacity
-      className={`${containerStyles[variant]} ${disabled ? 'opacity-50' : ''} ${className}`}
+    <AnimatedPressable
+      // Caller-supplied className (e.g. "flex-1", "w-full", "mt-4") is a
+      // sizing/spacing concern for the button as a whole, so it goes on the
+      // outer wrapper — passing it to the inner content box instead would
+      // silently no-op flex-sizing classes, since that box isn't the flex
+      // child its sibling elements actually lay out against.
+      wrapperClassName={className}
+      className={`${containerStyles[variant]} ${disabled ? 'opacity-50' : ''}`}
       onPress={onPress}
-      activeOpacity={0.7}
       disabled={disabled}
     >
       {icon}
       <UIText size="sm" variant="unstyled" style={{ fontWeight: '500', color: textColor }}>
         {label}
       </UIText>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }

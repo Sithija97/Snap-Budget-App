@@ -10,18 +10,44 @@ export function setTokenGetter(fn: TokenGetter) {
   tokenGetter = fn;
 }
 
+// Generous enough to cover the slowest route (assistant/ask can make two
+// sequential Gemini calls server-side, each capped at 15s there) plus DB
+// time — without this, a stalled connection just hangs the UI forever
+// instead of failing with a message the user (and Alert.alert) can show.
+const REQUEST_TIMEOUT_MS = 35_000;
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   if (!API_URL) throw new Error("EXPO_PUBLIC_API_URL is not set");
   const token = await tokenGetter();
 
-  const res = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
-  });
+  // AbortSignal.timeout() isn't available in this Hermes runtime — a manual
+  // AbortController + setTimeout is the portable equivalent.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options.headers,
+      },
+    });
+  } catch (e: any) {
+    // A stalled/dropped connection (or an aborted request) can reject with a
+    // DOMException or bare TypeError that has no useful .message on RN — give
+    // callers something readable instead of an empty string, so
+    // Alert.alert(...) always shows real information.
+    if (e?.name === "AbortError" || e?.name === "TimeoutError") {
+      throw new Error("The request took too long. Check your connection and try again.");
+    }
+    throw new Error(e?.message || "Network request failed. Check your connection and try again.");
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));

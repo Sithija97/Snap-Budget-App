@@ -1,6 +1,8 @@
-import { TouchableOpacity, ViewStyle, StyleProp } from 'react-native';
+import { ViewStyle, StyleProp } from 'react-native';
 import { UIText } from './UIText';
 import { useTheme } from '@/context/ThemeContext';
+import { brandBlue } from '@/constants/colors';
+import { AnimatedPressable } from './AnimatedPressable';
 
 type Variant = 'pill' | 'underline';
 type Size = 'xs' | 'sm' | 'base';
@@ -10,7 +12,7 @@ interface ChipProps {
   selected: boolean;
   onPress: () => void;
   variant?: Variant;
-  /** Pill only. Set false for a chip living inside a shared track (e.g. a segmented control) that already draws its own border. */
+  /** Pill only. Deprecated no-op — pills are borderless app-wide now (matches Card's borderless-by-default surface design); kept only so existing call sites with bordered={false} (e.g. a segmented-control track) don't need updating. */
   bordered?: boolean;
   size?: Size;
   disabled?: boolean;
@@ -37,31 +39,44 @@ export function Chip({
 }: ChipProps) {
   const { isDark } = useTheme();
 
-  const borderColor = isDark ? '#27272a' : '#e4e4e7';
-  const accentFill   = isDark ? '#fafafa' : '#18181b';
-  const accentText   = isDark ? '#18181b' : '#fafafa';
+  // Pill selected fill: brand blue in both themes — dark mode uses a
+  // lightened variant (brandBlue's dark branch) tuned to read clearly
+  // against dark surfaces, replacing the earlier white-fill fallback so
+  // selection state carries the same brand color app-wide.
+  const accentFill   = brandBlue(isDark);
+  const accentText   = '#ffffff';
   const mutedText    = isDark ? '#a1a1aa' : '#71717a';
   const foreground    = isDark ? '#fafafa' : '#09090b';
+  // Pill unselected surface: an explicit white card-like surface in light
+  // mode (previously transparent, which read as borderless/washed-out
+  // against the page background) — dark mode is unaffected (card is already
+  // near-black, indistinguishable from transparent). Only for `bordered`
+  // pills (standalone filter/picker chips) — a `bordered={false}` chip lives
+  // inside its own track (e.g. Settings' theme segmented control), where an
+  // opaque unselected fill would flatten the track/selected-segment contrast
+  // the segmented-control pattern depends on.
+  const unselectedFill = !bordered ? 'transparent' : isDark ? 'transparent' : '#ffffff';
 
+  // Borderless by design (matches Card) — separation comes from the
+  // fill/page-background contrast, not an outline.
   const containerStyle: ViewStyle =
     variant === 'pill'
       ? {
           paddingHorizontal: 12,
           paddingVertical: 6,
           borderRadius: 8,
-          ...(bordered ? { borderWidth: 1, borderColor: selected ? accentFill : borderColor } : null),
-          backgroundColor: selected ? accentFill : 'transparent',
+          backgroundColor: selected ? accentFill : unselectedFill,
         }
       : {};
 
   const textColor = variant === 'pill' ? (selected ? accentText : mutedText) : selected ? foreground : mutedText;
 
   return (
-    <TouchableOpacity
+    <AnimatedPressable
       onPress={onPress}
-      activeOpacity={0.7}
       disabled={disabled}
-      style={[containerStyle, style]}
+      contentStyle={containerStyle}
+      style={style}
     >
       <UIText
         size={size}
@@ -71,6 +86,6 @@ export function Chip({
       >
         {label}
       </UIText>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }

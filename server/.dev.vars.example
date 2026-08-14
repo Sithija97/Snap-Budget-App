@@ -4,3 +4,10 @@ GEMINI_API_KEY=AQ.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 CLOUDINARY_CLOUD_NAME=your-cloud-name
 CLOUDINARY_API_KEY=123456789012345
 CLOUDINARY_API_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# From @BotFather on Telegram
+TELEGRAM_BOT_TOKEN=123456789:AAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# Any random string you choose — sent back by Telegram on every webhook call
+# so we can reject requests that don't actually come from Telegram
+TELEGRAM_WEBHOOK_SECRET=choose-a-random-secret-string
+# Bot's @username (no @), used to build the t.me deep link sent to the app
+TELEGRAM_BOT_USERNAME=YourBotUsername

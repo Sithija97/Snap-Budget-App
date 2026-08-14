@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { View, ScrollView, TextInput, TouchableOpacity, Alert, Image, ActivityIndicator } from "react-native";
+import { View, ScrollView, Alert, Image, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
@@ -10,6 +10,7 @@ import { useCategoryStore } from "@/store/useCategoryStore";
 import { useWalletStore } from "@/store/useWalletStore";
 import { TxType } from "@/types";
 import { fmt, parseAmount } from "@/utils/format";
+import { todayISO } from "@/utils/dates";
 import { API_URL } from "@/lib/api";
 import { UIText } from "@/components/ui/UIText";
 import { IconButton } from "@/components/ui/IconButton";
@@ -17,6 +18,9 @@ import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
+import { DateField } from "@/components/ui/DateField";
+import { Input } from "@/components/ui/Input";
+import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 
 export default function TransactionDetailScreen() {
   const { isDark } = useTheme();
@@ -36,6 +40,7 @@ export default function TransactionDetailScreen() {
   const [amount, setAmount] = useState(tx ? String(tx.amount) : "");
   const [categoryId, setCategoryId] = useState(tx?.categoryId ?? null);
   const [walletId, setWalletId] = useState(tx?.walletId ?? null);
+  const [date, setDate] = useState(tx?.date ?? todayISO());
   const [saving, setSaving] = useState(false);
   // RN's <Image source={{ uri, headers }}> only actually attaches those
   // headers on native — react-native-web renders a plain <img>, and browsers
@@ -67,23 +72,9 @@ export default function TransactionDetailScreen() {
     };
   }, [receiptKey, getToken]);
 
-  const borderColor = isDark ? "#27272a" : "#e4e4e7";
   // One step above the dark card surface (#18181b) so the receipt placeholder stays visible
   const mutedBg     = isDark ? "#27272a" : "#f4f4f5";
   const iconColor   = isDark ? "#a1a1aa" : "#71717a";
-  const inputText   = isDark ? "#fafafa" : "#09090b";
-  const inputBg     = isDark ? "#09090b" : "#ffffff";
-
-  const inputStyle = {
-    height: 44,
-    borderWidth: 1,
-    borderColor,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    backgroundColor: inputBg,
-    color: inputText,
-    fontSize: 15,
-  } as const;
 
   const toggleEdit = () => {
     // Cancelling discards unsaved edits
@@ -92,6 +83,7 @@ export default function TransactionDetailScreen() {
       setAmount(String(tx.amount));
       setCategoryId(tx.categoryId);
       setWalletId(tx.walletId);
+      setDate(tx.date);
     }
     setIsEditing(!isEditing);
   };
@@ -103,9 +95,9 @@ export default function TransactionDetailScreen() {
       </IconButton>
       <UIText size="base" variant="heading" className="flex-1 text-center">Transaction</UIText>
       {tx ? (
-        <TouchableOpacity onPress={toggleEdit} activeOpacity={0.7}>
+        <AnimatedPressable onPress={toggleEdit}>
           <UIText size="sm" variant="muted">{isEditing ? "Cancel" : "Edit"}</UIText>
-        </TouchableOpacity>
+        </AnimatedPressable>
       ) : (
         <View className="w-9" />
       )}
@@ -145,6 +137,7 @@ export default function TransactionDetailScreen() {
         amount: parseAmount(amount),
         categoryId,
         walletId,
+        date,
       });
       router.back();
     } catch (e: any) {
@@ -190,10 +183,8 @@ export default function TransactionDetailScreen() {
         {isEditing ? (
           <Card className="mx-4 mt-4 gap-3">
             <UIText size="xs" variant="label">Amount</UIText>
-            <TextInput
-              style={inputStyle}
+            <Input
               placeholder="Rs 0"
-              placeholderTextColor={iconColor}
               value={amount}
               onChangeText={(v) => setAmount(v.replace(/[^0-9.]/g, ""))}
               keyboardType="numeric"
@@ -201,10 +192,8 @@ export default function TransactionDetailScreen() {
             />
 
             <UIText size="xs" variant="label" className="mt-2">Merchant</UIText>
-            <TextInput
-              style={inputStyle}
+            <Input
               placeholder="Merchant name"
-              placeholderTextColor={iconColor}
               value={merchant}
               onChangeText={setMerchant}
               autoCapitalize="words"
@@ -217,6 +206,9 @@ export default function TransactionDetailScreen() {
                 <Chip key={c.id} label={c.name} selected={categoryId === c.id} onPress={() => setCategoryId(c.id)} />
               ))}
             </View>
+
+            <UIText size="xs" variant="label" className="mt-2">Date</UIText>
+            <DateField value={date} onChange={setDate} maxDate={new Date()} />
 
             <UIText size="xs" variant="label" className="mt-2">Wallet</UIText>
             <View className="flex-row flex-wrap gap-2">
@@ -238,7 +230,7 @@ export default function TransactionDetailScreen() {
             <UIText size="xs" variant="label">{isIncome ? "Income" : "Expense"}</UIText>
             <UIText
               size="2xl"
-              className={`font-mono font-medium mt-1 ${
+              className={`font-mono font-semibold mt-1 ${
                 isIncome
                   ? "text-positive dark:text-positive-dark"
                   : "text-negative dark:text-negative-dark"
