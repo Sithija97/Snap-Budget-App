@@ -61,18 +61,30 @@ If nothing on the list reasonably fits, set categoryName to null — never inven
   }
 
   const data = (await res.json()) as {
-    candidates?: { content?: { parts?: { text?: string }[] } }[];
+    candidates?: {
+      finishReason?: string;
+      content?: { parts?: { text?: string }[] };
+    }[];
   };
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error("Gemini returned no content");
+  if (!text) {
+    throw new Error(
+      `Gemini returned no content (finishReason: ${data.candidates?.[0]?.finishReason ?? "unknown"})`
+    );
+  }
 
-  const parsed = JSON.parse(text);
+  let parsed: any;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new Error(`Gemini returned invalid JSON: ${text.slice(0, 200)}`);
+  }
   if (
     typeof parsed.merchant !== "string" ||
     typeof parsed.amount !== "number" ||
     typeof parsed.date !== "string"
   ) {
-    throw new Error("Gemini returned an unexpected shape");
+    throw new Error(`Gemini returned an unexpected shape: ${text.slice(0, 200)}`);
   }
 
   return {
