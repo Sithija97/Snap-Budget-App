@@ -1,5 +1,6 @@
 import { ComponentType } from "react";
 import { View, ActivityIndicator } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { UIText } from "./UIText";
 import { useTheme } from "@/context/ThemeContext";
 import { AnimatedPressable } from "./AnimatedPressable";
@@ -24,7 +25,7 @@ interface DataStateProps {
 // once data comes from the network instead of always-available local state.
 export function DataState({ status, isEmpty, onRetry, emptyMessage = "Nothing here yet", emptyIcon: EmptyIcon, loadingSkeleton }: DataStateProps) {
   const { isDark } = useTheme();
-  const iconColor = isDark ? "#a1a1aa" : "#71717a";
+  const iconColor = brandBlue(isDark);
 
   if (status === "loading" && isEmpty) {
     if (loadingSkeleton) return <>{loadingSkeleton}</>;
@@ -52,14 +53,17 @@ export function DataState({ status, isEmpty, onRetry, emptyMessage = "Nothing he
 
   if (isEmpty) {
     return (
-      <View className="items-center py-12 gap-3">
+      <Animated.View entering={FadeIn.duration(300)} className="items-center py-12 gap-3">
         {EmptyIcon && (
-          <View className="w-12 h-12 rounded-full bg-muted dark:bg-muted-dark items-center justify-center">
-            <EmptyIcon size={20} color={iconColor} strokeWidth={1.8} />
+          <View
+            className="w-14 h-14 rounded-full items-center justify-center"
+            style={{ backgroundColor: isDark ? "rgba(59,139,255,0.14)" : "rgba(16,115,245,0.1)" }}
+          >
+            <EmptyIcon size={22} color={iconColor} strokeWidth={1.8} />
           </View>
         )}
         <UIText size="sm" variant="muted" className="text-center px-8">{emptyMessage}</UIText>
-      </View>
+      </Animated.View>
     );
   }
 
