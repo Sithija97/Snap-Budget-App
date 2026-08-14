@@ -6,17 +6,17 @@ type Variant = 'default' | 'outline' | 'destructive' | 'positive' | 'warning';
 const containerStyles: Record<Variant, string> = {
   default:     'bg-accent dark:bg-accent-dark',
   outline:     'border border-border dark:border-border-dark',
-  destructive: 'bg-red-100 dark:bg-red-900/30',
-  positive:    'bg-green-100 dark:bg-green-900/30',
-  warning:     'bg-amber-100 dark:bg-amber-900/30',
+  destructive: 'bg-negative/10 dark:bg-negative-dark/10',
+  positive:    'bg-positive/10 dark:bg-positive-dark/10',
+  warning:     'bg-warning/10 dark:bg-warning-dark/10',
 };
 
 const textStyles: Record<Variant, string> = {
   default:     'text-accentFg dark:text-accentFg-dark',
   outline:     'text-foreground dark:text-foreground-dark',
-  destructive: 'text-red-700 dark:text-red-400',
-  positive:    'text-green-700 dark:text-green-400',
-  warning:     'text-amber-700 dark:text-amber-400',
+  destructive: 'text-negative dark:text-negative-dark',
+  positive:    'text-positive dark:text-positive-dark',
+  warning:     'text-warning dark:text-warning-dark',
 };
 
 interface BadgeProps {

@@ -9,8 +9,13 @@ class NotificationListener : NotificationListenerService() {
   private var lastPostTime: Long = 0
 
   override fun onNotificationPosted(sbn: StatusBarNotification) {
-    val module = NotificationListenerModule.getInstance() ?: return
-    if (!module.isPackageAllowed(sbn.packageName)) return
+    // Package-allowlist and emission are companion (static) members, not
+    // instance members — this service is an OS-managed component that can
+    // run and receive notifications independently of whether a JS module
+    // instance currently exists (e.g. the app process was killed in the
+    // background while this service stays bound), so filtering/queuing must
+    // not depend on a live module instance being reachable.
+    if (!NotificationListenerModule.isPackageAllowed(sbn.packageName)) return
 
     // Same notification often re-posts (e.g. progress updates); ignore rapid repeats of the same key.
     if (sbn.key == lastKey && sbn.postTime - lastPostTime < 1000) return
@@ -28,16 +33,16 @@ class NotificationListener : NotificationListenerService() {
       "key" to sbn.key
     )
 
-    module.emitNotification(payload)
+    NotificationListenerModule.emitNotification(payload)
   }
 
   override fun onListenerConnected() {
     super.onListenerConnected()
-    NotificationListenerModule.getInstance()?.setServiceConnected(true)
+    NotificationListenerModule.setServiceConnected(true)
   }
 
   override fun onListenerDisconnected() {
     super.onListenerDisconnected()
-    NotificationListenerModule.getInstance()?.setServiceConnected(false)
+    NotificationListenerModule.setServiceConnected(false)
   }
 }

@@ -1,8 +1,12 @@
 import { useState } from 'react';
-import { Platform } from 'react-native';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { Clock } from 'lucide-react-native';
+import { Platform, View } from 'react-native';
+import { ChevronUp, ChevronDown, Clock } from 'lucide-react-native';
+import { useTheme } from '@/context/ThemeContext';
+import { BRAND_BLUE } from '@/constants/colors';
+import { UIText } from './UIText';
+import { AnimatedPressable } from './AnimatedPressable';
 import { PickerFieldShell, usePickerFieldIconColor } from './PickerFieldShell';
+import { PickerModal } from './PickerModal';
 
 interface TimeFieldProps {
   hour: number;
@@ -17,29 +21,79 @@ function formatTime(hour: number, minute: number): string {
   return `${h12}:${String(minute).padStart(2, '0')} ${period}`;
 }
 
-// Time-of-day counterpart to DateField — same tap-to-open-native-picker
-// pattern, hour/minute only (no date component). Used for the morning/
-// evening finance-reminder times in Settings.
+function wrap(n: number, mod: number): number {
+  return ((n % mod) + mod) % mod;
+}
+
+// Segmented up/down stepper for hour, minute, and AM/PM — used inside
+// TimeField's PickerModal. No scrolling/wheel widget: each unit is a static
+// number with a chevron above and below it, tap to increment/decrement.
+function Stepper({
+  value,
+  label,
+  onIncrement,
+  onDecrement,
+  color,
+}: {
+  value: string;
+  label: string;
+  onIncrement: () => void;
+  onDecrement: () => void;
+  color: string;
+}) {
+  return (
+    <View style={{ alignItems: 'center', gap: 4 }}>
+      <AnimatedPressable onPress={onIncrement} pressScale={0.9} contentStyle={{ padding: 8 }}>
+        <ChevronUp size={20} color={BRAND_BLUE} />
+      </AnimatedPressable>
+      <View style={{ minWidth: 64, alignItems: 'center', paddingVertical: 6 }}>
+        <UIText size="2xl" variant="unstyled" style={{ color, fontWeight: '600', fontVariant: ['tabular-nums'] }}>
+          {value}
+        </UIText>
+      </View>
+      <AnimatedPressable onPress={onDecrement} pressScale={0.9} contentStyle={{ padding: 8 }}>
+        <ChevronDown size={20} color={BRAND_BLUE} />
+      </AnimatedPressable>
+      <UIText size="xs" variant="muted">{label}</UIText>
+    </View>
+  );
+}
+
+// Time-of-day counterpart to DateField — same tap-to-open modal pattern, but
+// a custom hour/minute/AM-PM stepper instead of a scrolling wheel (the app's
+// previous native-picker fallback was a wheel and the user asked for
+// something else). No native dialog involved, so it's fully themeable and
+// unaffected by OEM skins that override native picker colors. Used for the
+// morning/evening finance-reminder times in Settings.
 export function TimeField({ hour, minute, onChange, disabled = false }: TimeFieldProps) {
   const [showPicker, setShowPicker] = useState(false);
+  const [draftHour, setDraftHour] = useState(hour);
+  const [draftMinute, setDraftMinute] = useState(minute);
   const iconColor = usePickerFieldIconColor();
+  const { isDark } = useTheme();
+  const textColor = isDark ? '#fafafa' : '#09090b';
+  const dividerColor = isDark ? '#27272a' : '#e4e4e7';
 
-  const timeValue = new Date();
-  timeValue.setHours(hour, minute, 0, 0);
-
-  const handleChange = (event: DateTimePickerEvent, selected?: Date) => {
-    setShowPicker(Platform.OS === 'ios');
-    if (event.type === 'set' && selected) {
-      onChange(selected.getHours(), selected.getMinutes());
-    }
+  const openPicker = () => {
+    setDraftHour(hour);
+    setDraftMinute(minute);
+    setShowPicker(true);
   };
+
+  const confirm = () => {
+    onChange(draftHour, draftMinute);
+    setShowPicker(false);
+  };
+
+  const draftH12 = draftHour % 12 === 0 ? 12 : draftHour % 12;
+  const isPM = draftHour >= 12;
 
   return (
     <>
       <PickerFieldShell
         displayText={formatTime(hour, minute)}
         disabled={disabled}
-        onPress={() => setShowPicker(true)}
+        onPress={openPicker}
         icon={<Clock size={16} color={iconColor} />}
         webInputProps={{
           type: 'time',
@@ -51,13 +105,51 @@ export function TimeField({ hour, minute, onChange, disabled = false }: TimeFiel
         }}
       />
 
-      {Platform.OS !== 'web' && showPicker && (
-        <DateTimePicker
-          value={timeValue}
-          mode="time"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handleChange}
-        />
+      {Platform.OS !== 'web' && (
+        <PickerModal visible={showPicker} title="Select time" onClose={() => setShowPicker(false)} onConfirm={confirm}>
+          <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 12, paddingVertical: 8 }}>
+            <Stepper
+              value={String(draftH12)}
+              label="Hour"
+              color={textColor}
+              onIncrement={() => setDraftHour((h) => wrap(h + 1, 24))}
+              onDecrement={() => setDraftHour((h) => wrap(h - 1, 24))}
+            />
+            <UIText size="2xl" variant="unstyled" style={{ color: textColor, fontWeight: '600' }}>:</UIText>
+            <Stepper
+              value={String(draftMinute).padStart(2, '0')}
+              label="Minute"
+              color={textColor}
+              onIncrement={() => setDraftMinute((m) => wrap(m + 1, 60))}
+              onDecrement={() => setDraftMinute((m) => wrap(m - 1, 60))}
+            />
+            <View style={{ width: 1, height: 56, backgroundColor: dividerColor, marginHorizontal: 4 }} />
+            <View style={{ gap: 8 }}>
+              {(['AM', 'PM'] as const).map((period) => {
+                const active = (period === 'PM') === isPM;
+                return (
+                  <AnimatedPressable
+                    key={period}
+                    onPress={() => setDraftHour((h) => (period === 'PM' ? wrap(h, 12) + 12 : wrap(h, 12)))}
+                    pressScale={0.95}
+                    contentStyle={{
+                      paddingVertical: 8,
+                      paddingHorizontal: 14,
+                      borderRadius: 8,
+                      backgroundColor: active ? BRAND_BLUE : 'transparent',
+                      borderWidth: 1,
+                      borderColor: active ? BRAND_BLUE : dividerColor,
+                    }}
+                  >
+                    <UIText size="sm" variant="unstyled" style={{ color: active ? '#ffffff' : textColor, fontWeight: '600' }}>
+                      {period}
+                    </UIText>
+                  </AnimatedPressable>
+                );
+              })}
+            </View>
+          </View>
+        </PickerModal>
       )}
     </>
   );

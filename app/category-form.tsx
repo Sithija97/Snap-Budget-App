@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { Input } from "@/components/ui/Input";
 import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
+import { brandBlue } from "@/constants/colors";
 
 const ICON_KEYS = Object.keys(TX_ICONS);
 
@@ -41,7 +42,7 @@ export default function CategoryFormScreen() {
 
   const borderColor = isDark ? "#27272a" : "#e4e4e7";
   const iconColor   = isDark ? "#a1a1aa" : "#71717a";
-  const accentFill  = isDark ? "#fafafa" : "#18181b";
+  const accentFill  = brandBlue(isDark);
 
   // Same-type, top-level categories only — a subcategory can't be a parent
   const parentOptions = categories.filter(

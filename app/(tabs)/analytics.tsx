@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { View, ScrollView, RefreshControl } from "react-native";
+import { ChartNoAxesCombined } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
@@ -10,8 +11,10 @@ import { UIText } from "@/components/ui/UIText";
 import { Card } from "@/components/ui/Card";
 import { DataState } from "@/components/ui/DataState";
 import { Chip } from "@/components/ui/Chip";
+import { AnimatedBar } from "@/components/ui/AnimatedBar";
 import { useTheme } from "@/context/ThemeContext";
 import { useRefresh } from "@/hooks/useRefresh";
+import { chartTheme, barRampColor } from "@/constants/chartTheme";
 
 const PERIODS = ['Monthly', 'Weekly'] as const;
 type Period = typeof PERIODS[number];
@@ -38,9 +41,7 @@ export default function AnalyticsScreen() {
   const chartMax    = Math.max(...chartData.map(m => m.amount), 1);
   const chartLabel  = isMonthly ? 'Spending — last 6 months' : 'Spending — last 6 weeks';
 
-  const barActive = isDark ? '#fafafa' : '#18181b';
-  const barMuted  = isDark ? '#27272a' : '#e4e4e7';
-  const textMuted = isDark ? '#a1a1aa' : '#71717a';
+  const { track: barTrack, axisText: textMuted } = chartTheme(isDark);
 
   const { refreshing, onRefresh } = useRefresh(async () => {
     await Promise.all([fetchTransactions(), fetchCategories()]);
@@ -66,7 +67,13 @@ export default function AnalyticsScreen() {
         </View>
 
         {transactions.length === 0 ? (
-          <DataState status={txStatus} isEmpty onRetry={onRefresh} emptyMessage="No spending data yet" />
+          <DataState
+            status={txStatus}
+            isEmpty
+            onRetry={onRefresh}
+            emptyMessage="No spending data yet"
+            emptyIcon={ChartNoAxesCombined}
+          />
         ) : (
           <>
             {/* Bar chart */}
@@ -74,18 +81,21 @@ export default function AnalyticsScreen() {
               <UIText size="xs" variant="label" className="mb-3">{chartLabel}</UIText>
               <View className="flex-row items-end justify-between" style={{ height: 120 }}>
                 {chartData.map((m, i) => {
-                  const isLast = i === chartData.length - 1;
-                  const barHeight = Math.max((m.amount / chartMax) * 100, 6);
+                  const barHeightPct = Math.max((m.amount / chartMax) * 100, 6);
+                  const color = barRampColor(isDark, i, chartData.length);
                   return (
-                    <View key={i} className="flex-1 items-center" style={{ gap: 4 }}>
-                      <View
-                        style={{
-                          width: '60%',
-                          height: barHeight,
-                          backgroundColor: isLast ? barActive : barMuted,
-                          borderRadius: 4,
-                        }}
-                      />
+                    <View key={i} className="flex-1 items-center" style={{ gap: 4, height: '100%' }}>
+                      <View style={{ width: '60%', flex: 1, justifyContent: 'flex-end', backgroundColor: barTrack, borderRadius: 4, overflow: 'hidden' }}>
+                        <AnimatedBar
+                          axis="height"
+                          size={`${barHeightPct}%`}
+                          color={color}
+                          delay={i * 40}
+                          style={{ width: '100%', borderRadius: 4 }}
+                          accessibilityLabel={`${m.month}: ${fmt(m.amount)}`}
+                          accessibilityValue={{ min: 0, max: Math.round(chartMax), now: Math.round(m.amount), text: fmt(m.amount) }}
+                        />
+                      </View>
                       <UIText size="xs" variant="unstyled" style={{ color: textMuted }}>{m.month}</UIText>
                     </View>
                   );

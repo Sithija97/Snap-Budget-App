@@ -3,6 +3,7 @@ import { View, ActivityIndicator } from "react-native";
 import { UIText } from "./UIText";
 import { useTheme } from "@/context/ThemeContext";
 import { AnimatedPressable } from "./AnimatedPressable";
+import { brandBlue } from "@/constants/colors";
 
 interface DataStateProps {
   status: "idle" | "loading" | "error";
@@ -29,7 +30,7 @@ export function DataState({ status, isEmpty, onRetry, emptyMessage = "Nothing he
     if (loadingSkeleton) return <>{loadingSkeleton}</>;
     return (
       <View className="items-center py-12">
-        <ActivityIndicator color={isDark ? "#fafafa" : "#18181b"} />
+        <ActivityIndicator color={brandBlue(isDark)} />
       </View>
     );
   }
@@ -38,8 +39,12 @@ export function DataState({ status, isEmpty, onRetry, emptyMessage = "Nothing he
     return (
       <View className="items-center py-12 gap-2">
         <UIText size="sm" variant="muted">Couldn't load data</UIText>
-        <AnimatedPressable onPress={onRetry}>
-          <UIText size="sm" variant="heading" className="underline">Retry</UIText>
+        <AnimatedPressable
+          onPress={onRetry}
+          hitSlop={{ top: 12, bottom: 12, left: 16, right: 16 }}
+          contentStyle={{ paddingVertical: 4 }}
+        >
+          <UIText size="sm" variant="heading" className="underline" style={{ color: brandBlue(isDark) }}>Retry</UIText>
         </AnimatedPressable>
       </View>
     );
@@ -53,7 +58,7 @@ export function DataState({ status, isEmpty, onRetry, emptyMessage = "Nothing he
             <EmptyIcon size={20} color={iconColor} strokeWidth={1.8} />
           </View>
         )}
-        <UIText size="sm" variant="muted">{emptyMessage}</UIText>
+        <UIText size="sm" variant="muted" className="text-center px-8">{emptyMessage}</UIText>
       </View>
     );
   }

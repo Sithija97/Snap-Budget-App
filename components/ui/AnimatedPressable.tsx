@@ -6,9 +6,21 @@ interface AnimatedPressableProps extends PressableProps {
   children: ReactNode;
   /** How far to scale down on press. Smaller/subtler for large surfaces (cards), more noticeable for compact controls (buttons/chips). */
   pressScale?: number;
+  /** Visual styling (background, radius, padding, row/center layout) — lands on the inner animated view. */
   className?: string;
   /** Visual surface styling (background, radius, padding) — lands on the inner animated view, same element `className` targets. Plain `style` stays on the outer Pressable for layout-only concerns (margins, flex). */
   contentStyle?: StyleProp<ViewStyle>;
+  /**
+   * Sizing/layout classes for the OUTER Pressable itself — e.g. `flex-1` or
+   * `w-full` when this sits inside a flex row/column and needs to actually
+   * claim space there. `className` alone can't do this: it targets the
+   * inner Animated.View, so a shrink-wrapped outer Pressable would ignore
+   * `flex-1`/`w-full` on `className` and the inner box's layout classes
+   * (e.g. `justify-between`) would only have that shrunk width to work
+   * with — exactly the bug that left the Home screen's Income/Remaining
+   * split and the "Total spent" row uneven.
+   */
+  wrapperClassName?: string;
 }
 
 const SPRING = { damping: 18, stiffness: 400, mass: 0.5 };
@@ -27,6 +39,7 @@ export function AnimatedPressable({
   children,
   pressScale = 0.97,
   className = '',
+  wrapperClassName = '',
   style,
   contentStyle,
   onPressIn,
@@ -41,6 +54,7 @@ export function AnimatedPressable({
 
   return (
     <Pressable
+      className={wrapperClassName}
       disabled={disabled}
       onPressIn={(e) => {
         if (!reduceMotion) scale.value = withSpring(pressScale, SPRING);

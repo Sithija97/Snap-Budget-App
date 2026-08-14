@@ -7,7 +7,6 @@
     "@expo-google-fonts/dm-mono": "^0.4.2",
     "@expo-google-fonts/dm-sans": "^0.4.2",
     "@react-native-async-storage/async-storage": "2.2.0",
-    "@react-native-community/datetimepicker": "8.4.4",
     "@react-navigation/bottom-tabs": "^7.16.1",
     "@react-navigation/native": "^7.2.4",
     "expo": "~54.0.36",
@@ -23,6 +22,7 @@
     "expo-notifications": "~0.32.17",
     "expo-router": "~6.0.24",
     "expo-secure-store": "~15.0.8",
+    "expo-sharing": "~14.0.8",
     "expo-splash-screen": "~31.0.13",
     "expo-status-bar": "~3.0.9",
     "expo-web-browser": "~15.0.11",
@@ -36,8 +36,10 @@
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
     "react-native-svg": "15.12.1",
+    "react-native-ui-datepicker": "^3.3.0",
     "react-native-web": "^0.21.0",
     "react-native-worklets": "0.5.1",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "zustand": "^5.0.14"
   },
   "devDependencies": {

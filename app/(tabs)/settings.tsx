@@ -1,9 +1,22 @@
-import { useState } from "react";
-import { View, ScrollView, Alert, Share, Switch, Platform } from "react-native";
+import { useState, ReactNode } from "react";
+import { View, ScrollView, Alert, Switch, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import * as Notifications from "expo-notifications";
-import { ChevronRight, Download, LogOut, Trash2, Sunrise, Sunset } from "lucide-react-native";
+import {
+  ChevronRight,
+  Download,
+  LogOut,
+  Trash2,
+  Sunrise,
+  Sunset,
+  Sparkles,
+  WalletCards,
+  Shapes,
+  Send,
+  BellRing,
+  Bell,
+} from "lucide-react-native";
 import { useUser, useClerk } from "@clerk/clerk-expo";
 import { useTheme } from "@/context/ThemeContext";
 import { useWalletStore } from "@/store/useWalletStore";
@@ -15,6 +28,7 @@ import { useCaptureStore } from "@/store/useCaptureStore";
 import { useReminderStore } from "@/store/useReminderStore";
 import { isNotificationCaptureSupportedPlatform } from "@/lib/notificationCapture";
 import { syncFinanceReminders } from "@/lib/financeReminders";
+import { exportDataAsExcel } from "@/utils/exportExcel";
 import { api } from "@/lib/api";
 import { BRAND_BLUE } from "@/constants/colors";
 import { UIText } from "@/components/ui/UIText";
@@ -23,9 +37,53 @@ import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { TimeField } from "@/components/ui/TimeField";
+import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 
 type ThemeOption = 'light' | 'system' | 'dark';
 const THEME_OPTIONS: ThemeOption[] = ['light', 'system', 'dark'];
+
+// One row inside a multi-row settings Card — icon, label, optional trailing
+// value, and a chevron. Keeps the "Data & automation" / "Data management"
+// groups visually consistent instead of each screen hand-rolling row markup.
+function SettingsRow({
+  icon,
+  iconBgClassName = 'bg-muted dark:bg-muted-dark',
+  label,
+  labelClassName = '',
+  value,
+  onPress,
+  disabled,
+  hideChevron,
+  iconColor,
+}: {
+  icon: ReactNode;
+  iconBgClassName?: string;
+  label: string;
+  labelClassName?: string;
+  value?: string;
+  onPress: () => void;
+  disabled?: boolean;
+  hideChevron?: boolean;
+  iconColor: string;
+}) {
+  return (
+    <AnimatedPressable
+      className="flex-row items-center gap-3 px-4 py-3.5"
+      onPress={onPress}
+      disabled={disabled}
+      pressScale={0.99}
+    >
+      <View className={`w-9 h-9 rounded-lg items-center justify-center ${iconBgClassName}`}>
+        {icon}
+      </View>
+      <UIText size="sm" variant={labelClassName ? "unstyled" : "heading"} className={`flex-1 ${labelClassName ? `font-medium ${labelClassName}` : ''}`}>
+        {label}
+      </UIText>
+      {value && <UIText size="sm" variant="muted">{value}</UIText>}
+      {!hideChevron && <ChevronRight size={16} color={iconColor} />}
+    </AnimatedPressable>
+  );
+}
 
 export default function SettingsScreen() {
   const { theme, setTheme, isDark } = useTheme();
@@ -80,19 +138,9 @@ export default function SettingsScreen() {
   const handleExport = async () => {
     setExporting(true);
     try {
-      const payload = {
-        exportedAt: new Date().toISOString(),
-        wallets,
-        categories,
-        budgets,
-        transactions,
-      };
-      await Share.share({
-        title: "SnapBudget data export",
-        message: JSON.stringify(payload, null, 2),
-      });
-    } catch {
-      Alert.alert("Couldn't export data", "Please try again.");
+      await exportDataAsExcel({ wallets, categories, budgets, transactions });
+    } catch (e) {
+      Alert.alert("Couldn't export data", e instanceof Error ? e.message : "Please try again.");
     } finally {
       setExporting(false);
     }
@@ -143,8 +191,14 @@ export default function SettingsScreen() {
       }
       await updateReminders({ enabled: next });
       await syncFinanceReminders(useReminderStore.getState().settings());
-    } catch {
-      Alert.alert("Couldn't update reminders", "Please try again.");
+    } catch (e) {
+      // Includes the underlying error message (not just "please try again")
+      // since this is the only failure in the app that's essentially
+      // impossible to reproduce outside a release build — a silent generic
+      // alert here means every report requires a full EAS build cycle just
+      // to learn what actually went wrong.
+      console.error("Failed to update reminders", e);
+      Alert.alert("Couldn't update reminders", e instanceof Error ? e.message : "Please try again.");
     } finally {
       setTogglingReminders(false);
     }
@@ -157,8 +211,9 @@ export default function SettingsScreen() {
         period === "morning" ? { morningHour: hour, morningMinute: minute } : { eveningHour: hour, eveningMinute: minute }
       );
       await syncFinanceReminders(useReminderStore.getState().settings());
-    } catch {
-      Alert.alert("Couldn't update reminder time", "Please try again.");
+    } catch (e) {
+      console.error("Failed to update reminder time", e);
+      Alert.alert("Couldn't update reminder time", e instanceof Error ? e.message : "Please try again.");
     } finally {
       setTogglingReminders(false);
     }
@@ -192,8 +247,8 @@ export default function SettingsScreen() {
 
         <Separator className="my-4" />
 
-        {/* Appearance */}
-        <UIText size="xs" variant="label" className="mb-2">Appearance</UIText>
+        {/* Preferences — how the app looks and speaks up, grouped together */}
+        <UIText size="xs" variant="label" className="mb-2">Preferences</UIText>
         <Card>
           <UIText size="sm" variant="heading">Theme</UIText>
           <View
@@ -215,64 +270,20 @@ export default function SettingsScreen() {
               />
             ))}
           </View>
-        </Card>
 
-        {/* Manage */}
-        <UIText size="xs" variant="label" className="mt-5 mb-2">Manage</UIText>
-        <View className="gap-2">
-          <Card onPress={() => router.push("/wallets")}>
-            <View className="flex-row items-center justify-between">
-              <UIText size="sm" variant="heading">Wallets</UIText>
-              <ChevronRight size={16} color={iconColor} />
-            </View>
-          </Card>
-          <Card onPress={() => router.push("/categories")}>
-            <View className="flex-row items-center justify-between">
-              <UIText size="sm" variant="heading">Categories</UIText>
-              <ChevronRight size={16} color={iconColor} />
-            </View>
-          </Card>
-        </View>
+          <Separator className="my-4" />
 
-        {/* Connected apps */}
-        <UIText size="xs" variant="label" className="mt-5 mb-2">Connected apps</UIText>
-        <Card onPress={() => router.push("/telegram-link")}>
           <View className="flex-row items-center justify-between">
-            <UIText size="sm" variant="heading">Telegram</UIText>
-            <View className="flex-row items-center gap-2">
-              <UIText size="sm" variant="muted">{telegramLinked ? "Connected" : "Not connected"}</UIText>
-              <ChevronRight size={16} color={iconColor} />
-            </View>
-          </View>
-        </Card>
-
-        {/* Automatic capture — Android only, see lib/notificationCapture.ts */}
-        {isNotificationCaptureSupportedPlatform && (
-          <>
-            <UIText size="xs" variant="label" className="mt-5 mb-2">Automation</UIText>
-            <Card onPress={() => router.push("/notification-capture")}>
-              <View className="flex-row items-center justify-between">
-                <UIText size="sm" variant="heading">Automatic capture</UIText>
-                <View className="flex-row items-center gap-2">
-                  {pendingCaptures > 0 && (
-                    <UIText size="sm" variant="muted">{pendingCaptures} waiting</UIText>
-                  )}
-                  <ChevronRight size={16} color={iconColor} />
-                </View>
+            <View className="flex-row items-center gap-3 flex-1 pr-3">
+              <View className="w-9 h-9 rounded-lg items-center justify-center bg-muted dark:bg-muted-dark">
+                <BellRing size={16} color={iconColor} strokeWidth={1.8} />
               </View>
-            </Card>
-          </>
-        )}
-
-        {/* Finance-tip reminders — local scheduled notifications, see lib/financeReminders.ts */}
-        <UIText size="xs" variant="label" className="mt-5 mb-2">Reminders</UIText>
-        <Card>
-          <View className="flex-row items-center justify-between">
-            <View className="flex-1 pr-3">
-              <UIText size="sm" variant="heading">Daily finance tips</UIText>
-              <UIText size="xs" variant="muted" className="mt-0.5">
-                A morning and evening notification with a tip on building financial freedom
-              </UIText>
+              <View className="flex-1">
+                <UIText size="sm" variant="heading">Daily finance tips</UIText>
+                <UIText size="xs" variant="muted" className="mt-0.5">
+                  Morning and evening reminders with a tip on building financial freedom
+                </UIText>
+              </View>
             </View>
             <Switch
               value={reminderEnabled}
@@ -318,27 +329,73 @@ export default function SettingsScreen() {
           )}
         </Card>
 
-        {/* Data */}
-        <UIText size="xs" variant="label" className="mt-5 mb-2">Data</UIText>
-        <View className="gap-2">
-          <Card className="flex-row items-center gap-3" onPress={handleExport} disabled={exporting}>
-            <View className="w-9 h-9 rounded-lg items-center justify-center bg-muted dark:bg-muted-dark">
-              <Download size={16} color={iconColor} strokeWidth={1.8} />
-            </View>
-            <UIText size="sm" variant="heading" className="flex-1">
-              {exporting ? "Preparing export..." : "Export data"}
-            </UIText>
-            <ChevronRight size={16} color={iconColor} />
-          </Card>
-          <Card className="flex-row items-center gap-3" onPress={handleClearData} disabled={clearing}>
-            <View className="w-9 h-9 rounded-lg items-center justify-center bg-red-100 dark:bg-red-900/30">
-              <Trash2 size={16} color={isDark ? "#f87171" : "#dc2626"} strokeWidth={1.8} />
-            </View>
-            <UIText size="sm" variant="unstyled" className="flex-1 font-medium text-destructive">
-              {clearing ? "Clearing..." : "Clear all data"}
-            </UIText>
-          </Card>
-        </View>
+        {/* Data & automation — everything that feeds transactions/budgets in, one scannable card */}
+        <UIText size="xs" variant="label" className="mt-5 mb-2">Data & automation</UIText>
+        <Card className="p-0 overflow-hidden">
+          <SettingsRow
+            icon={<WalletCards size={16} color={iconColor} strokeWidth={1.8} />}
+            label="Wallets"
+            onPress={() => router.push("/wallets")}
+            iconColor={iconColor}
+          />
+          <Separator />
+          <SettingsRow
+            icon={<Shapes size={16} color={iconColor} strokeWidth={1.8} />}
+            label="Categories"
+            onPress={() => router.push("/categories")}
+            iconColor={iconColor}
+          />
+          <Separator />
+          <SettingsRow
+            icon={<Send size={16} color={iconColor} strokeWidth={1.8} />}
+            label="Telegram"
+            value={telegramLinked ? "Connected" : "Not connected"}
+            onPress={() => router.push("/telegram-link")}
+            iconColor={iconColor}
+          />
+          {isNotificationCaptureSupportedPlatform && (
+            <>
+              <Separator />
+              <SettingsRow
+                icon={<Bell size={16} color={iconColor} strokeWidth={1.8} />}
+                label="Automatic capture"
+                value={pendingCaptures > 0 ? `${pendingCaptures} waiting` : undefined}
+                onPress={() => router.push("/notification-capture")}
+                iconColor={iconColor}
+              />
+            </>
+          )}
+        </Card>
+
+        {/* Data management — export, disclosure, and the destructive action, kept apart from data sources above */}
+        <UIText size="xs" variant="label" className="mt-5 mb-2">Data management</UIText>
+        <Card className="p-0 overflow-hidden">
+          <SettingsRow
+            icon={<Sparkles size={16} color={iconColor} strokeWidth={1.8} />}
+            label="AI & data"
+            onPress={() => router.push("/ai-disclosure")}
+            iconColor={iconColor}
+          />
+          <Separator />
+          <SettingsRow
+            icon={<Download size={16} color={iconColor} strokeWidth={1.8} />}
+            label={exporting ? "Preparing Excel file..." : "Export data (Excel)"}
+            onPress={handleExport}
+            disabled={exporting}
+            iconColor={iconColor}
+          />
+          <Separator />
+          <SettingsRow
+            icon={<Trash2 size={16} color={isDark ? "#f87171" : "#dc2626"} strokeWidth={1.8} />}
+            iconBgClassName="bg-red-100 dark:bg-red-900/30"
+            label={clearing ? "Clearing..." : "Clear all data"}
+            labelClassName="text-destructive"
+            onPress={handleClearData}
+            disabled={clearing}
+            iconColor={iconColor}
+            hideChevron
+          />
+        </Card>
 
         {/* Account */}
         <UIText size="xs" variant="label" className="mt-5 mb-2">Account</UIText>

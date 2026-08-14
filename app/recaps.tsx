@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { View, ScrollView, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { ChevronLeft, Bell } from "lucide-react-native";
+import { ChevronLeft, Bell, BellOff } from "lucide-react-native";
 import { useTheme } from "@/context/ThemeContext";
 import { useRecapStore } from "@/store/useRecapStore";
 import { useRefresh } from "@/hooks/useRefresh";
@@ -13,6 +13,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { DataState } from "@/components/ui/DataState";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 export default function RecapsScreen() {
   const { isDark } = useTheme();
@@ -51,6 +52,24 @@ export default function RecapsScreen() {
             isEmpty={recaps.length === 0}
             onRetry={fetchAll}
             emptyMessage="No recaps yet — check back after your first weekly or monthly summary."
+            emptyIcon={BellOff}
+            loadingSkeleton={
+              <View className="gap-3 mt-1">
+                {[0, 1, 2].map((i) => (
+                  <Card key={i} className="p-4">
+                    <View className="flex-row items-center justify-between mb-2">
+                      <View className="flex-row items-center gap-2">
+                        <Skeleton width={28} height={28} className="rounded-full" />
+                        <Skeleton width={60} height={18} className="rounded-lg" />
+                      </View>
+                      <Skeleton width={90} height={12} />
+                    </View>
+                    <Skeleton width="90%" height={14} />
+                    <Skeleton width="60%" height={14} className="mt-1.5" />
+                  </Card>
+                ))}
+              </View>
+            }
           />
         ) : (
           <View className="gap-3 mt-1">

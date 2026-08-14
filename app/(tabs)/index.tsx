@@ -139,6 +139,7 @@ export default function HomeScreen() {
         <Card>
           <AnimatedPressable
             onPress={() => router.push("/scan?manual=true&type=expense")}
+            wrapperClassName="w-full"
             className="flex-row items-center justify-between"
           >
             <View>
@@ -146,9 +147,9 @@ export default function HomeScreen() {
                 Total spent
               </UIText>
               {isFirstLoad ? (
-                <Skeleton width={120} height={28} className="mt-1.5" />
+                <Skeleton width={140} height={36} className="mt-1.5" />
               ) : (
-                <UIText size="2xl" className="font-mono font-semibold mt-1">
+                <UIText size="3xl" className="font-mono font-semibold mt-1">
                   {fmt(spent)}
                 </UIText>
               )}
@@ -168,7 +169,8 @@ export default function HomeScreen() {
 
           <View className="flex-row items-center">
             <AnimatedPressable
-              className="flex-1 flex-row items-center gap-2.5"
+              wrapperClassName="flex-1"
+              className="flex-row items-center gap-2.5"
               onPress={() => router.push("/scan?manual=true&type=income")}
             >
               <View className="w-8 h-8 rounded-full items-center justify-center bg-positive/10 dark:bg-positive-dark/10">

@@ -1,7 +1,7 @@
 import { ViewStyle, StyleProp } from 'react-native';
 import { UIText } from './UIText';
 import { useTheme } from '@/context/ThemeContext';
-import { BRAND_BLUE } from '@/constants/colors';
+import { brandBlue } from '@/constants/colors';
 import { AnimatedPressable } from './AnimatedPressable';
 
 type Variant = 'pill' | 'underline';
@@ -39,12 +39,12 @@ export function Chip({
 }: ChipProps) {
   const { isDark } = useTheme();
 
-  // Pill selected fill: brand blue in light mode (the app's one deliberate
-  // accent, otherwise used sparingly for the scan button/budget gauge) —
-  // dark mode keeps the original white-fill/dark-text look unchanged, since
-  // blue-on-dark-surface didn't read as clearly as the existing white fill.
-  const accentFill   = isDark ? '#fafafa' : BRAND_BLUE;
-  const accentText   = isDark ? '#18181b' : '#ffffff';
+  // Pill selected fill: brand blue in both themes — dark mode uses a
+  // lightened variant (brandBlue's dark branch) tuned to read clearly
+  // against dark surfaces, replacing the earlier white-fill fallback so
+  // selection state carries the same brand color app-wide.
+  const accentFill   = brandBlue(isDark);
+  const accentText   = '#ffffff';
   const mutedText    = isDark ? '#a1a1aa' : '#71717a';
   const foreground    = isDark ? '#fafafa' : '#09090b';
   // Pill unselected surface: an explicit white card-like surface in light

@@ -21,4 +21,8 @@ export class UnsupportedNotificationListenerModule extends EventEmitter<EventsMa
   setAllowedPackages(_packages: string[]): void {
     // No-op: notification listener capture is Android-only.
   }
+
+  markListenerReady(): void {
+    // No-op: notification listener capture is Android-only.
+  }
 }

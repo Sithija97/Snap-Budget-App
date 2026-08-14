@@ -8,7 +8,7 @@ import {
   Settings2,
 } from "lucide-react-native";
 import { useTheme } from "@/context/ThemeContext";
-import { BRAND_BLUE } from "@/constants/colors";
+import { BRAND_BLUE, brandBlue } from "@/constants/colors";
 import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 
 type LucideIcon = React.ComponentType<{
@@ -40,10 +40,11 @@ function CustomTabBar({
   insets: any;
 }) {
   const { isDark } = useTheme();
-  const activeColor = isDark ? "#fafafa" : "#09090b";
+  const activeColor = brandBlue(isDark);
   const inactiveColor = isDark ? "#a1a1aa" : "#71717a";
   const borderColor = isDark ? "#27272a" : "#e4e4e7";
   const bgColor = isDark ? "#09090b" : "#ffffff";
+  const activePillBg = isDark ? "rgba(59,139,255,0.16)" : "rgba(16,115,245,0.1)";
 
   return (
     <View
@@ -83,16 +84,6 @@ function CustomTabBar({
               >
                 <tab.Icon size={20} color="#ffffff" strokeWidth={2} />
               </View>
-              <Text
-                style={{
-                  fontSize: 11,
-                  color: inactiveColor,
-                  marginTop: 2,
-                  fontFamily: "DMSans_400Regular",
-                }}
-              >
-                {/* {tab.label} */}
-              </Text>
             </AnimatedPressable>
           );
         }
@@ -109,16 +100,28 @@ function CustomTabBar({
             contentStyle={{ alignItems: "center" }}
             onPress={() => navigation.navigate(tab.name)}
           >
-            <tab.Icon
-              size={22}
-              color={color}
-              strokeWidth={isFocused ? 2.2 : 1.8}
-            />
+            <View
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 10,
+                overflow: "hidden",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: isFocused ? activePillBg : "transparent",
+              }}
+            >
+              <tab.Icon
+                size={20}
+                color={color}
+                strokeWidth={isFocused ? 2.2 : 1.8}
+              />
+            </View>
             <Text
               style={{
                 fontSize: 11,
                 color,
-                marginTop: 2,
+                marginTop: 1,
                 fontFamily: isFocused ? "DMSans_500Medium" : "DMSans_400Regular",
               }}
             >

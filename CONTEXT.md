@@ -25,7 +25,7 @@ The app is a **fully functional, backend-connected app**: real authentication (C
 - Wallets: list + form screens, `balance: null` renders as "Balance not set", a default "My Wallet" is seeded server-side on first sign-in, the last remaining wallet can't be deleted (enforced both client- and server-side)
 - Categories: Expense/Income tabs, custom categories with icon picker and optional parent (subcategory), duplicate-proof (DB unique index on `(userId, type, lower(name))` + API pre-check), deletion blocked while referenced by transactions or budgets
 - Budgets: add/edit/delete per expense category for the current month, "repeat" flag persisted (no auto-renewal logic acting on it yet)
-- Settings: real Clerk profile, Sign Out, Export data (`Share.share` of all four stores as JSON), Clear all data (wipes + reseeds via `DELETE /api/data`)
+- Settings: real Clerk profile, Sign Out, Export data (`utils/exportExcel.ts` — real `.xlsx` workbook, one sheet per store with resolved category/wallet names instead of raw IDs, shared via `expo-sharing`), Clear all data (wipes + reseeds via `DELETE /api/data`)
 - List screens (`transactions`, `budget`, `wallets`, `categories`) are virtualized (`FlatList`/`SectionList`) with `RefreshControl` pull-to-refresh, decoupled from the initial-load spinner (`hooks/useRefresh.ts`) to avoid a double-spinner
 - Fully functional dark / light / system theme
 - Validation everywhere: numeric keyboards with non-numeric stripped, Save buttons disabled until valid, destructive actions go through `Alert.alert`
@@ -286,6 +286,9 @@ app/
                            first open, calls POST /api/assistant/ask; pushed from Home
   recaps.tsx               In-app recap inbox — card list of past weekly/monthly recaps,
                            pull-to-refresh, GET /api/recaps; pushed from Home
+  ai-disclosure.tsx        Static explainer of what's sent to Gemini and when (scanning,
+                           assistant/quick-add, recaps, capture fallback); no data of its
+                           own, pushed from Settings → Data
   transaction/
     [id].tsx               View/edit/delete + receipt thumbnail (authenticated fetch)
   (tabs)/
@@ -295,7 +298,8 @@ app/
     transactions.tsx        FlatList (grouped by date) + RefreshControl + DataState
     budget.tsx               FlatList + RefreshControl + DataState
     analytics.tsx            ScrollView + RefreshControl, real aggregation
-    settings.tsx             Profile, theme, sign out, export/clear data, Connected apps → Telegram
+    settings.tsx             Profile, theme, sign out, export (Excel)/clear data, AI & data
+                            disclosure, Connected apps → Telegram
 
 store/            useWalletStore, useCategoryStore, useBudgetStore, useTransactionStore
                   — all API-backed, optimistic CRUD, status: idle|loading|error

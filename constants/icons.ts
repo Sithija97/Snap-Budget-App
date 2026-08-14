@@ -7,6 +7,21 @@ import {
   Coffee,
   Laptop,
   HeartPulse,
+  House,
+  Plane,
+  GraduationCap,
+  Gift,
+  Film,
+  Dumbbell,
+  PawPrint,
+  Baby,
+  Fuel,
+  Utensils,
+  Wrench,
+  Briefcase,
+  PiggyBank,
+  Landmark,
+  Ellipsis,
 } from "lucide-react-native";
 
 export const TX_ICONS: Record<string, any> = {
@@ -18,6 +33,21 @@ export const TX_ICONS: Record<string, any> = {
   Coffee,
   Laptop,
   HeartPulse,
+  House,
+  Plane,
+  GraduationCap,
+  Gift,
+  Film,
+  Dumbbell,
+  PawPrint,
+  Baby,
+  Fuel,
+  Utensils,
+  Wrench,
+  Briefcase,
+  PiggyBank,
+  Landmark,
+  Ellipsis,
 };
 
 export const CAT_ICONS: Record<string, any> = {

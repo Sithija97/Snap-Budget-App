@@ -25,6 +25,16 @@ declare class ExpoNotificationListenerModule extends EventEmitter<EventsMap> {
   isAccessGranted(): boolean;
   openAccessSettings(): void;
   setAllowedPackages(packages: string[]): void;
+  /**
+   * Must be called right after addListener("onNotification", ...) — flips
+   * the native side into delivering notifications live and flushes anything
+   * that queued up before this point (the native NotificationListenerService
+   * can receive notifications independently of this module's lifecycle,
+   * e.g. while the app process was killed in the background; without this
+   * handshake those notifications would be lost rather than queued, since a
+   * native event emitted before any JS listener subscribes is not buffered).
+   */
+  markListenerReady(): void;
 }
 
 // The native module is only registered in a real dev/production build (see

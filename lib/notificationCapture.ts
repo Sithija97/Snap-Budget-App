@@ -170,6 +170,17 @@ export function startNotificationCapture() {
     handleNotification(event).catch((e) => console.error("Failed to handle captured notification", e));
   });
 
+  // Must come AFTER addListener above, never before — this is what tells
+  // the native side it's now safe to deliver notifications live (and to
+  // flush anything queued since the module was created). The native
+  // NotificationListenerService can run and receive notifications
+  // independently of this module's JS lifecycle (e.g. the app process was
+  // killed in the background while the listener stayed bound by Android),
+  // so without this explicit handshake, a notification that arrived in that
+  // gap — after the native module recreated but before this addListener
+  // call actually ran — would be gone for good instead of queued.
+  NotificationListener.markListenerReady();
+
   // The listener service can be created by Android independently of app
   // foreground state; re-applying the allowlist when the app returns to
   // foreground guards against it having started with a stale/default list.

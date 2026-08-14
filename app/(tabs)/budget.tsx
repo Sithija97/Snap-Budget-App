@@ -2,7 +2,7 @@ import { memo, useMemo } from "react";
 import { View, FlatList, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { ChevronRight, Plus, TrendingUp } from "lucide-react-native";
+import { ChevronRight, Plus, TrendingUp, PiggyBank } from "lucide-react-native";
 import { useBudgetStore, budgetsForMonth } from "@/store/useBudgetStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { useTransactionStore, spentByCategoryInMonth } from "@/store/useTransactionStore";
@@ -15,10 +15,12 @@ import { IconButton } from "@/components/ui/IconButton";
 import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 import { DataState } from "@/components/ui/DataState";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { AnimatedBar } from "@/components/ui/AnimatedBar";
 import { TX_ICONS } from "@/constants/icons";
 import { useTheme } from "@/context/ThemeContext";
 import { useRefresh } from "@/hooks/useRefresh";
 import { BRAND_BLUE } from "@/constants/colors";
+import { chartTheme, budgetFillColor } from "@/constants/chartTheme";
 import type { Budget } from "@/types";
 
 interface CategoryRowProps {
@@ -27,18 +29,18 @@ interface CategoryRowProps {
   spent: number;
   limit: number;
   trackBg: string;
-  fillFg: string;
+  isDark: boolean;
   iconColor: string;
   onPress: () => void;
 }
 
 const CategoryRow = memo(function CategoryRow({
-  categoryName, categoryIcon, spent, limit, trackBg, fillFg, iconColor, onPress,
+  categoryName, categoryIcon, spent, limit, trackBg, isDark, iconColor, onPress,
 }: CategoryRowProps) {
   const pct = limit > 0 ? Math.round((spent / limit) * 100) : 0;
   const isOver = pct > 100;
   const isNear = pct >= 80 && !isOver;
-  const fillColor = isOver ? '#ef4444' : isNear ? '#d97706' : fillFg;
+  const fillColor = budgetFillColor(pct, isDark);
   const Icon = TX_ICONS[categoryIcon];
 
   return (
@@ -71,13 +73,13 @@ const CategoryRow = memo(function CategoryRow({
           <View
             style={{ height: 6, backgroundColor: trackBg, borderRadius: 99, marginTop: 12, overflow: 'hidden' }}
           >
-            <View
-              style={{
-                height: '100%',
-                width: `${Math.min(pct, 100)}%`,
-                backgroundColor: fillColor,
-                borderRadius: 99,
-              }}
+            <AnimatedBar
+              axis="width"
+              size={`${Math.min(pct, 100)}%`}
+              color={fillColor}
+              style={{ height: '100%', borderRadius: 99 }}
+              accessibilityLabel={`${categoryName} budget usage`}
+              accessibilityValue={{ min: 0, max: 100, now: Math.min(pct, 100), text: `${pct}%` }}
             />
           </View>
         </View>
@@ -164,13 +166,9 @@ export default function BudgetScreen() {
 
   // One step above the dark card surface (#18181b) so tracks stay visible on it
   const trackBg  = isDark ? '#27272a' : '#f4f4f5';
-  const fillFg   = isDark ? '#fafafa' : '#18181b';
   const iconColor = isDark ? '#a1a1aa' : '#71717a';
 
-  const overviewFillColor =
-    pctUsed > 100 ? '#ef4444' :
-    pctUsed >= 80 ? '#d97706' :
-    fillFg;
+  const overviewFillColor = budgetFillColor(pctUsed, isDark);
 
   const overviewBadgeVariant: 'outline' | 'warning' | 'destructive' =
     pctUsed > 100 ? 'destructive' :
@@ -207,7 +205,7 @@ export default function BudgetScreen() {
                   <Skeleton width={70} height={12} />
                   <View className="flex-row items-end justify-between mt-2">
                     <View>
-                      <Skeleton width={130} height={30} />
+                      <Skeleton width={150} height={38} />
                       <Skeleton width={70} height={13} className="mt-1.5" />
                     </View>
                     <Skeleton width={64} height={24} className="rounded-lg" />
@@ -219,7 +217,7 @@ export default function BudgetScreen() {
                   <UIText size="xs" variant="label">This month</UIText>
                   <View className="flex-row items-end justify-between mt-1.5">
                     <View>
-                      <UIText size="2xl" className="font-mono font-semibold">{fmt(totalSpent)}</UIText>
+                      <UIText size="3xl" className="font-mono font-semibold">{fmt(totalSpent)}</UIText>
                       <UIText size="xs" variant="muted" className="mt-0.5">of {fmt(totalLimit)} budgeted</UIText>
                     </View>
                     <Badge label={`${pctUsed}%`} variant={overviewBadgeVariant} />
@@ -228,13 +226,13 @@ export default function BudgetScreen() {
                   <View
                     style={{ height: 8, backgroundColor: trackBg, borderRadius: 99, marginTop: 14, overflow: 'hidden' }}
                   >
-                    <View
-                      style={{
-                        height: '100%',
-                        width: `${Math.min(pctUsed, 100)}%`,
-                        backgroundColor: overviewFillColor,
-                        borderRadius: 99,
-                      }}
+                    <AnimatedBar
+                      axis="width"
+                      size={`${Math.min(pctUsed, 100)}%`}
+                      color={overviewFillColor}
+                      style={{ height: '100%', borderRadius: 99 }}
+                      accessibilityLabel="Monthly budget usage"
+                      accessibilityValue={{ min: 0, max: 100, now: Math.min(pctUsed, 100), text: `${pctUsed}%` }}
                     />
                   </View>
 
@@ -266,6 +264,7 @@ export default function BudgetScreen() {
             isEmpty={rows.length === 0}
             onRetry={onRefresh}
             emptyMessage="No budgets yet"
+            emptyIcon={PiggyBank}
             loadingSkeleton={
               <View style={{ gap: 12 }}>
                 {[0, 1, 2].map((i) => (
@@ -286,7 +285,7 @@ export default function BudgetScreen() {
                 spent={spentByCategory[b.categoryId] ?? 0}
                 limit={b.limitAmount}
                 trackBg={trackBg}
-                fillFg={fillFg}
+                isDark={isDark}
                 iconColor={iconColor}
                 onPress={() => router.push(`/budget-form?id=${b.id}`)}
               />

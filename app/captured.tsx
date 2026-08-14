@@ -12,6 +12,7 @@ import { UIText } from "@/components/ui/UIText";
 import { IconButton } from "@/components/ui/IconButton";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { DataState } from "@/components/ui/DataState";
 import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 
 // Keyed by CaptureSource (not string) so removing/renaming a source is a
@@ -61,14 +62,13 @@ export default function CapturedScreen() {
 
       <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24, flexGrow: 1 }}>
         {pending.length === 0 ? (
-          <View className="flex-1 items-center justify-center gap-3 py-12">
-            <View className="w-12 h-12 rounded-full bg-muted dark:bg-muted-dark items-center justify-center">
-              <Inbox size={22} color={iconColor} />
-            </View>
-            <UIText size="sm" variant="muted" className="text-center px-8">
-              Nothing waiting for review. Payments detected from your allowlisted apps will show up here.
-            </UIText>
-          </View>
+          <DataState
+            status="idle"
+            isEmpty
+            onRetry={() => {}}
+            emptyMessage="Nothing waiting for review. Payments detected from your allowlisted apps will show up here."
+            emptyIcon={Inbox}
+          />
         ) : (
           <View className="gap-3 mt-1">
             {pending.map((s) => {

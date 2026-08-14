@@ -1,9 +1,13 @@
 import { useState } from 'react';
 import { Platform } from 'react-native';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import DateTimePicker, { useDefaultStyles } from 'react-native-ui-datepicker';
+import dayjs from 'dayjs';
 import { Calendar } from 'lucide-react-native';
 import { formatFullDate, toISODate } from '@/utils/dates';
+import { useTheme } from '@/context/ThemeContext';
+import { BRAND_BLUE } from '@/constants/colors';
 import { PickerFieldShell, usePickerFieldIconColor } from './PickerFieldShell';
+import { PickerModal } from './PickerModal';
 
 interface DateFieldProps {
   /** ISO "YYYY-MM-DD" */
@@ -15,26 +19,30 @@ interface DateFieldProps {
 }
 
 // Single source of truth for "pick a date" across manual entry, editing, and
-// the scan review screen — matches the inputStyle-height/border look every
-// other field in those screens uses, but opens the platform's native picker
-// instead of a raw text input (which is how the scan-review date used to
-// work, and was the one field in the app still hand-typed as "YYYY-MM-DD").
-// react-native-web has no native picker at all, so web falls back to a plain
+// the scan review screen. Uses react-native-ui-datepicker — a pure-JS,
+// custom-drawn calendar grid with no native dialog involved at all — instead
+// of the OS's own date-picker dialog. Several OEM skins (confirmed on
+// Samsung's One UI) replace the native dialog with their own implementation
+// that ignores the app's theme entirely and always renders using the
+// device's system accent color; a fully custom-drawn picker sidesteps that
+// limitation completely since there's no OS dialog to be overridden.
+// react-native-web has no native picker either, so web falls back to a plain
 // HTML date input (see PickerFieldShell).
 export function DateField({ value, onChange, disabled = false, maxDate }: DateFieldProps) {
   const [showPicker, setShowPicker] = useState(false);
+  const [draft, setDraft] = useState<Date>(() => (value ? new Date(`${value}T00:00:00`) : new Date()));
   const iconColor = usePickerFieldIconColor();
+  const { isDark } = useTheme();
+  const defaultStyles = useDefaultStyles(isDark ? 'dark' : 'light');
 
-  const dateValue = value ? new Date(`${value}T00:00:00`) : new Date();
+  const openPicker = () => {
+    setDraft(value ? new Date(`${value}T00:00:00`) : new Date());
+    setShowPicker(true);
+  };
 
-  const handleChange = (event: DateTimePickerEvent, selected?: Date) => {
-    // Android's dialog fires "dismissed" with no date on Cancel; iOS's
-    // inline spinner has no separate confirm step, so closing on every
-    // "set" keeps both platforms to a single tap-to-open, tap-to-pick flow.
-    setShowPicker(Platform.OS === 'ios');
-    if (event.type === 'set' && selected) {
-      onChange(toISODate(selected));
-    }
+  const confirm = () => {
+    onChange(toISODate(draft));
+    setShowPicker(false);
   };
 
   return (
@@ -42,7 +50,7 @@ export function DateField({ value, onChange, disabled = false, maxDate }: DateFi
       <PickerFieldShell
         displayText={formatFullDate(value)}
         disabled={disabled}
-        onPress={() => setShowPicker(true)}
+        onPress={openPicker}
         icon={<Calendar size={16} color={iconColor} />}
         webInputProps={{
           type: 'date',
@@ -52,14 +60,22 @@ export function DateField({ value, onChange, disabled = false, maxDate }: DateFi
         }}
       />
 
-      {Platform.OS !== 'web' && showPicker && (
-        <DateTimePicker
-          value={dateValue}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'inline' : 'default'}
-          maximumDate={maxDate}
-          onChange={handleChange}
-        />
+      {Platform.OS !== 'web' && (
+        <PickerModal visible={showPicker} title="Select date" onClose={() => setShowPicker(false)} onConfirm={confirm}>
+          <DateTimePicker
+            mode="single"
+            date={draft}
+            onChange={({ date }) => date && setDraft(dayjs(date).toDate())}
+            maxDate={maxDate}
+            styles={{
+              ...defaultStyles,
+              selected: { backgroundColor: BRAND_BLUE, borderRadius: 10 },
+              selected_label: { color: '#ffffff' },
+              today: { borderColor: BRAND_BLUE, borderWidth: 1, borderRadius: 10 },
+              today_label: { color: BRAND_BLUE },
+            }}
+          />
+        </PickerModal>
       )}
     </>
   );
