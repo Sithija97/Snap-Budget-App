@@ -7,7 +7,7 @@ import { UIText } from "@/components/ui/UIText";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 import { useTheme } from "@/context/ThemeContext";
-import { BRAND_BLUE } from "@/constants/colors";
+import { brandBlue } from "@/constants/colors";
 import { BudgetHealth } from "@/utils/budgetHealth";
 
 const STATUS_BADGE: Record<
@@ -72,7 +72,7 @@ export function BudgetHealthCard({ health, loading }: Props) {
       </View>
       <Gauge
         progress={health.safePercent / 100}
-        color={BRAND_BLUE}
+        color={brandBlue(isDark)}
         trackColor={trackColor}
       >
         <UIText size="2xl" className="font-mono font-semibold">

@@ -19,8 +19,10 @@ import { AnimatedBar } from "@/components/ui/AnimatedBar";
 import { TX_ICONS } from "@/constants/icons";
 import { useTheme } from "@/context/ThemeContext";
 import { useRefresh } from "@/hooks/useRefresh";
-import { BRAND_BLUE } from "@/constants/colors";
+import { brandBlue } from "@/constants/colors";
 import { chartTheme, budgetFillColor } from "@/constants/chartTheme";
+import { heroShadow } from "@/constants/shadows";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import type { Budget } from "@/types";
 
 interface CategoryRowProps {
@@ -168,8 +170,6 @@ export default function BudgetScreen() {
   const trackBg  = isDark ? '#27272a' : '#f4f4f5';
   const iconColor = isDark ? '#a1a1aa' : '#71717a';
 
-  const overviewFillColor = budgetFillColor(pctUsed, isDark);
-
   const overviewBadgeVariant: 'outline' | 'warning' | 'destructive' =
     pctUsed > 100 ? 'destructive' :
     pctUsed >= 80 ? 'warning' :
@@ -198,57 +198,65 @@ export default function BudgetScreen() {
               </IconButton>
             </View>
 
-            {/* Monthly overview */}
-            <Card>
-              {isFirstLoad ? (
-                <>
-                  <Skeleton width={70} height={12} />
-                  <View className="flex-row items-end justify-between mt-2">
-                    <View>
-                      <Skeleton width={150} height={38} />
-                      <Skeleton width={70} height={13} className="mt-1.5" />
+            {/* Monthly overview — tinted shadow so this reads as "raised",
+                matching Home's hero card treatment. */}
+            <View style={heroShadow(isDark)}>
+              <Card>
+                {isFirstLoad ? (
+                  <>
+                    <Skeleton width={70} height={12} />
+                    <View className="flex-row items-end justify-between mt-2">
+                      <View>
+                        <Skeleton width={150} height={38} />
+                        <Skeleton width={70} height={13} className="mt-1.5" />
+                      </View>
+                      <Skeleton width={64} height={24} className="rounded-lg" />
                     </View>
-                    <Skeleton width={64} height={24} className="rounded-lg" />
-                  </View>
-                  <Skeleton width="100%" height={8} className="mt-4" />
-                </>
-              ) : (
-                <>
-                  <UIText size="xs" variant="label">This month</UIText>
-                  <View className="flex-row items-end justify-between mt-1.5">
-                    <View>
-                      <UIText size="3xl" className="font-mono font-semibold">{fmt(totalSpent)}</UIText>
-                      <UIText size="xs" variant="muted" className="mt-0.5">of {fmt(totalLimit)} budgeted</UIText>
+                    <Skeleton width="100%" height={8} className="mt-4" />
+                  </>
+                ) : (
+                  <>
+                    <UIText size="xs" variant="label">This month</UIText>
+                    <View className="flex-row items-end justify-between mt-1.5">
+                      <View>
+                        <AnimatedNumber
+                          value={totalSpent}
+                          format={fmt}
+                          size="3xl"
+                          className="font-mono font-semibold"
+                        />
+                        <UIText size="xs" variant="muted" className="mt-0.5">of {fmt(totalLimit)} budgeted</UIText>
+                      </View>
+                      <Badge label={`${pctUsed}%`} variant={overviewBadgeVariant} />
                     </View>
-                    <Badge label={`${pctUsed}%`} variant={overviewBadgeVariant} />
-                  </View>
 
-                  <View
-                    style={{ height: 8, backgroundColor: trackBg, borderRadius: 99, marginTop: 14, overflow: 'hidden' }}
-                  >
-                    <AnimatedBar
-                      axis="width"
-                      size={`${Math.min(pctUsed, 100)}%`}
-                      color={overviewFillColor}
-                      style={{ height: '100%', borderRadius: 99 }}
-                      accessibilityLabel="Monthly budget usage"
-                      accessibilityValue={{ min: 0, max: 100, now: Math.min(pctUsed, 100), text: `${pctUsed}%` }}
-                    />
-                  </View>
+                    <View
+                      style={{ height: 8, backgroundColor: trackBg, borderRadius: 99, marginTop: 14, overflow: 'hidden' }}
+                    >
+                      <AnimatedBar
+                        axis="width"
+                        size={`${Math.min(pctUsed, 100)}%`}
+                        color={budgetFillColor(pctUsed, isDark)}
+                        style={{ height: '100%', borderRadius: 99 }}
+                        accessibilityLabel="Monthly budget usage"
+                        accessibilityValue={{ min: 0, max: 100, now: Math.min(pctUsed, 100), text: `${pctUsed}%` }}
+                      />
+                    </View>
 
-                  <UIText size="xs" variant="muted" className="mt-2">
-                    {daysRemaining} {daysRemaining === 1 ? "day" : "days"} remaining this month
-                  </UIText>
-                </>
-              )}
-            </Card>
+                    <UIText size="xs" variant="muted" className="mt-2">
+                      {daysRemaining} {daysRemaining === 1 ? "day" : "days"} remaining this month
+                    </UIText>
+                  </>
+                )}
+              </Card>
+            </View>
 
             <Card className="flex-row items-center gap-3" onPress={() => router.push("/(tabs)/analytics")}>
               <View
                 className="w-9 h-9 rounded-lg items-center justify-center"
-                style={{ backgroundColor: `${BRAND_BLUE}1a` }}
+                style={{ backgroundColor: `${brandBlue(isDark)}1a` }}
               >
-                <TrendingUp size={16} color={BRAND_BLUE} strokeWidth={2} />
+                <TrendingUp size={16} color={brandBlue(isDark)} strokeWidth={2} />
               </View>
               <UIText size="sm" variant="heading" className="flex-1">View spending trends</UIText>
               <ChevronRight size={16} color={iconColor} />
@@ -313,8 +321,8 @@ export default function BudgetScreen() {
                 </UIText>
               </View>
               <View className="flex-row items-center gap-1">
-                <Plus size={13} color={BRAND_BLUE} strokeWidth={2.5} />
-                <UIText size="xs" style={{ color: BRAND_BLUE }} className="font-medium">
+                <Plus size={13} color={brandBlue(isDark)} strokeWidth={2.5} />
+                <UIText size="xs" style={{ color: brandBlue(isDark) }} className="font-medium">
                   Set budget
                 </UIText>
               </View>

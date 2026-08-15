@@ -14,7 +14,7 @@ Single source of truth, combining the full feature roadmap with the narrowed AI 
 | Budget — category progress bars, semantic color coding | Built |
 | Analytics — monthly/weekly bar chart, category breakdown | Built, real transaction aggregation |
 | Dark / light / system theme | Built, persisted |
-| Settings — profile (Clerk), sign out, export data, clear all data | Built |
+| Settings — profile (Clerk), sign out, export data, clear all data | Built — reorganized 2026-08-14 into 5 grouped sections (Profile, Preferences, Data & automation, Data management, Account); Wallets/Categories/Telegram/Automatic capture consolidated into one multi-row "Data & automation" card via a shared `SettingsRow` row component instead of separate one-item cards per section |
 
 ## 2. Backend — built
 
@@ -129,7 +129,7 @@ Cloudflare cron triggers (already free on the Workers plan) handle recap schedul
 | Notification / alerts inbox | List of past recap summaries and overspend warnings | **Built (recaps only)** — `app/recaps.tsx`; overspend warnings will land here too once §1's predictive warning ships |
 | Inline predictive warning banner | Reuses the existing (currently unused) `AlertBanner` component on the Budget screen | Planned |
 | Push notification permission prompt | Needed for recaps and warnings to reach the user | Partially built — `expo-notifications` is installed and configured (see §7), but only requested/used for the capture-flow's FYI notification so far, not wired up for recaps/overspend warnings yet |
-| AI data-sharing disclosure | Settings screen explaining what's sent to Gemini and when | **Built** — `app/ai-disclosure.tsx`, entry point Settings → Data → "AI & data" |
+| AI data-sharing disclosure | Settings screen explaining what's sent to Gemini and when | **Built** — `app/ai-disclosure.tsx`, entry point Settings → Data management → "AI & data" |
 
 ---
 
@@ -169,7 +169,7 @@ Digital payments (banking apps, PickMe/Uber, card taps) produce no printed recei
 
 **Constraints (accepted):**
 - **Android-only** — iOS has no API for reading other apps' notifications; iPhone users keep manual entry + screenshot import. `notification-capture.tsx` shows an explanatory message instead of the picker when `isNotificationCaptureSupportedPlatform` is false.
-- "Notification access" is a scary special-access permission → `app/notification-capture.tsx` is a dedicated explainer screen (Settings → Automation → Automatic capture) with an explicit description of what is/isn't read, before the "Enable in Settings" deep link
+- "Notification access" is a scary special-access permission → `app/notification-capture.tsx` is a dedicated explainer screen (Settings → Data & automation → Automatic capture) with an explicit description of what is/isn't read, before the "Enable in Settings" deep link
 - Bank alert formats change over time → regex templates treated as maintainable data (`utils/notificationParser.ts`'s `TEMPLATES` array), Gemini as safety net
 - Ruled out: Accessibility-Service screen scraping (Play delisting risk), Gmail API auto-parsing (restricted scope requires paid CASA audit), bank aggregation APIs (paid, no Sri Lanka coverage), `QUERY_ALL_PACKAGES` app enumeration (Play review risk for a non-launcher app)
 

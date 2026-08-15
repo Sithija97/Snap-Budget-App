@@ -3,7 +3,7 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { and, eq } from "drizzle-orm";
 import { categories } from "../db/schema";
-import { extractReceipt } from "../lib/gemini";
+import { extractReceipt, GeminiError } from "../lib/gemini";
 import { uploadReceipt } from "../lib/cloudinary";
 import type { Env } from "../types";
 
@@ -36,8 +36,14 @@ scanRoute.post("/", zValidator("json", scanInput), async (c) => {
       today
     );
   } catch (e) {
-    console.error(e);
-    return c.json({ error: "Couldn't read that receipt. Try again or enter it manually." }, 502);
+    console.error(`[scan] extractReceipt failed${e instanceof GeminiError ? ` (${e.kind})` : ""}:`, e);
+    const message =
+      e instanceof GeminiError && (e.kind === "quota" || e.kind === "overloaded")
+        ? "Receipt scanning is busy right now. Wait a moment and try again, or enter it manually."
+        : e instanceof GeminiError && e.kind === "timeout"
+          ? "That took too long to read. Try again with a clearer photo, or enter it manually."
+          : "Couldn't read that receipt. Try again or enter it manually.";
+    return c.json({ error: message }, 502);
   }
 
   const publicId = `${userId}/${crypto.randomUUID()}`;

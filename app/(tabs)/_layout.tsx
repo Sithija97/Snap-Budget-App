@@ -8,7 +8,8 @@ import {
   Settings2,
 } from "lucide-react-native";
 import { useTheme } from "@/context/ThemeContext";
-import { BRAND_BLUE, brandBlue } from "@/constants/colors";
+import { brandBlue } from "@/constants/colors";
+import { fabShadow } from "@/constants/shadows";
 import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 
 type LucideIcon = React.ComponentType<{
@@ -73,14 +74,17 @@ function CustomTabBar({
               onPress={() => router.push("/scan")}
             >
               <View
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20,
-                  backgroundColor: BRAND_BLUE,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+                style={[
+                  {
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: brandBlue(isDark),
+                    alignItems: "center",
+                    justifyContent: "center",
+                  },
+                  fabShadow(isDark),
+                ]}
               >
                 <tab.Icon size={20} color="#ffffff" strokeWidth={2} />
               </View>
