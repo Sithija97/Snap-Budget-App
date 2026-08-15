@@ -78,7 +78,14 @@ async function callGemini(env: Bindings, prompt: string, responseSchema: object)
       signal: AbortSignal.timeout(15_000),
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: "application/json", responseSchema },
+        // Classification/phrasing only — no multi-step reasoning needed, and
+        // the default "thinking" pass adds several seconds of latency for no
+        // benefit here (see gemini.ts for the same fix, measured directly).
+        generationConfig: {
+          responseMimeType: "application/json",
+          thinkingConfig: { thinkingBudget: 0 },
+          responseSchema,
+        },
       }),
     }
   );

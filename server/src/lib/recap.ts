@@ -14,7 +14,13 @@ async function callGemini(env: Bindings, prompt: string, responseSchema: object)
       signal: AbortSignal.timeout(15_000),
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: "application/json", responseSchema },
+        // Phrasing only, no reasoning needed — see gemini.ts for the same
+        // fix, measured directly against the API (~4x latency reduction).
+        generationConfig: {
+          responseMimeType: "application/json",
+          thinkingConfig: { thinkingBudget: 0 },
+          responseSchema,
+        },
       }),
     }
   );
