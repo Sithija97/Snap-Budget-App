@@ -131,6 +131,21 @@ const TEMPLATES: BankTemplate[] = [
     getMerchant: (m) => cleanMerchant(m[1]),
   },
   {
+    // "Withdrawal at MAHARAGA-CRM3 BR MAHARAGAMA COLK for LKR 6,000.00 on
+    // 15/08/26 09:17 AM from card ending #7806. Click link to view the
+    // Digital Receipt..." — ComBank's ATM withdrawal SMS format. Distinct
+    // from the "Purchase at X" template above: no "authorised" keyword, and
+    // uses "from card" rather than "on your debit card" (caught via a real
+    // notification sample that fell through to Gemini and was lost when that
+    // fallback call failed, 2026-08-16).
+    bank: "Card authorisation (Withdrawal at X for LKR Y)",
+    packageName: "*",
+    pattern: /withdrawal at\s+(.+?)\s+for\s+(?:rs\.?|lkr)\s?([\d,]+(?:\.\d{1,2})?)/i,
+    amountGroups: [2],
+    txType: TxType.Expense,
+    getMerchant: (m) => cleanMerchant(m[1]),
+  },
+  {
     bank: "Generic debit alert",
     packageName: "*",
     // Matches either word order — "debited Rs 500" or "Rs 500 was debited" —

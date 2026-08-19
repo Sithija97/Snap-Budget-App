@@ -110,6 +110,22 @@ describe("parseNotificationText", () => {
       expect(result?.date).toBe("2026-08-04");
     });
 
+    it("parses an ATM withdrawal SMS, distinct from a card purchase (regression, 2026-08-16)", () => {
+      // Real ComBank sample that previously fell through every template
+      // (no "purchase"/"debited"/"spent"/"authorised" keyword) and was lost
+      // when the Gemini fallback call it depended on failed.
+      const result = parseNotificationText(
+        "com.android.messaging",
+        "Withdrawal at MAHARAGA-CRM3 BR MAHARAGAMA COLK for LKR 6,000.00 on 15/08/26 09:17 AM from card ending #7806. Click link to view the Digital Receipt for Withdrawal performed at ComBank ATMs  https://vas.combank.net/rec/PPKWsHGTddbHdHK0"
+      );
+      expect(result).toEqual({
+        amount: 6000,
+        merchant: "Maharaga-crm3 Br Maharagama",
+        txType: TxType.Expense,
+        date: "2026-08-15",
+      });
+    });
+
     it("classifies a 'Credit for Rs X' incoming-transfer SMS as income, not an expense (regression, 2026-08-12)", () => {
       // Real ComBank sample: an incoming transfer (e.g. a salary conversion)
       // uses the noun "Credit for", not "credited" — previously unrecognized
