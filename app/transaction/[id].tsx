@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { ChevronLeft } from "lucide-react-native";
-import { useTheme } from "@/context/ThemeContext";
+import { useThemeColors } from "@/context/ThemeContext";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { useWalletStore } from "@/store/useWalletStore";
@@ -23,7 +23,6 @@ import { Input } from "@/components/ui/Input";
 import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 
 export default function TransactionDetailScreen() {
-  const { isDark } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { getToken } = useAuth();
 
@@ -72,9 +71,8 @@ export default function TransactionDetailScreen() {
     };
   }, [receiptKey, getToken]);
 
-  // One step above the dark card surface (#18181b) so the receipt placeholder stays visible
-  const mutedBg     = isDark ? "#27272a" : "#f4f4f5";
-  const iconColor   = isDark ? "#a1a1aa" : "#71717a";
+  // One step above the dark card surface (#1a1f2e) so the receipt placeholder stays visible
+  const { muted: mutedBg, mutedFg: iconColor } = useThemeColors();
 
   const toggleEdit = () => {
     // Cancelling discards unsaved edits
@@ -230,7 +228,7 @@ export default function TransactionDetailScreen() {
             <UIText size="xs" variant="label">{isIncome ? "Income" : "Expense"}</UIText>
             <UIText
               size="2xl"
-              className={`font-mono font-semibold mt-1 ${
+              className={`font-semibold mt-1 ${
                 isIncome
                   ? "text-positive dark:text-positive-dark"
                   : "text-negative dark:text-negative-dark"

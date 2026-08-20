@@ -18,7 +18,7 @@ import {
   Bell,
 } from "lucide-react-native";
 import { useUser, useClerk } from "@clerk/clerk-expo";
-import { useTheme } from "@/context/ThemeContext";
+import { useTheme, useThemeColors } from "@/context/ThemeContext";
 import { useWalletStore } from "@/store/useWalletStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { useBudgetStore } from "@/store/useBudgetStore";
@@ -87,6 +87,7 @@ function SettingsRow({
 
 export default function SettingsScreen() {
   const { theme, setTheme, isDark } = useTheme();
+  const { mutedFg, border, muted } = useThemeColors();
   const { user } = useUser();
   const { signOut } = useClerk();
   const [signingOut, setSigningOut] = useState(false);
@@ -108,7 +109,7 @@ export default function SettingsScreen() {
   const updateReminders = useReminderStore((s) => s.update);
   const [togglingReminders, setTogglingReminders] = useState(false);
 
-  const iconColor   = isDark ? '#a1a1aa' : '#71717a';
+  const iconColor   = mutedFg;
   // Layout only — Chip computes selected/unselected color internally.
   const segmentStyle = { flex: 1, alignItems: 'center' as const, borderRadius: 6, paddingVertical: 7 };
 
@@ -254,7 +255,7 @@ export default function SettingsScreen() {
           <View
             className="flex-row mt-3"
             style={{
-              backgroundColor: isDark ? '#09090b' : '#f4f4f5',
+              backgroundColor: muted,
               borderRadius: 8,
               padding: 3,
             }}
@@ -289,7 +290,7 @@ export default function SettingsScreen() {
               value={reminderEnabled}
               onValueChange={handleToggleReminders}
               disabled={togglingReminders}
-              trackColor={{ false: isDark ? "#27272a" : "#e4e4e7", true: BRAND_BLUE }}
+              trackColor={{ false: border, true: BRAND_BLUE }}
               thumbColor={Platform.OS === "android" ? "#ffffff" : undefined}
             />
           </View>
@@ -298,7 +299,7 @@ export default function SettingsScreen() {
             <>
               <Separator className="my-3" />
               <View className="flex-row items-center gap-3 mb-3">
-                <View className="w-8 h-8 rounded-full items-center justify-center bg-amber-100 dark:bg-amber-900/30">
+                <View className="w-8 h-8 rounded-full items-center justify-center bg-warning/10 dark:bg-warning-dark/10">
                   <Sunrise size={15} color={isDark ? "#fbbf24" : "#d97706"} strokeWidth={2} />
                 </View>
                 <UIText size="sm" variant="default" className="flex-1">Morning</UIText>
@@ -387,7 +388,7 @@ export default function SettingsScreen() {
           <Separator />
           <SettingsRow
             icon={<Trash2 size={16} color={isDark ? "#f87171" : "#dc2626"} strokeWidth={1.8} />}
-            iconBgClassName="bg-red-100 dark:bg-red-900/30"
+            iconBgClassName="bg-negative/10 dark:bg-negative-dark/10"
             label={clearing ? "Clearing..." : "Clear all data"}
             labelClassName="text-destructive"
             onPress={handleClearData}

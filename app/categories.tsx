@@ -3,7 +3,7 @@ import { View, FlatList, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react-native";
-import { useTheme } from "@/context/ThemeContext";
+import { useThemeColors } from "@/context/ThemeContext";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { CategoryType, Category } from "@/types";
 import { TX_ICONS } from "@/constants/icons";
@@ -22,14 +22,13 @@ const TYPES: { key: CategoryType; label: string }[] = [
 ];
 
 export default function CategoriesScreen() {
-  const { isDark } = useTheme();
   const categories = useCategoryStore((s) => s.categories);
   const status = useCategoryStore((s) => s.status);
   const fetchAll = useCategoryStore((s) => s.fetchAll);
   const { refreshing, onRefresh } = useRefresh(fetchAll);
   const [type, setType] = useState<CategoryType>("expense");
 
-  const iconColor = isDark ? "#a1a1aa" : "#71717a";
+  const { mutedFg: iconColor } = useThemeColors();
 
   const filtered = useMemo(
     () => categories.filter((c) => c.type === type),

@@ -10,7 +10,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { ChevronLeft, Send, Sparkles, User } from "lucide-react-native";
-import { useTheme } from "@/context/ThemeContext";
+import { useTheme, useThemeColors } from "@/context/ThemeContext";
 import { BRAND_BLUE } from "@/constants/colors";
 import { api } from "@/lib/api";
 import { useTransactionStore } from "@/store/useTransactionStore";
@@ -59,13 +59,12 @@ const INPUT_BOTTOM_PADDING = 16;
 
 export default function AssistantScreen() {
   const { isDark } = useTheme();
+  const { mutedFg: iconColor, border, foreground: userBubbleText } = useThemeColors();
   const insets = useSafeAreaInsets();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [asking, setAsking] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
-
-  const iconColor = isDark ? "#a1a1aa" : "#71717a";
 
   // Bubble background + text are resolved together from one source per role
   // (matches Button/Chip's convention) so they can never fall out of sync —
@@ -75,8 +74,7 @@ export default function AssistantScreen() {
   // the theme-appropriate surface, not an inverted one). AI replies get a
   // blue tint (the app's one accent color, BRAND_BLUE) so the two roles read
   // as distinct, not just left/right-aligned.
-  const userBubbleBg = isDark ? "#27272a" : "#ffffff";
-  const userBubbleText = isDark ? "#fafafa" : "#09090b";
+  const userBubbleBg = isDark ? "#242b3d" : "#ffffff";
   const aiBubbleBg = isDark ? "#132a4d" : "#eaf2ff";
   const aiBubbleText = isDark ? "#bfdbfe" : BRAND_BLUE;
 
@@ -205,7 +203,7 @@ export default function AssistantScreen() {
                   >
                     <View
                       className="w-7 h-7 rounded-full items-center justify-center shrink-0"
-                      style={{ backgroundColor: isUser ? (isDark ? "#27272a" : "#e4e4e7") : aiBubbleBg }}
+                      style={{ backgroundColor: isUser ? border : aiBubbleBg }}
                     >
                       {isUser ? (
                         <User size={14} color={iconColor} strokeWidth={2} />

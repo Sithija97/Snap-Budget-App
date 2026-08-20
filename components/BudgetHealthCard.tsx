@@ -6,7 +6,7 @@ import { Gauge } from "@/components/ui/Gauge";
 import { UIText } from "@/components/ui/UIText";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
-import { useTheme } from "@/context/ThemeContext";
+import { useTheme, useThemeColors } from "@/context/ThemeContext";
 import { brandBlue } from "@/constants/colors";
 import { BudgetHealth } from "@/utils/budgetHealth";
 
@@ -29,7 +29,7 @@ interface Props {
 // `health` (utils/budgetHealth) and passes it in, same split as TransactionItem.
 export function BudgetHealthCard({ health, loading }: Props) {
   const { isDark } = useTheme();
-  const trackColor = isDark ? "#27272a" : "#e4e4e7";
+  const { border: trackColor } = useThemeColors();
 
   if (loading) {
     // Mirrors the loaded layout (badge top-right, gauge arc, caption) so the
@@ -75,7 +75,7 @@ export function BudgetHealthCard({ health, loading }: Props) {
         color={brandBlue(isDark)}
         trackColor={trackColor}
       >
-        <UIText size="2xl" className="font-mono font-semibold">
+        <UIText size="2xl" variant="heading">
           {health.safePercent}%
         </UIText>
         <UIText size="xs" variant="label" className="mt-0.5">

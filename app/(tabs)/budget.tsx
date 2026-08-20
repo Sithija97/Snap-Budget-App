@@ -17,7 +17,7 @@ import { DataState } from "@/components/ui/DataState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AnimatedBar } from "@/components/ui/AnimatedBar";
 import { TX_ICONS } from "@/constants/icons";
-import { useTheme } from "@/context/ThemeContext";
+import { useTheme, useThemeColors } from "@/context/ThemeContext";
 import { useRefresh } from "@/hooks/useRefresh";
 import { brandBlue } from "@/constants/colors";
 import { chartTheme, budgetFillColor } from "@/constants/chartTheme";
@@ -166,9 +166,8 @@ export default function BudgetScreen() {
 
   const pctUsed = totalLimit > 0 ? Math.round((totalSpent / totalLimit) * 100) : 0;
 
-  // One step above the dark card surface (#18181b) so tracks stay visible on it
-  const trackBg  = isDark ? '#27272a' : '#f4f4f5';
-  const iconColor = isDark ? '#a1a1aa' : '#71717a';
+  // One step above the dark card surface (#1a1f2e) so tracks stay visible on it
+  const { muted: trackBg, mutedFg: iconColor } = useThemeColors();
 
   const overviewBadgeVariant: 'outline' | 'warning' | 'destructive' =
     pctUsed > 100 ? 'destructive' :
@@ -223,7 +222,7 @@ export default function BudgetScreen() {
                           value={totalSpent}
                           format={fmt}
                           size="3xl"
-                          className="font-mono font-semibold"
+                          className="font-semibold"
                         />
                         <UIText size="xs" variant="muted" className="mt-0.5">of {fmt(totalLimit)} budgeted</UIText>
                       </View>

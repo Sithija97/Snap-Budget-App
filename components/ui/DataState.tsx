@@ -57,7 +57,7 @@ export function DataState({ status, isEmpty, onRetry, emptyMessage = "Nothing he
         {EmptyIcon && (
           <View
             className="w-14 h-14 rounded-full items-center justify-center"
-            style={{ backgroundColor: isDark ? "rgba(59,139,255,0.14)" : "rgba(16,115,245,0.1)" }}
+            style={{ backgroundColor: isDark ? "rgba(59,130,246,0.14)" : "rgba(59,130,246,0.1)" }}
           >
             <EmptyIcon size={22} color={iconColor} strokeWidth={1.8} />
           </View>

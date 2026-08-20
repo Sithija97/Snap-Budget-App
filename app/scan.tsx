@@ -10,7 +10,7 @@ import {
   CheckCircle2,
   Camera,
 } from "lucide-react-native";
-import { useTheme } from "@/context/ThemeContext";
+import { useTheme, useThemeColors } from "@/context/ThemeContext";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { useWalletStore } from "@/store/useWalletStore";
@@ -64,6 +64,7 @@ type Stage = "idle" | "analyzing" | "review";
 
 export default function ScanScreen() {
   const { isDark } = useTheme();
+  const { border: borderColor, card: mutedBg, mutedFg: iconColor, muted } = useThemeColors();
   // Lets other screens (e.g. Home's Income/Total spent tap targets, and the
   // Captured-transactions inbox's "Review" action) deep-link straight into
   // "add a transaction of this type" — optionally pre-filled — instead of
@@ -313,12 +314,6 @@ export default function ScanScreen() {
     await processPickedImage(result.assets[0]);
   };
 
-  const borderColor = isDark ? "#27272a" : "#e4e4e7";
-  // Viewfinder surface: card-level, not muted — the old #f4f4f5 is nearly
-  // invisible against the slate-100 page background
-  const mutedBg = isDark ? "#18181b" : "#ffffff";
-  const iconColor = isDark ? "#a1a1aa" : "#71717a";
-
   return (
     <SafeAreaView
       className="flex-1 bg-background dark:bg-background-dark"
@@ -346,7 +341,7 @@ export default function ScanScreen() {
           <View
             className="flex-row mx-4 mb-2"
             style={{
-              backgroundColor: isDark ? "#09090b" : "#f4f4f5",
+              backgroundColor: muted,
               borderRadius: 8,
               padding: 3,
             }}
@@ -516,7 +511,7 @@ export default function ScanScreen() {
                   icon={
                     <Camera
                       size={16}
-                      color={isDark ? "#18181b" : "#ffffff"}
+                      color="#ffffff"
                       strokeWidth={2}
                     />
                   }

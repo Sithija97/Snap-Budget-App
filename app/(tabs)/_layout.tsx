@@ -7,7 +7,7 @@ import {
   ChartPie,
   Settings2,
 } from "lucide-react-native";
-import { useTheme } from "@/context/ThemeContext";
+import { useTheme, useThemeColors } from "@/context/ThemeContext";
 import { brandBlue } from "@/constants/colors";
 import { fabShadow } from "@/constants/shadows";
 import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
@@ -41,11 +41,10 @@ function CustomTabBar({
   insets: any;
 }) {
   const { isDark } = useTheme();
+  const { mutedFg: inactiveColor, border: borderColor } = useThemeColors();
   const activeColor = brandBlue(isDark);
-  const inactiveColor = isDark ? "#a1a1aa" : "#71717a";
-  const borderColor = isDark ? "#27272a" : "#e4e4e7";
-  const bgColor = isDark ? "#09090b" : "#ffffff";
-  const activePillBg = isDark ? "rgba(59,139,255,0.16)" : "rgba(16,115,245,0.1)";
+  const bgColor = isDark ? "#0b0f19" : "#ffffff";
+  const activePillBg = isDark ? "rgba(59,130,246,0.16)" : "rgba(59,130,246,0.1)";
 
   return (
     <View
@@ -126,7 +125,7 @@ function CustomTabBar({
                 fontSize: 11,
                 color,
                 marginTop: 1,
-                fontFamily: isFocused ? "DMSans_500Medium" : "DMSans_400Regular",
+                fontFamily: isFocused ? "Inter_500Medium" : "Inter_400Regular",
               }}
             >
               {tab.label}

@@ -8,7 +8,7 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
-import { useTheme } from '@/context/ThemeContext';
+import { useThemeColors } from '@/context/ThemeContext';
 
 interface SkeletonProps {
   width?: number | `${number}%`;
@@ -25,7 +25,7 @@ interface SkeletonProps {
 // Pulses gently so the wait reads as activity rather than a frozen screen;
 // stays static when the OS reduce-motion setting is on.
 export function Skeleton({ width = 60, height = 14, className = '' }: SkeletonProps) {
-  const { isDark } = useTheme();
+  const { border } = useThemeColors();
   const reduceMotion = useReducedMotion();
   const opacity = useSharedValue(1);
 
@@ -44,7 +44,7 @@ export function Skeleton({ width = 60, height = 14, className = '' }: SkeletonPr
   return (
     <Animated.View
       className={`rounded ${className}`}
-      style={[{ width, height, backgroundColor: isDark ? '#27272a' : '#e4e4e7' }, pulse]}
+      style={[{ width, height, backgroundColor: border }, pulse]}
     />
   );
 }

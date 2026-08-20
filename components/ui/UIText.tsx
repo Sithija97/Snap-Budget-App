@@ -1,17 +1,16 @@
 import { Text, TextProps } from 'react-native';
 
-type Variant = 'default' | 'muted' | 'heading' | 'strong' | 'label' | 'mono' | 'unstyled';
+type Variant = 'default' | 'muted' | 'heading' | 'strong' | 'label' | 'unstyled';
 type Size = 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl';
 
 const variants: Record<Variant, string> = {
   default:  'text-foreground dark:text-foreground-dark font-sans',
   muted:    'text-mutedFg dark:text-mutedFg-dark font-sans',
-  heading:  'text-foreground dark:text-foreground-dark font-medium',
+  heading:  'text-foreground dark:text-foreground-dark font-semibold',
   // For content that needs to outrank a heading — hero amounts, gauge totals,
   // the one number on a screen the eye should land on first.
-  strong:   'text-foreground dark:text-foreground-dark font-semibold',
-  label:    'text-mutedFg dark:text-mutedFg-dark uppercase tracking-widest font-medium',
-  mono:     'text-foreground dark:text-foreground-dark font-mono',
+  strong:   'text-foreground dark:text-foreground-dark font-bold',
+  label:    'text-mutedFg dark:text-mutedFg-dark tracking-widest font-medium',
   // No text-color class — for callers that need to fully control color via `style`
   // (e.g. Button, which computes a per-variant contrasting color against its own background).
   unstyled: 'font-sans',

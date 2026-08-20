@@ -3,7 +3,7 @@ import { View, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
-import { useTheme } from "@/context/ThemeContext";
+import { useTheme, useThemeColors } from "@/context/ThemeContext";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { CategoryType } from "@/types";
 import { TX_ICONS } from "@/constants/icons";
@@ -40,8 +40,7 @@ export default function CategoryFormScreen() {
   const [parentId, setParentId] = useState<string | null>(editing?.parentId ?? null);
   const [saving, setSaving] = useState(false);
 
-  const borderColor = isDark ? "#27272a" : "#e4e4e7";
-  const iconColor   = isDark ? "#a1a1aa" : "#71717a";
+  const { border: borderColor, mutedFg: iconColor } = useThemeColors();
   const accentFill  = brandBlue(isDark);
 
   // Same-type, top-level categories only — a subcategory can't be a parent

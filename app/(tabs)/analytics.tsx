@@ -120,8 +120,8 @@ export default function AnalyticsScreen() {
                   >
                     <View style={{ width: 8, height: 8, borderRadius: 99, backgroundColor: c.color }} />
                     <UIText size="sm" className="flex-1">{c.category}</UIText>
-                    <UIText size="sm" variant="unstyled" className="font-mono text-mutedFg dark:text-mutedFg-dark">{c.pct}%</UIText>
-                    <UIText size="sm" className="font-mono">{fmt(c.amount)}</UIText>
+                    <UIText size="sm" variant="unstyled" className="font-sans text-mutedFg dark:text-mutedFg-dark">{c.pct}%</UIText>
+                    <UIText size="sm" className="font-semibold">{fmt(c.amount)}</UIText>
                   </View>
                 ))
               )}

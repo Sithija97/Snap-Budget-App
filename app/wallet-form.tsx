@@ -3,7 +3,7 @@ import { View, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
-import { useTheme } from "@/context/ThemeContext";
+import { useThemeColors } from "@/context/ThemeContext";
 import { useWalletStore } from "@/store/useWalletStore";
 import { parseAmount } from "@/utils/format";
 import { UIText } from "@/components/ui/UIText";
@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
 export default function WalletFormScreen() {
-  const { isDark } = useTheme();
   const { id } = useLocalSearchParams<{ id?: string }>();
 
   const wallets = useWalletStore((s) => s.wallets);
@@ -29,7 +28,7 @@ export default function WalletFormScreen() {
   );
   const [saving, setSaving] = useState(false);
 
-  const iconColor   = isDark ? "#a1a1aa" : "#71717a";
+  const { mutedFg: iconColor } = useThemeColors();
 
   const canSave = name.trim().length > 0 && !saving;
 

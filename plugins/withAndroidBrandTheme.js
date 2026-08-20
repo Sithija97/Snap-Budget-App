@@ -14,7 +14,7 @@ const { AndroidConfig, withAndroidColors, withAndroidStyles } = require('@expo/c
 // that limitation instead of trying to theme around it. This plugin still
 // sets the app's own AppTheme colorPrimary/colorAccent for the rest of the
 // OS chrome that DOES read it (buttons, other native widgets).
-const BRAND_BLUE = '#1073F5';
+const BRAND_BLUE = '#3b82f6';
 
 function withAndroidBrandColors(config) {
   return withAndroidColors(config, (config) => {

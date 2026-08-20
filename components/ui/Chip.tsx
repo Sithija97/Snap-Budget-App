@@ -1,6 +1,6 @@
 import { ViewStyle, StyleProp } from 'react-native';
 import { UIText } from './UIText';
-import { useTheme } from '@/context/ThemeContext';
+import { useTheme, useThemeColors } from '@/context/ThemeContext';
 import { brandBlue } from '@/constants/colors';
 import { AnimatedPressable } from './AnimatedPressable';
 
@@ -38,6 +38,7 @@ export function Chip({
   style,
 }: ChipProps) {
   const { isDark } = useTheme();
+  const { mutedFg: mutedText, foreground } = useThemeColors();
 
   // Pill selected fill: brand blue in both themes — dark mode uses a
   // lightened variant (brandBlue's dark branch) tuned to read clearly
@@ -45,8 +46,6 @@ export function Chip({
   // selection state carries the same brand color app-wide.
   const accentFill   = brandBlue(isDark);
   const accentText   = '#ffffff';
-  const mutedText    = isDark ? '#a1a1aa' : '#71717a';
-  const foreground    = isDark ? '#fafafa' : '#09090b';
   // Pill unselected surface: an explicit white card-like surface in light
   // mode (previously transparent, which read as borderless/washed-out
   // against the page background) — dark mode is unaffected (card is already

@@ -193,26 +193,33 @@ The app uses a **shadcn/ui-inspired semantic token system** — no hardcoded hex
 
 | Token | Light | Dark | Used for |
 |---|---|---|---|
-| `background` | `#f1f5f9` (slate-100) | `#09090b` | Screen backgrounds — one step below `card` so borderless cards read as surfaces |
+| `background` | `#f1f5f9` (slate-100) | `#0b0f19` | Screen backgrounds — one step below `card` so borderless cards read as surfaces |
 | `foreground` | `#09090b` | `#fafafa` | Primary text |
-| `card` | `#ffffff` | `#18181b` | Card surfaces (dark is elevated above background by design) |
-| `border` | `#e4e4e7` | `#27272a` | Borders, dividers |
-| `input` | `#e4e4e7` | `#27272a` | Input borders |
-| `muted` | `#f4f4f5` | `#27272a` | Muted backgrounds, icon containers — one step above `card` in dark so they stay visible on it |
-| `mutedFg` | `#71717a` | `#a1a1aa` | Secondary / placeholder text |
-| `accent` | `#18181b` | `#fafafa` | Primary button background |
-| `accentFg` | `#fafafa` | `#18181b` | Primary button text |
+| `card` | `#ffffff` | `#1a1f2e` | Card surfaces (dark is elevated above background by design) |
+| `border` | `#e4e4e7` | `#374151` | Borders, dividers |
+| `input` | `#e4e4e7` | `#374151` | Input borders |
+| `muted` | `#f4f4f5` | `#242b3d` | Muted backgrounds, icon containers — one step above `card` in dark so they stay visible on it |
+| `mutedFg` | `#71717a` | `#9ca3af` | Secondary / placeholder text |
+| `accent` | `#18181b` | `#fafafa` | Outline/ghost button text, checkbox fill (grayscale contrast pair; primary buttons use `BRAND_BLUE` instead, see below) |
+| `accentFg` | `#fafafa` | `#18181b` | Contrasting text/icon against `accent` |
 | `destructive` | `#ef4444` | `#ef4444` | Error states, delete actions |
 | `positive` | `#16a34a` | `#22c55e` | Income, under-budget |
 | `negative` | `#dc2626` | `#f87171` | Expense amounts |
 | `warning` | `#d97706` | `#fbbf24` | Near-limit budget |
 | `ring` | `#09090b` | `#d4d4d8` | Focus rings |
 
+`BRAND_BLUE` / `BRAND_BLUE_DARK` (`constants/colors.ts`, both `#3b82f6`) is the single brand accent — not a `tailwind.config.js` token, since it's consumed programmatically (`brandBlue(isDark)`) rather than via className. It drives `Button`'s `variant="default"` background, `Chip`'s selected-pill fill, chart/progress colors, and the Android adaptive icon/notification/splash-tint config in `app.json`.
+
 ### Typography
 
-- **Body / UI text** — DM Sans 400 (`font-sans`)
-- **Headings / labels / medium weight** — DM Sans 500 (`font-medium`)
-- **Monetary values / monospace** — DM Mono 400 (`font-mono`)
+Single family app-wide — Inter (`@expo-google-fonts/inter`), loaded blocking in `app/_layout.tsx` before first paint. Stands in for SF Pro Display/Rounded (the iOS system font): Apple's license doesn't permit bundling actual SF Pro font files in a cross-platform (iOS + Android) app, so Inter — visually close in x-height and letterform neutrality — is used as the open-license equivalent on both platforms.
+
+- **Body / UI text** — Inter 400 (`font-sans`)
+- **Labels / medium weight** — Inter 500 (`font-medium`)
+- **Headings** — Inter 600 (`font-semibold`)
+- **Hero numbers / emphasis** (`UIText variant="strong"`) — Inter 700 (`font-bold`)
+- **Extra-heavy display** — Inter 800/900 (`font-extrabold`/`font-black`) also loaded; used ad hoc where a single figure needs to outrank even `strong` (e.g. Home's "Total spent" hero number uses `font-black` directly rather than through a `UIText` variant).
+- Money amounts render in the same Inter weights as everything else — there is no separate monospace family, so digit alignment across a list isn't guaranteed the way a true mono font would provide.
 - **Currency format** — `Rs X,XXX` via `utils/format.ts → fmt(n)`; the inverse `parseAmount(input)` strips non-numeric characters for form fields
 
 ### Sizing / spacing conventions
@@ -373,7 +380,7 @@ The square 36px icon button (screen-header back buttons, header add/edit actions
 ```tsx
 <Gauge progress={0.7} color={BRAND_BLUE} trackColor={...}>{centered content}</Gauge>
 ```
-`Gauge` is a presentational SVG semicircle (react-native-svg), colors passed in per the JS-driven convention. `BudgetHealthCard` (components/, not components/ui/) composes Card + Badge + Gauge for Home's "Budget health" section; the metric comes from the pure, unit-tested `utils/budgetHealth.ts` (safe-to-spend % across the month's budgets; Good ≥40% left / Watch / Over). `BRAND_BLUE` (#1073F5, sampled from the logo) lives in `constants/colors.ts` and is shared by the tab bar's Scan button and the gauge.
+`Gauge` is a presentational SVG semicircle (react-native-svg), colors passed in per the JS-driven convention. `BudgetHealthCard` (components/, not components/ui/) composes Card + Badge + Gauge for Home's "Budget health" section; the metric comes from the pure, unit-tested `utils/budgetHealth.ts` (safe-to-spend % across the month's budgets; Good ≥40% left / Watch / Over). `BRAND_BLUE` (#3b82f6) lives in `constants/colors.ts` and is shared by the tab bar's Scan button and the gauge.
 
 ### Button
 ```tsx

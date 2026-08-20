@@ -80,3 +80,44 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 }
 
 export const useTheme = () => useContext(ThemeContext);
+
+export interface ThemeColors {
+  /** Secondary/icon text — mutedFg token. */
+  mutedFg: string;
+  /** Borders, dividers, input outlines — border/input token. */
+  border: string;
+  /** Primary text — foreground token. */
+  foreground: string;
+  /** Muted surface backgrounds (icon containers, segmented-control tracks) — muted token. */
+  muted: string;
+  /** Card surface background — card token. */
+  card: string;
+}
+
+// Resolved light/dark values for the tailwind.config.js tokens that don't
+// have a className equivalent at these call sites (JS-driven color props on
+// icons, Switch, inline style objects) — mirrors the *-dark suffix pairs in
+// tailwind.config.js exactly, so a future palette change only needs editing
+// here and there instead of every isDark ? '#..' : '#..' call site (see
+// brandBlue() in constants/colors.ts for the established version of this
+// pattern with a single value instead of five).
+const LIGHT_COLORS: ThemeColors = {
+  mutedFg: '#71717a',
+  border: '#e4e4e7',
+  foreground: '#09090b',
+  muted: '#f4f4f5',
+  card: '#ffffff',
+};
+
+const DARK_COLORS: ThemeColors = {
+  mutedFg: '#9ca3af',
+  border: '#374151',
+  foreground: '#fafafa',
+  muted: '#242b3d',
+  card: '#1a1f2e',
+};
+
+export function useThemeColors(): ThemeColors {
+  const { isDark } = useTheme();
+  return isDark ? DARK_COLORS : LIGHT_COLORS;
+}

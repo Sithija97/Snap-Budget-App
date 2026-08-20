@@ -1,14 +1,17 @@
 import { useMemo } from "react";
-import {
-  ScrollView,
-  View,
-  RefreshControl,
-} from "react-native";
+import { ScrollView, View, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
-import { Plus, ArrowDownLeft, Wallet, Sparkles, Bell, ChevronRight } from "lucide-react-native";
-import { useTheme } from "@/context/ThemeContext";
+import {
+  Plus,
+  ArrowDownLeft,
+  Wallet,
+  Sparkles,
+  Bell,
+  ChevronRight,
+} from "lucide-react-native";
+import { useTheme, useThemeColors } from "@/context/ThemeContext";
 import { brandBlue } from "@/constants/colors";
 import { heroShadow } from "@/constants/shadows";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
@@ -43,6 +46,7 @@ function greeting(hour: number): string {
 
 export default function HomeScreen() {
   const { isDark } = useTheme();
+  const { mutedFg, card } = useThemeColors();
   const { user } = useUser();
   const hasUnseenRecaps = useUnseenRecaps();
   const transactions = useTransactionStore((s) => s.transactions);
@@ -92,7 +96,9 @@ export default function HomeScreen() {
   );
 
   const firstName = user?.firstName?.trim();
-  const headline = firstName ? `${greeting(new Date().getHours())}, ${firstName}` : greeting(new Date().getHours());
+  const headline = firstName
+    ? `${greeting(new Date().getHours())}, ${firstName}`
+    : greeting(new Date().getHours());
 
   return (
     <SafeAreaView
@@ -123,14 +129,20 @@ export default function HomeScreen() {
           </View>
           <View className="flex-row items-center gap-2">
             <IconButton onPress={() => router.push("/assistant")}>
-              <Sparkles size={18} color={isDark ? "#a1a1aa" : "#71717a"} />
+              <Sparkles size={18} color={mutedFg} />
             </IconButton>
-            <IconButton onPress={() => router.push("/recaps")} className="relative">
-              <Bell size={18} color={isDark ? "#a1a1aa" : "#71717a"} />
+            <IconButton
+              onPress={() => router.push("/recaps")}
+              className="relative"
+            >
+              <Bell size={18} color={mutedFg} />
               {hasUnseenRecaps && (
                 <View
                   className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-negative dark:bg-negative-dark"
-                  style={{ borderWidth: 1.5, borderColor: isDark ? "#18181b" : "#ffffff" }}
+                  style={{
+                    borderWidth: 1.5,
+                    borderColor: card,
+                  }}
                 />
               )}
             </IconButton>
@@ -149,7 +161,7 @@ export default function HomeScreen() {
             >
               <View>
                 <UIText size="xs" variant="label">
-                  Total spent
+                  Total Spent
                 </UIText>
                 {isFirstLoad ? (
                   <Skeleton width={140} height={36} className="mt-1.5" />
@@ -158,7 +170,7 @@ export default function HomeScreen() {
                     value={spent}
                     format={fmt}
                     size="3xl"
-                    className="font-mono font-semibold mt-1"
+                    className="font-black tracking-tight mt-1"
                   />
                 )}
               </View>
@@ -198,7 +210,7 @@ export default function HomeScreen() {
                     <UIText
                       size="base"
                       variant="heading"
-                      className="mt-0.5 font-mono"
+                      className="mt-0.5 font-semibold"
                     >
                       {fmt(income)}
                     </UIText>
@@ -220,8 +232,12 @@ export default function HomeScreen() {
                     size={15}
                     color={
                       remaining < 0
-                        ? isDark ? "#f87171" : "#dc2626"
-                        : isDark ? "#22c55e" : "#16a34a"
+                        ? isDark
+                          ? "#f87171"
+                          : "#dc2626"
+                        : isDark
+                          ? "#22c55e"
+                          : "#16a34a"
                     }
                     strokeWidth={2}
                   />
@@ -234,9 +250,9 @@ export default function HomeScreen() {
                     <Skeleton width={70} height={18} className="mt-1" />
                   ) : (
                     <UIText
-                      size="lg"
+                      size="base"
                       variant="unstyled"
-                      className={`mt-0.5 font-medium font-mono ${
+                      className={`mt-0.5 font-semibold ${
                         remaining < 0
                           ? "text-negative dark:text-negative-dark"
                           : "text-positive dark:text-positive-dark"
@@ -264,7 +280,7 @@ export default function HomeScreen() {
             <UIText size="xs" variant="muted">
               See more
             </UIText>
-            <ChevronRight size={13} color={isDark ? "#a1a1aa" : "#71717a"} />
+            <ChevronRight size={13} color={mutedFg} />
           </AnimatedPressable>
         </View>
 
@@ -283,16 +299,16 @@ export default function HomeScreen() {
             <UIText size="xs" variant="muted">
               See all
             </UIText>
-            <ChevronRight size={13} color={isDark ? "#a1a1aa" : "#71717a"} />
+            <ChevronRight size={13} color={mutedFg} />
           </AnimatedPressable>
         </View>
 
         {isFirstLoad ? (
-          <Card className="p-0 px-1 overflow-hidden">
+          <View className="gap-2.5">
             {[0, 1, 2, 3, 4].map((i) => (
               <TransactionItemSkeleton key={i} />
             ))}
-          </Card>
+          </View>
         ) : recent.length === 0 ? (
           <DataState
             status={status}
@@ -301,29 +317,26 @@ export default function HomeScreen() {
             emptyMessage="No transactions yet"
           />
         ) : (
-          <Card className="p-0 overflow-hidden">
-            {recent.map((tx, i) => (
-              <View key={tx.id} className="px-1">
-                <TransactionItem
-                  merchant={tx.merchant}
-                  categoryName={tx.categoryName}
-                  subtitle={formatFullDate(tx.date)}
-                  separator={false}
-                  txType={tx.txType}
-                  amount={tx.amount}
-                  time={tx.time}
-                  icon={tx.categoryIcon}
-                  isLast={i === recent.length - 1}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/transaction/[id]",
-                      params: { id: tx.id },
-                    })
-                  }
-                />
-              </View>
+          <View className="gap-2.5">
+            {recent.map((tx) => (
+              <TransactionItem
+                key={tx.id}
+                merchant={tx.merchant}
+                categoryName={tx.categoryName}
+                subtitle={formatFullDate(tx.date)}
+                txType={tx.txType}
+                amount={tx.amount}
+                time={tx.time}
+                icon={tx.categoryIcon}
+                onPress={() =>
+                  router.push({
+                    pathname: "/transaction/[id]",
+                    params: { id: tx.id },
+                  })
+                }
+              />
             ))}
-          </Card>
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>

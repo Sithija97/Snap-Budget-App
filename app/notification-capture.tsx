@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import * as Notifications from "expo-notifications";
 import { ChevronLeft, ChevronRight, Bell, BellRing } from "lucide-react-native";
-import { useTheme } from "@/context/ThemeContext";
+import { useTheme, useThemeColors } from "@/context/ThemeContext";
 import { useCaptureStore } from "@/store/useCaptureStore";
 import {
   isCaptureAccessGranted,
@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/Input";
 
 export default function NotificationCaptureScreen() {
   const { isDark } = useTheme();
+  const { mutedFg: iconColor, muted } = useThemeColors();
   const allowlist = useCaptureStore((s) => s.allowlist);
   const setAllowlist = useCaptureStore((s) => s.setAllowlist);
 
@@ -37,8 +38,6 @@ export default function NotificationCaptureScreen() {
   // why they never see a "Transaction captured" notification arrive live.
   const [pushGranted, setPushGranted] = useState<boolean | null>(null);
   const [customPackage, setCustomPackage] = useState("");
-
-  const iconColor = isDark ? "#a1a1aa" : "#71717a";
 
   const refreshPushStatus = useCallback(() => {
     Notifications.getPermissionsAsync().then(({ status }) => setPushGranted(status === "granted"));
@@ -128,7 +127,7 @@ export default function NotificationCaptureScreen() {
           <View className="flex-row items-center gap-3 mb-4">
             <View
               className="w-10 h-10 rounded-full items-center justify-center"
-              style={{ backgroundColor: accessGranted ? "rgba(34,197,94,0.12)" : (isDark ? "#27272a" : "#f4f4f5") }}
+              style={{ backgroundColor: accessGranted ? "rgba(34,197,94,0.12)" : muted }}
             >
               <Bell size={18} color={accessGranted ? (isDark ? "#22c55e" : "#16a34a") : iconColor} strokeWidth={1.8} />
             </View>
@@ -171,7 +170,7 @@ export default function NotificationCaptureScreen() {
           <View className="flex-row items-center gap-3 mb-4">
             <View
               className="w-10 h-10 rounded-full items-center justify-center"
-              style={{ backgroundColor: pushGranted ? "rgba(34,197,94,0.12)" : (isDark ? "#27272a" : "#f4f4f5") }}
+              style={{ backgroundColor: pushGranted ? "rgba(34,197,94,0.12)" : muted }}
             >
               <BellRing size={18} color={pushGranted ? (isDark ? "#22c55e" : "#16a34a") : iconColor} strokeWidth={1.8} />
             </View>

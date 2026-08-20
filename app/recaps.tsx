@@ -3,7 +3,7 @@ import { View, ScrollView, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { ChevronLeft, Bell, BellOff } from "lucide-react-native";
-import { useTheme } from "@/context/ThemeContext";
+import { useThemeColors } from "@/context/ThemeContext";
 import { useRecapStore } from "@/store/useRecapStore";
 import { useRefresh } from "@/hooks/useRefresh";
 import { markRecapsSeen } from "@/hooks/useUnseenRecaps";
@@ -16,13 +16,12 @@ import { DataState } from "@/components/ui/DataState";
 import { Skeleton } from "@/components/ui/Skeleton";
 
 export default function RecapsScreen() {
-  const { isDark } = useTheme();
   const recaps = useRecapStore((s) => s.recaps);
   const status = useRecapStore((s) => s.status);
   const fetchAll = useRecapStore((s) => s.fetchAll);
   const { refreshing, onRefresh } = useRefresh(fetchAll);
 
-  const iconColor = isDark ? "#a1a1aa" : "#71717a";
+  const { mutedFg: iconColor } = useThemeColors();
 
   useEffect(() => {
     if (status === "idle" && recaps.length === 0) fetchAll().catch(() => {});

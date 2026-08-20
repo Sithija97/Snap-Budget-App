@@ -15,18 +15,16 @@ import { DisplayTransaction } from "@/hooks/useDisplayTransactions";
 import { TxType } from "@/types";
 import TransactionItem from "@/components/ui/TransactionItem";
 import { UIText } from "@/components/ui/UIText";
-import { Card } from "@/components/ui/Card";
 import { DataState } from "@/components/ui/DataState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { TransactionItemSkeleton } from "@/components/ui/TransactionItemSkeleton";
 import { Chip } from "@/components/ui/Chip";
 import { Input } from "@/components/ui/Input";
 import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
-import { useTheme } from "@/context/ThemeContext";
+import { useThemeColors } from "@/context/ThemeContext";
 import { useRefresh } from "@/hooks/useRefresh";
 
 export default function TransactionsScreen() {
-  const { isDark } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const transactions = useDisplayTransactions();
   const status = useTransactionStore((s) => s.status);
@@ -50,7 +48,7 @@ export default function TransactionsScreen() {
     [setFilter],
   );
 
-  const iconColor = isDark ? "#a1a1aa" : "#71717a";
+  const { mutedFg: iconColor } = useThemeColors();
 
   const renderGroup = useCallback(
     ({ item: g }: { item: TransactionGroup<DisplayTransaction> }) => {
@@ -68,33 +66,31 @@ export default function TransactionsScreen() {
             <UIText
               size="xs"
               variant="unstyled"
-              className={`font-mono ${net < 0 ? "text-negative dark:text-negative-dark" : "text-positive dark:text-positive-dark"}`}
+              className={`font-semibold ${net < 0 ? "text-negative dark:text-negative-dark" : "text-positive dark:text-positive-dark"}`}
             >
               {net < 0 ? "−" : "+"}
               {Math.abs(net).toLocaleString("en-US")}
             </UIText>
           </View>
-          <Card className="p-0 overflow-hidden">
-            {g.txs.map((tx, i) => (
-              <View key={tx.id} className="px-4">
-                <TransactionItem
-                  merchant={tx.merchant}
-                  categoryName={tx.categoryName}
-                  txType={tx.txType}
-                  amount={tx.amount}
-                  time={tx.time}
-                  icon={tx.categoryIcon}
-                  isLast={i === g.txs.length - 1}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/transaction/[id]",
-                      params: { id: tx.id },
-                    })
-                  }
-                />
-              </View>
+          <View className="gap-2.5">
+            {g.txs.map((tx) => (
+              <TransactionItem
+                key={tx.id}
+                merchant={tx.merchant}
+                categoryName={tx.categoryName}
+                txType={tx.txType}
+                amount={tx.amount}
+                time={tx.time}
+                icon={tx.categoryIcon}
+                onPress={() =>
+                  router.push({
+                    pathname: "/transaction/[id]",
+                    params: { id: tx.id },
+                  })
+                }
+              />
             ))}
-          </Card>
+          </View>
         </View>
       );
     },
@@ -186,16 +182,16 @@ export default function TransactionsScreen() {
             }
             emptyIcon={Receipt}
             loadingSkeleton={
-              // Mirrors a rendered group: date label, then a card of rows
+              // Mirrors a rendered group: date label, then a stack of item cards
               <View className="mb-4">
                 <View className="py-2">
                   <Skeleton width={60} height={11} />
                 </View>
-                <Card className="p-0 px-4 overflow-hidden">
+                <View className="gap-2.5">
                   {[0, 1, 2, 3, 4].map((i) => (
                     <TransactionItemSkeleton key={i} />
                   ))}
-                </Card>
+                </View>
               </View>
             }
           />

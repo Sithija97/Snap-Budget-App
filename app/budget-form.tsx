@@ -3,7 +3,7 @@ import { View, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { Check, ChevronLeft } from "lucide-react-native";
-import { useTheme } from "@/context/ThemeContext";
+import { useTheme, useThemeColors } from "@/context/ThemeContext";
 import { useBudgetStore } from "@/store/useBudgetStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { parseAmount } from "@/utils/format";
@@ -36,8 +36,7 @@ export default function BudgetFormScreen() {
   const [repeat, setRepeat] = useState(editing?.repeat ?? false);
   const [saving, setSaving] = useState(false);
 
-  const borderColor = isDark ? "#27272a" : "#e4e4e7";
-  const iconColor   = isDark ? "#a1a1aa" : "#71717a";
+  const { border: borderColor, mutedFg: iconColor } = useThemeColors();
   const accentFill  = isDark ? "#fafafa" : "#18181b";
 
   // Budgets are for expense categories only

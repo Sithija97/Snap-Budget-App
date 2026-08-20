@@ -5,7 +5,7 @@ import { BRAND_BLUE, BRAND_BLUE_DARK } from "./colors";
 describe("chartTheme", () => {
   it("resolves light and dark track/axis colors distinctly", () => {
     expect(chartTheme(false)).toEqual({ track: "#e4e4e7", axisText: "#71717a" });
-    expect(chartTheme(true)).toEqual({ track: "#27272a", axisText: "#a1a1aa" });
+    expect(chartTheme(true)).toEqual({ track: "#374151", axisText: "#9ca3af" });
   });
 });
 

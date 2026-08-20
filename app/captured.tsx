@@ -3,7 +3,7 @@ import { View, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { ChevronLeft, Inbox, Sparkles, Cpu } from "lucide-react-native";
-import { useTheme } from "@/context/ThemeContext";
+import { useThemeColors } from "@/context/ThemeContext";
 import { useCaptureStore } from "@/store/useCaptureStore";
 import { CaptureSource } from "@/types/capture";
 import { TxType } from "@/types";
@@ -23,11 +23,10 @@ const SOURCE_LABEL: Record<CaptureSource, string> = {
 };
 
 export default function CapturedScreen() {
-  const { isDark } = useTheme();
   const suggestions = useCaptureStore((s) => s.suggestions);
   const dismissSuggestion = useCaptureStore((s) => s.dismissSuggestion);
 
-  const iconColor = isDark ? "#a1a1aa" : "#71717a";
+  const { mutedFg: iconColor } = useThemeColors();
 
   const pending = useMemo(() => suggestions.filter((s) => s.status === "pending"), [suggestions]);
 
@@ -90,7 +89,7 @@ export default function CapturedScreen() {
                   <UIText
                     size="lg"
                     variant="unstyled"
-                    className={`font-mono font-semibold ${isIncome ? "text-positive dark:text-positive-dark" : "text-negative dark:text-negative-dark"}`}
+                    className={`font-semibold ${isIncome ? "text-positive dark:text-positive-dark" : "text-negative dark:text-negative-dark"}`}
                   >
                     {isIncome ? "+" : "−"}Rs {s.amount.toLocaleString("en-US")}
                   </UIText>

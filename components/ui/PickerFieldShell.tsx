@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { Platform, View } from 'react-native';
 import { UIText } from './UIText';
-import { useTheme } from '@/context/ThemeContext';
+import { useTheme, useThemeColors } from '@/context/ThemeContext';
 import { AnimatedPressable } from './AnimatedPressable';
 
 interface PickerFieldShellProps {
@@ -28,10 +28,8 @@ interface PickerFieldShellProps {
 // treatment) only needs to be made once.
 export function PickerFieldShell({ displayText, disabled, onPress, icon, webInputProps }: PickerFieldShellProps) {
   const { isDark } = useTheme();
-
-  const borderColor = isDark ? '#27272a' : '#e4e4e7';
-  const inputBg = isDark ? '#09090b' : '#ffffff';
-  const inputText = isDark ? '#fafafa' : '#09090b';
+  const { border: borderColor, foreground: inputText } = useThemeColors();
+  const inputBg = isDark ? '#242b3d' : '#ffffff';
 
   if (Platform.OS === 'web') {
     return (
@@ -95,6 +93,6 @@ export function PickerFieldShell({ displayText, disabled, onPress, icon, webInpu
 }
 
 export function usePickerFieldIconColor(): string {
-  const { isDark } = useTheme();
-  return isDark ? '#a1a1aa' : '#71717a';
+  const { mutedFg } = useThemeColors();
+  return mutedFg;
 }
