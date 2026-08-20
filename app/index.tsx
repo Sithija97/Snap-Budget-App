@@ -277,37 +277,38 @@ export default function HomeScreen() {
         {/* Quick access — Wallets/Categories/Budget have no other entry
             point from Home; without this row they were only reachable two
             taps deep via Settings, which a first-time user has no reason to
-            open before they've ever tried to add a wallet or category. A
-            single thin strip (not three full tiles) — these are secondary
-            navigation, not data, so they shouldn't claim as much vertical
-            space as the hero card or the budget gauge just below. */}
-        <View className="flex-row items-stretch mt-4 rounded-2xl bg-card dark:bg-card-dark overflow-hidden">
+            open before they've ever tried to add a wallet or category. Three
+            separate cards with real gaps (not one strip with thin dividers)
+            — a single connected card with 1px internal dividers read as a
+            segmented control rather than three independently tappable
+            buttons, which wasn't obvious enough at a glance. Still compact
+            (py-3, not full square tiles) so it doesn't compete with the hero
+            card or the budget gauge just below for vertical space. */}
+        <View className="flex-row gap-2 mt-4">
           <AnimatedPressable
             onPress={() => router.push("/wallets")}
             wrapperClassName="flex-1"
-            className="flex-row items-center justify-center gap-1.5 py-3"
+            className="flex-row items-center justify-center gap-1.5 py-3 rounded-2xl bg-card dark:bg-card-dark"
             accessibilityLabel="Open wallets"
             accessibilityRole="button"
           >
             <WalletCards size={15} color={mutedFg} strokeWidth={1.8} />
             <UIText size="xs" variant="heading">Wallets</UIText>
           </AnimatedPressable>
-          <View className="w-px my-2.5 bg-border dark:bg-border-dark" />
           <AnimatedPressable
             onPress={() => router.push("/categories")}
             wrapperClassName="flex-1"
-            className="flex-row items-center justify-center gap-1.5 py-3"
+            className="flex-row items-center justify-center gap-1.5 py-3 rounded-2xl bg-card dark:bg-card-dark"
             accessibilityLabel="Open categories"
             accessibilityRole="button"
           >
             <Shapes size={15} color={mutedFg} strokeWidth={1.8} />
             <UIText size="xs" variant="heading">Categories</UIText>
           </AnimatedPressable>
-          <View className="w-px my-2.5 bg-border dark:bg-border-dark" />
           <AnimatedPressable
             onPress={() => router.push("/budget-form")}
             wrapperClassName="flex-1"
-            className="flex-row items-center justify-center gap-1.5 py-3"
+            className="flex-row items-center justify-center gap-1.5 py-3 rounded-2xl bg-card dark:bg-card-dark"
             accessibilityLabel="Open budget"
             accessibilityRole="button"
           >
