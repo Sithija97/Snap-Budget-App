@@ -1,5 +1,6 @@
 import { View } from "react-native";
 import { router } from "expo-router";
+import { Pencil } from "lucide-react-native";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Gauge } from "@/components/ui/Gauge";
@@ -29,15 +30,16 @@ interface Props {
 // `health` (utils/budgetHealth) and passes it in, same split as TransactionItem.
 export function BudgetHealthCard({ health, loading }: Props) {
   const { isDark } = useTheme();
-  const { border: trackColor } = useThemeColors();
+  const { border: trackColor, mutedFg } = useThemeColors();
 
   if (loading) {
-    // Mirrors the loaded layout (badge top-right, gauge arc, caption) so the
-    // card doesn't reflow when real data arrives.
+    // Mirrors the loaded layout (badge + edit button top-right, gauge arc,
+    // caption) so the card doesn't reflow when real data arrives.
     return (
       <Card className="items-center">
-        <View className="self-end">
+        <View className="flex-row items-center justify-between w-full">
           <Skeleton width={44} height={22} className="rounded-full" />
+          <Skeleton width={22} height={22} className="rounded-full" />
         </View>
         <Skeleton width={190} height={95} className="rounded-t-full mt-1" />
         <Skeleton width={80} height={11} className="mt-3 mb-1" />
@@ -67,8 +69,15 @@ export function BudgetHealthCard({ health, loading }: Props) {
 
   return (
     <Card className="items-center">
-      <View className="self-end">
+      <View className="flex-row items-center justify-between w-full">
         <Badge label={badge.label} variant={badge.variant} />
+        <AnimatedPressable
+          onPress={() => router.push("/budget-form")}
+          contentStyle={{ padding: 4 }}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Pencil size={14} color={mutedFg} />
+        </AnimatedPressable>
       </View>
       <Gauge
         progress={health.safePercent / 100}

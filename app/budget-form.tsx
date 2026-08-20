@@ -1,63 +1,55 @@
 import { useState } from "react";
 import { View, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router, useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
 import { Check, ChevronLeft } from "lucide-react-native";
 import { useTheme, useThemeColors } from "@/context/ThemeContext";
 import { useBudgetStore } from "@/store/useBudgetStore";
-import { useCategoryStore } from "@/store/useCategoryStore";
 import { parseAmount } from "@/utils/format";
 import { currentMonth } from "@/utils/dates";
 import { UIText } from "@/components/ui/UIText";
 import { IconButton } from "@/components/ui/IconButton";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Chip } from "@/components/ui/Chip";
 import { Input } from "@/components/ui/Input";
 import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 
 export default function BudgetFormScreen() {
   const { isDark } = useTheme();
-  const params = useLocalSearchParams<{ id?: string; categoryId?: string }>();
 
   const budgets = useBudgetStore((s) => s.budgets);
   const addBudget = useBudgetStore((s) => s.addBudget);
   const updateBudget = useBudgetStore((s) => s.updateBudget);
   const deleteBudget = useBudgetStore((s) => s.deleteBudget);
-  const categories = useCategoryStore((s) => s.categories);
 
-  const editing = budgets.find((b) => b.id === params.id);
-  const month = editing?.month ?? currentMonth();
+  const month = currentMonth();
+  // At most one budget per (user, month), enforced by the backend's unique
+  // index — the screen determines edit-vs-create itself rather than taking
+  // an id/categoryId param, since there's nothing else to disambiguate.
+  const editing = budgets.find((b) => b.month === month);
 
-  const [categoryId, setCategoryId] = useState<string | null>(
-    editing?.categoryId ?? params.categoryId ?? null
-  );
   const [amount, setAmount] = useState(editing ? String(editing.limitAmount) : "");
   const [repeat, setRepeat] = useState(editing?.repeat ?? false);
   const [saving, setSaving] = useState(false);
 
   const { border: borderColor, mutedFg: iconColor } = useThemeColors();
-  const accentFill  = isDark ? "#fafafa" : "#18181b";
-
-  // Budgets are for expense categories only
-  const expenseCategories = categories.filter((c) => c.type === "expense");
+  const accentFill = isDark ? "#fafafa" : "#18181b";
 
   const monthLabel = new Date(`${month}-01`).toLocaleDateString("en-US", {
     month: "long",
     year: "numeric",
   });
 
-  const canSave = categoryId !== null && parseAmount(amount) > 0 && !saving;
+  const canSave = parseAmount(amount) > 0 && !saving;
 
   const handleSave = async () => {
-    if (!categoryId) return;
     const limitAmount = parseAmount(amount);
     setSaving(true);
     try {
       if (editing) {
-        await updateBudget(editing.id, { categoryId, limitAmount, repeat });
+        await updateBudget(editing.id, { limitAmount, repeat });
       } else {
-        await addBudget({ categoryId, limitAmount, month, repeat });
+        await addBudget({ limitAmount, month, repeat });
       }
       router.back();
     } catch (e: any) {
@@ -104,20 +96,14 @@ export default function BudgetFormScreen() {
         </View>
 
         <Card className="mx-4 mt-4 gap-3">
-          <UIText size="xs" variant="label">Category</UIText>
-          <View className="flex-row flex-wrap gap-2">
-            {expenseCategories.map((c) => (
-              <Chip key={c.id} label={c.name} selected={categoryId === c.id} onPress={() => setCategoryId(c.id)} />
-            ))}
-          </View>
-
-          <UIText size="xs" variant="label" className="mt-2">Monthly limit</UIText>
+          <UIText size="xs" variant="label">Monthly limit</UIText>
           <Input
             placeholder="Rs 0"
             value={amount}
             onChangeText={(v) => setAmount(v.replace(/[^0-9.]/g, ""))}
             keyboardType="numeric"
             returnKeyType="done"
+            autoFocus
           />
 
           <View className="flex-row items-center justify-between mt-2">

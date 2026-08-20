@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { ScrollView, View, RefreshControl } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
 import {
@@ -9,17 +9,15 @@ import {
   Wallet,
   Sparkles,
   Bell,
+  Settings2,
+  ScanLine,
   ChevronRight,
 } from "lucide-react-native";
 import { useTheme, useThemeColors } from "@/context/ThemeContext";
 import { brandBlue } from "@/constants/colors";
-import { heroShadow } from "@/constants/shadows";
+import { heroShadow, fabShadow } from "@/constants/shadows";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
-import {
-  useTransactionStore,
-  totalsForMonth,
-  spentByCategoryInMonth,
-} from "@/store/useTransactionStore";
+import { useTransactionStore, totalsForMonth } from "@/store/useTransactionStore";
 import { useBudgetStore, budgetsForMonth } from "@/store/useBudgetStore";
 import { budgetHealth } from "@/utils/budgetHealth";
 import { BudgetHealthCard } from "@/components/BudgetHealthCard";
@@ -47,6 +45,7 @@ function greeting(hour: number): string {
 export default function HomeScreen() {
   const { isDark } = useTheme();
   const { mutedFg, card } = useThemeColors();
+  const insets = useSafeAreaInsets();
   const { user } = useUser();
   const hasUnseenRecaps = useUnseenRecaps();
   const transactions = useTransactionStore((s) => s.transactions);
@@ -75,13 +74,13 @@ export default function HomeScreen() {
     [displayTransactions],
   );
 
+  const monthBudget = useMemo(
+    () => budgetsForMonth(budgets, month)[0],
+    [budgets, month],
+  );
   const health = useMemo(
-    () =>
-      budgetHealth(
-        budgetsForMonth(budgets, month),
-        spentByCategoryInMonth(transactions, month),
-      ),
-    [budgets, transactions, month],
+    () => budgetHealth(monthBudget, spent),
+    [monthBudget, spent],
   );
   const healthLoading =
     isFirstLoad || (budgetStatus === "loading" && budgets.length === 0);
@@ -145,6 +144,9 @@ export default function HomeScreen() {
                   }}
                 />
               )}
+            </IconButton>
+            <IconButton onPress={() => router.push("/settings")}>
+              <Settings2 size={18} color={mutedFg} />
             </IconButton>
           </View>
         </View>
@@ -273,7 +275,7 @@ export default function HomeScreen() {
             Budget health
           </UIText>
           <AnimatedPressable
-            onPress={() => router.push("/(tabs)/analytics")}
+            onPress={() => router.push("/analytics")}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             className="flex-row items-center gap-0.5"
           >
@@ -292,7 +294,7 @@ export default function HomeScreen() {
             Recent transactions
           </UIText>
           <AnimatedPressable
-            onPress={() => router.push("/(tabs)/transactions")}
+            onPress={() => router.push("/transactions")}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             className="flex-row items-center gap-0.5"
           >
@@ -339,6 +341,36 @@ export default function HomeScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Single floating action button — replaces the removed bottom tab
+          bar's center Scan button. Absolutely positioned as a sibling to the
+          ScrollView (not inside scrollable content) so it stays fixed while
+          the page scrolls. */}
+      <AnimatedPressable
+        pressScale={0.92}
+        style={[
+          {
+            position: "absolute",
+            right: 16,
+            bottom: insets.bottom + 16,
+            width: 56,
+            height: 56,
+            borderRadius: 28,
+          },
+          fabShadow(isDark),
+        ]}
+        contentStyle={{
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          backgroundColor: brandBlue(isDark),
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+        onPress={() => router.push("/scan")}
+      >
+        <ScanLine size={24} color="#ffffff" strokeWidth={2} />
+      </AnimatedPressable>
     </SafeAreaView>
   );
 }

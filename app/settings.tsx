@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import * as Notifications from "expo-notifications";
 import {
+  ChevronLeft,
   ChevronRight,
   Download,
   LogOut,
@@ -37,6 +38,7 @@ import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { TimeField } from "@/components/ui/TimeField";
+import { IconButton } from "@/components/ui/IconButton";
 import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 
 type ThemeOption = 'light' | 'system' | 'dark';
@@ -226,7 +228,16 @@ export default function SettingsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32 }}
       >
-        <UIText size="xl" variant="heading" className="mb-4">Settings</UIText>
+        {/* Header */}
+        <View className="flex-row items-center mb-4">
+          <IconButton onPress={() => router.back()} className="mr-3">
+            <ChevronLeft size={20} color={mutedFg} />
+          </IconButton>
+          <UIText size="base" variant="heading" className="flex-1 text-center">
+            Settings
+          </UIText>
+          <View className="w-9" />
+        </View>
 
         {/* Profile */}
         <Card>

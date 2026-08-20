@@ -50,16 +50,17 @@ export const categories = pgTable("categories", {
   ),
 ]);
 
+// One row per user per month — a single aggregate spending limit covering
+// all expense categories combined, not a per-category breakdown. The unique
+// index enforces "at most one budget per user per month" at the DB level.
 export const budgets = pgTable("budgets", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  categoryId: uuid("category_id").notNull().references(() => categories.id, { onDelete: "cascade" }),
   limitAmount: numeric("limit_amount", { mode: "number" }).notNull(),
   month: text("month").notNull(), // "YYYY-MM"
   repeat: boolean("repeat").notNull().default(false),
 }, (table) => [
-  index("budgets_user_id_month_idx").on(table.userId, table.month),
-  index("budgets_category_id_idx").on(table.categoryId),
+  uniqueIndex("budgets_user_id_month_unique_idx").on(table.userId, table.month),
 ]);
 
 // One row per linked messaging account. `channel` + `externalId` (the

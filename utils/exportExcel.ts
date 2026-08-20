@@ -31,7 +31,6 @@ export async function exportDataAsExcel(data: ExportData): Promise<void> {
 
   const budgetRows = data.budgets.map((b) => ({
     Month: b.month,
-    Category: categoryName(b.categoryId),
     "Limit (Rs)": b.limitAmount,
     Repeats: b.repeat ? "Yes" : "No",
   }));

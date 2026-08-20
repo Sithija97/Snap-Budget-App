@@ -108,10 +108,24 @@ function InnerLayout() {
   // every `dark:*` className in the app silently never activates.
   return (
     <View className={isDark ? "dark flex-1" : "flex-1"}>
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          // Native screen transitions briefly reveal this container's own
+          // background at the edge before the incoming screen's content
+          // paints — without an explicit dark value here it defaults to
+          // white, showing as a flash/sliver during push/pop in dark mode.
+          // Values match tailwind.config.js's background token.
+          contentStyle: { backgroundColor: isDark ? "#0b0f19" : "#f1f5f9" },
+        }}
+      >
         <Stack.Protected guard={!!isSignedIn}>
-          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="index" />
           <Stack.Screen name="scan" options={{ presentation: "modal" }} />
+          <Stack.Screen name="budget-form" options={{ presentation: "modal" }} />
+          <Stack.Screen name="wallet-form" options={{ presentation: "modal" }} />
+          <Stack.Screen name="category-form" options={{ presentation: "modal" }} />
+          <Stack.Screen name="transaction/[id]" options={{ presentation: "modal" }} />
           <Stack.Screen name="captured" />
           <Stack.Screen name="notification-capture" />
         </Stack.Protected>

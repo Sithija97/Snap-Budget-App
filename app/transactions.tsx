@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { View, FlatList, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { Search, X, Receipt } from "lucide-react-native";
+import { Search, X, Receipt, ChevronLeft } from "lucide-react-native";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { useDisplayTransactions } from "@/hooks/useDisplayTransactions";
 import {
@@ -20,6 +20,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { TransactionItemSkeleton } from "@/components/ui/TransactionItemSkeleton";
 import { Chip } from "@/components/ui/Chip";
 import { Input } from "@/components/ui/Input";
+import { IconButton } from "@/components/ui/IconButton";
 import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
 import { useThemeColors } from "@/context/ThemeContext";
 import { useRefresh } from "@/hooks/useRefresh";
@@ -118,9 +119,14 @@ export default function TransactionsScreen() {
         ListHeaderComponent={
           <>
             {/* Header */}
-            <UIText size="xl" variant="heading" className="mb-4">
-              Transactions
-            </UIText>
+            <View className="flex-row items-center mb-4 gap-3">
+              <IconButton onPress={() => router.back()}>
+                <ChevronLeft size={20} color={iconColor} />
+              </IconButton>
+              <UIText size="xl" variant="heading">
+                Transactions
+              </UIText>
+            </View>
 
             {/* Search bar */}
             <View className="relative justify-center">

@@ -34,9 +34,10 @@ export interface Transaction {
   receiptKey?: string | null; // Cloudinary public_id, set only when created from a scan
 }
 
+// One budget per user per month — a single aggregate spending limit
+// covering all expense categories, not a per-category breakdown.
 export interface Budget {
   id:          string;
-  categoryId:  string;
   limitAmount: number;
   month:       string;        // "YYYY-MM"
   repeat:      boolean;

@@ -251,7 +251,7 @@ export default function LoginScreen() {
   const handleGoogleAuth = useCallback(async () => {
     try {
       const { createdSessionId, setActive } = await startOAuthFlow({
-        redirectUrl: Linking.createURL("/(tabs)"),
+        redirectUrl: Linking.createURL("/"),
       });
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
