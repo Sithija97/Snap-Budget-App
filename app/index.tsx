@@ -9,7 +9,7 @@ import {
   Wallet,
   Sparkles,
   Bell,
-  Settings2,
+  Settings,
   ScanLine,
   ChevronRight,
   WalletCards,
@@ -159,7 +159,7 @@ export default function HomeScreen() {
               accessibilityLabel="Open settings"
               accessibilityRole="button"
             >
-              <Settings2 size={18} color={mutedFg} />
+              <Settings size={18} color={mutedFg} />
             </IconButton>
           </View>
         </View>
