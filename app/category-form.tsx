@@ -40,7 +40,7 @@ export default function CategoryFormScreen() {
   const [parentId, setParentId] = useState<string | null>(editing?.parentId ?? null);
   const [saving, setSaving] = useState(false);
 
-  const { border: borderColor, mutedFg: iconColor } = useThemeColors();
+  const { mutedFg: iconColor, muted } = useThemeColors();
   const accentFill  = brandBlue(isDark);
 
   // Same-type, top-level categories only — a subcategory can't be a parent
@@ -114,13 +114,16 @@ export default function CategoryFormScreen() {
           <View className="w-9" />
         </View>
 
+        {/* Details — name is the field that actually needs a keyboard/typing
+            focus, kept alone with just the type badge for context so it
+            isn't visually diluted by the icon grid/parent picker below. */}
         <Card className="mx-4 mt-4 gap-3">
           <View className="flex-row items-center justify-between">
             <UIText size="xs" variant="label">Type</UIText>
             <Badge label={type === "expense" ? "Expense" : "Income"} variant="outline" />
           </View>
 
-          <UIText size="xs" variant="label" className="mt-2">Name</UIText>
+          <UIText size="xs" variant="label" className="mt-1">Name</UIText>
           <Input
             placeholder="e.g. Groceries"
             value={name}
@@ -128,9 +131,16 @@ export default function CategoryFormScreen() {
             autoCapitalize="words"
             returnKeyType="done"
           />
+        </Card>
 
-          <UIText size="xs" variant="label" className="mt-2">Icon</UIText>
-          <View className="flex-row flex-wrap gap-2">
+        {/* Icon — its own card so the tactile picker reads as one deliberate
+            selection moment rather than another field in a long stack. The
+            active icon gets a solid brand-fill circle (not just a border) so
+            the selected state is legible at a glance, matching the tactile
+            chip-selection pattern used for the parent picker below. */}
+        <Card className="mx-4 mt-3 gap-3">
+          <UIText size="xs" variant="label">Icon</UIText>
+          <View className="flex-row flex-wrap gap-2.5">
             {ICON_KEYS.map((key) => {
               const Icon = TX_ICONS[key];
               const isActive = icon === key;
@@ -140,22 +150,26 @@ export default function CategoryFormScreen() {
                   onPress={() => setIcon(key)}
                   pressScale={0.9}
                   contentStyle={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 8,
+                    width: 44,
+                    height: 44,
+                    borderRadius: 22,
                     alignItems: "center",
                     justifyContent: "center",
-                    borderWidth: 1,
-                    borderColor: isActive ? accentFill : borderColor,
+                    backgroundColor: isActive ? accentFill : muted,
                   }}
                 >
-                  <Icon size={16} color={isActive ? accentFill : iconColor} strokeWidth={1.8} />
+                  <Icon size={18} color={isActive ? "#ffffff" : iconColor} strokeWidth={1.8} />
                 </AnimatedPressable>
               );
             })}
           </View>
+        </Card>
 
-          <UIText size="xs" variant="label" className="mt-2">Parent category (optional)</UIText>
+        {/* Parent category — its own labeled group, separated from Icon so
+            two different "pick one of these" interactions don't blur
+            together into a single undifferentiated block. */}
+        <Card className="mx-4 mt-3 gap-3">
+          <UIText size="xs" variant="label">Parent category (optional)</UIText>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -176,11 +190,12 @@ export default function CategoryFormScreen() {
               );
             })}
           </ScrollView>
+        </Card>
 
+        <View className="mx-4 mt-4 gap-2">
           <Button
             label={saving ? "Saving..." : "Save Category"}
             variant="default"
-            className="mt-2"
             disabled={!canSave}
             onPress={handleSave}
           />
@@ -192,7 +207,7 @@ export default function CategoryFormScreen() {
               onPress={handleDelete}
             />
           )}
-        </Card>
+        </View>
       </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

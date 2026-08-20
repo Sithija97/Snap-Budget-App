@@ -77,8 +77,8 @@ export default function TransactionsScreen() {
               {Math.abs(net).toLocaleString("en-US")}
             </UIText>
           </View>
-          <View className="gap-2.5">
-            {g.txs.map((tx) => (
+          <View>
+            {g.txs.map((tx, i) => (
               <TransactionItem
                 key={tx.id}
                 merchant={tx.merchant}
@@ -87,6 +87,8 @@ export default function TransactionsScreen() {
                 amount={tx.amount}
                 time={tx.time}
                 icon={tx.categoryIcon}
+                isFirst={i === 0}
+                isLast={i === g.txs.length - 1}
                 onPress={() => openTransaction(tx.id)}
               />
             ))}
@@ -192,14 +194,14 @@ export default function TransactionsScreen() {
                 : { label: "Add a transaction", onPress: () => router.push("/scan") }
             }
             loadingSkeleton={
-              // Mirrors a rendered group: date label, then a stack of item cards
+              // Mirrors a rendered group: date label, then a flat-row stack
               <View className="mb-4">
                 <View className="py-2">
                   <Skeleton width={60} height={11} />
                 </View>
-                <View className="gap-2.5">
+                <View>
                   {[0, 1, 2, 3, 4].map((i) => (
-                    <TransactionItemSkeleton key={i} />
+                    <TransactionItemSkeleton key={i} isFirst={i === 0} isLast={i === 4} />
                   ))}
                 </View>
               </View>

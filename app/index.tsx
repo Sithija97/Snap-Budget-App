@@ -277,52 +277,48 @@ export default function HomeScreen() {
         {/* Quick access — Wallets/Categories/Budget have no other entry
             point from Home; without this row they were only reachable two
             taps deep via Settings, which a first-time user has no reason to
-            open before they've ever tried to add a wallet or category.
-            Each gets its own tinted icon circle (same pattern as the hero
-            card's Income/Remaining rows) so the row reads as three distinct
-            actions rather than one flat gray block. */}
-        <View className="flex-row gap-2.5 mt-4">
+            open before they've ever tried to add a wallet or category. A
+            single thin strip (not three full tiles) — these are secondary
+            navigation, not data, so they shouldn't claim as much vertical
+            space as the hero card or the budget gauge just below. */}
+        <View className="flex-row items-stretch mt-4 rounded-2xl bg-card dark:bg-card-dark overflow-hidden">
           <AnimatedPressable
             onPress={() => router.push("/wallets")}
             wrapperClassName="flex-1"
-            className="items-center py-4 rounded-2xl bg-card dark:bg-card-dark gap-2"
+            className="flex-row items-center justify-center gap-1.5 py-3"
             accessibilityLabel="Open wallets"
             accessibilityRole="button"
           >
-            <View className="w-10 h-10 rounded-full items-center justify-center bg-[#3b82f6]/10 dark:bg-[#3b82f6]/15">
-              <WalletCards size={19} color={brandBlue(isDark)} strokeWidth={2} />
-            </View>
+            <WalletCards size={15} color={mutedFg} strokeWidth={1.8} />
             <UIText size="xs" variant="heading">Wallets</UIText>
           </AnimatedPressable>
+          <View className="w-px my-2.5 bg-border dark:bg-border-dark" />
           <AnimatedPressable
             onPress={() => router.push("/categories")}
             wrapperClassName="flex-1"
-            className="items-center py-4 rounded-2xl bg-card dark:bg-card-dark gap-2"
+            className="flex-row items-center justify-center gap-1.5 py-3"
             accessibilityLabel="Open categories"
             accessibilityRole="button"
           >
-            <View className="w-10 h-10 rounded-full items-center justify-center bg-[#f59e0b]/10 dark:bg-[#f59e0b]/15">
-              <Shapes size={19} color="#f59e0b" strokeWidth={2} />
-            </View>
+            <Shapes size={15} color={mutedFg} strokeWidth={1.8} />
             <UIText size="xs" variant="heading">Categories</UIText>
           </AnimatedPressable>
+          <View className="w-px my-2.5 bg-border dark:bg-border-dark" />
           <AnimatedPressable
             onPress={() => router.push("/budget-form")}
             wrapperClassName="flex-1"
-            className="items-center py-4 rounded-2xl bg-card dark:bg-card-dark gap-2"
+            className="flex-row items-center justify-center gap-1.5 py-3"
             accessibilityLabel="Open budget"
             accessibilityRole="button"
           >
-            <View className="w-10 h-10 rounded-full items-center justify-center bg-positive/10 dark:bg-positive-dark/10">
-              <Target size={19} color={positive} strokeWidth={2} />
-            </View>
+            <Target size={15} color={mutedFg} strokeWidth={1.8} />
             <UIText size="xs" variant="heading">Budget</UIText>
           </AnimatedPressable>
         </View>
 
         {/* Budget health */}
         <View className="flex-row items-center justify-between mt-4 mb-3">
-          <UIText size="sm" variant="heading">
+          <UIText size="lg" variant="heading">
             Budget health
           </UIText>
           <AnimatedPressable
@@ -341,7 +337,7 @@ export default function HomeScreen() {
 
         {/* Recent transactions */}
         <View className="flex-row items-center justify-between mt-4 mb-3">
-          <UIText size="sm" variant="heading">
+          <UIText size="lg" variant="heading">
             Recent transactions
           </UIText>
           <AnimatedPressable
@@ -357,9 +353,9 @@ export default function HomeScreen() {
         </View>
 
         {isFirstLoad ? (
-          <View className="gap-2.5">
+          <View>
             {[0, 1, 2, 3, 4].map((i) => (
-              <TransactionItemSkeleton key={i} />
+              <TransactionItemSkeleton key={i} isFirst={i === 0} isLast={i === 4} />
             ))}
           </View>
         ) : recent.length === 0 ? (
@@ -370,8 +366,8 @@ export default function HomeScreen() {
             emptyMessage="No transactions yet"
           />
         ) : (
-          <View className="gap-2.5">
-            {recent.map((tx) => (
+          <View>
+            {recent.map((tx, i) => (
               <TransactionItem
                 key={tx.id}
                 merchant={tx.merchant}
@@ -381,6 +377,8 @@ export default function HomeScreen() {
                 amount={tx.amount}
                 time={tx.time}
                 icon={tx.categoryIcon}
+                isFirst={i === 0}
+                isLast={i === recent.length - 1}
                 onPress={() =>
                   router.push({
                     pathname: "/transaction/[id]",

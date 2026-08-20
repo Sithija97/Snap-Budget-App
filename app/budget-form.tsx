@@ -100,8 +100,14 @@ export default function BudgetFormScreen() {
           <View className="w-9" />
         </View>
 
+        {/* Amount — the one number that matters on this screen, given room
+            to breathe on its own card rather than sharing one long stack
+            with the period readout and the repeat toggle below it. */}
         <Card className="mx-4 mt-4 gap-3">
-          <UIText size="xs" variant="label">Monthly limit</UIText>
+          <View className="flex-row items-center justify-between">
+            <UIText size="xs" variant="label">Monthly limit</UIText>
+            <UIText size="xs" variant="muted">{monthLabel}</UIText>
+          </View>
           <Input
             placeholder="Rs 0"
             value={amount}
@@ -109,24 +115,23 @@ export default function BudgetFormScreen() {
             keyboardType="numeric"
             returnKeyType="done"
             autoFocus
+            style={{ fontSize: 24, height: 56 }}
           />
+        </Card>
 
-          <View className="flex-row items-center justify-between mt-2">
-            <UIText size="xs" variant="label">Period</UIText>
-            <UIText size="sm" variant="muted">{monthLabel}</UIText>
-          </View>
-
-          {/* Repeat checkbox */}
+        {/* Repeat — its own card so the toggle reads as a distinct decision,
+            not a trailing checkbox tacked onto the amount field. */}
+        <Card className="mx-4 mt-3">
           <AnimatedPressable
             onPress={() => setRepeat(!repeat)}
             pressScale={0.98}
-            className="flex-row items-center gap-3 mt-2"
+            className="flex-row items-center gap-3"
           >
             <View
               style={{
-                width: 20,
-                height: 20,
-                borderRadius: 4,
+                width: 22,
+                height: 22,
+                borderRadius: 6,
                 borderWidth: 1,
                 borderColor: repeat ? accentFill : borderColor,
                 backgroundColor: repeat ? accentFill : "transparent",
@@ -134,15 +139,19 @@ export default function BudgetFormScreen() {
                 justifyContent: "center",
               }}
             >
-              {repeat && <Check size={14} color={isDark ? "#18181b" : "#ffffff"} strokeWidth={2.5} />}
+              {repeat && <Check size={15} color={isDark ? "#18181b" : "#ffffff"} strokeWidth={2.5} />}
             </View>
-            <UIText size="sm">Repeat this budget monthly</UIText>
+            <View className="flex-1">
+              <UIText size="sm" variant="heading">Repeat monthly</UIText>
+              <UIText size="xs" variant="muted" className="mt-0.5">Keep this limit as your default for future months</UIText>
+            </View>
           </AnimatedPressable>
+        </Card>
 
+        <View className="mx-4 mt-4 gap-2">
           <Button
             label={saving ? "Saving..." : "Save Budget"}
             variant="default"
-            className="mt-2"
             disabled={!canSave}
             onPress={handleSave}
           />
@@ -154,7 +163,7 @@ export default function BudgetFormScreen() {
               onPress={handleDelete}
             />
           )}
-        </Card>
+        </View>
       </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

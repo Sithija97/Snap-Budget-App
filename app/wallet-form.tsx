@@ -107,20 +107,27 @@ export default function WalletFormScreen() {
             autoCapitalize="words"
             returnKeyType="next"
           />
+        </Card>
 
-          <UIText size="xs" variant="label" className="mt-2">Balance (optional)</UIText>
+        {/* Balance — its own card, matching the emphasis a money figure
+            gets elsewhere in the app (budget-form's limit, Home's hero
+            number) rather than a second same-weight field under Name. */}
+        <Card className="mx-4 mt-3 gap-3">
+          <UIText size="xs" variant="label">Balance (optional)</UIText>
           <Input
             placeholder="Leave blank if not set"
             value={balance}
             onChangeText={(v) => setBalance(v.replace(/[^0-9.]/g, ""))}
             keyboardType="numeric"
             returnKeyType="done"
+            style={{ fontSize: 24, height: 56 }}
           />
+        </Card>
 
+        <View className="mx-4 mt-4 gap-2">
           <Button
             label={saving ? "Saving..." : "Save Wallet"}
             variant="default"
-            className="mt-2"
             disabled={!canSave}
             onPress={handleSave}
           />
@@ -132,7 +139,7 @@ export default function WalletFormScreen() {
               onPress={handleDelete}
             />
           )}
-        </Card>
+        </View>
       </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

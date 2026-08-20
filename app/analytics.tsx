@@ -13,6 +13,7 @@ import { Card } from "@/components/ui/Card";
 import { DataState } from "@/components/ui/DataState";
 import { Chip } from "@/components/ui/Chip";
 import { AnimatedBar } from "@/components/ui/AnimatedBar";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { IconButton } from "@/components/ui/IconButton";
 import { useTheme, useThemeColors } from "@/context/ThemeContext";
 import { useRefresh } from "@/hooks/useRefresh";
@@ -43,6 +44,11 @@ export default function AnalyticsScreen() {
   const chartData   = isMonthly ? monthlySpending : weeklySpending;
   const chartMax    = Math.max(...chartData.map(m => m.amount), 1);
   const chartLabel  = isMonthly ? 'Spending — last 6 months' : 'Spending — last 6 weeks';
+  // Current period's total — the same value as the chart's most recent bar,
+  // given a hero-number anchor (matching Home's "Total spent") so this
+  // screen isn't only relative bars/percentages with no headline figure.
+  const currentPeriodSpent = chartData[chartData.length - 1]?.amount ?? 0;
+  const heroLabel = isMonthly ? 'Spent this month' : 'Spent this week';
 
   const { track: barTrack, axisText: textMuted } = chartTheme(isDark);
 
@@ -82,6 +88,19 @@ export default function AnalyticsScreen() {
           />
         ) : (
           <>
+            {/* Hero total — same typographic anchor as Home's "Total spent"
+                (3xl/AnimatedNumber), so this screen leads with a confident
+                headline figure instead of only relative bars/percentages. */}
+            <View className="mb-4">
+              <UIText size="xs" variant="label">{heroLabel}</UIText>
+              <AnimatedNumber
+                value={currentPeriodSpent}
+                format={fmt}
+                size="3xl"
+                className="font-black tracking-tight mt-1"
+              />
+            </View>
+
             {/* Bar chart */}
             <Card>
               <UIText size="xs" variant="label" className="mb-3">{chartLabel}</UIText>

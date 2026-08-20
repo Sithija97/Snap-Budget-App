@@ -47,9 +47,15 @@ const THEME_OPTIONS: ThemeOption[] = ['light', 'system', 'dark'];
 // One row inside a multi-row settings Card — icon, label, optional trailing
 // value, and a chevron. Keeps the "Data & automation" / "Data management"
 // groups visually consistent instead of each screen hand-rolling row markup.
+// Icon renders flat (no circle/container) by default — a dense list of ~10
+// of these was giving every row, regardless of importance, the identical
+// muted-circle treatment the rest of the app uses for genuine emphasis,
+// which stopped reading as emphasis at all. `iconBgClassName` stays as an
+// explicit opt-in for the rare row that should stand out (e.g. the
+// destructive "Clear all data" row's tinted-red circle).
 function SettingsRow({
   icon,
-  iconBgClassName = 'bg-muted dark:bg-muted-dark',
+  iconBgClassName,
   label,
   labelClassName = '',
   value,
@@ -75,9 +81,13 @@ function SettingsRow({
       disabled={disabled}
       pressScale={0.99}
     >
-      <View className={`w-9 h-9 rounded-lg items-center justify-center ${iconBgClassName}`}>
-        {icon}
-      </View>
+      {iconBgClassName ? (
+        <View className={`w-9 h-9 rounded-lg items-center justify-center ${iconBgClassName}`}>
+          {icon}
+        </View>
+      ) : (
+        <View className="w-5 items-center">{icon}</View>
+      )}
       <UIText size="sm" variant={labelClassName ? "unstyled" : "heading"} className={`flex-1 ${labelClassName ? `font-medium ${labelClassName}` : ''}`}>
         {label}
       </UIText>
