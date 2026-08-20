@@ -12,6 +12,9 @@ import {
   Settings2,
   ScanLine,
   ChevronRight,
+  WalletCards,
+  Shapes,
+  Target,
 } from "lucide-react-native";
 import { useTheme, useThemeColors } from "@/context/ThemeContext";
 import { brandBlue } from "@/constants/colors";
@@ -44,7 +47,7 @@ function greeting(hour: number): string {
 
 export default function HomeScreen() {
   const { isDark } = useTheme();
-  const { mutedFg, card } = useThemeColors();
+  const { mutedFg, card, positive, negative } = useThemeColors();
   const insets = useSafeAreaInsets();
   const { user } = useUser();
   const hasUnseenRecaps = useUnseenRecaps();
@@ -127,12 +130,18 @@ export default function HomeScreen() {
             </UIText>
           </View>
           <View className="flex-row items-center gap-2">
-            <IconButton onPress={() => router.push("/assistant")}>
+            <IconButton
+              onPress={() => router.push("/assistant")}
+              accessibilityLabel="Open AI assistant"
+              accessibilityRole="button"
+            >
               <Sparkles size={18} color={mutedFg} />
             </IconButton>
             <IconButton
               onPress={() => router.push("/recaps")}
               className="relative"
+              accessibilityLabel={hasUnseenRecaps ? "Open recaps, new recap available" : "Open recaps"}
+              accessibilityRole="button"
             >
               <Bell size={18} color={mutedFg} />
               {hasUnseenRecaps && (
@@ -145,7 +154,11 @@ export default function HomeScreen() {
                 />
               )}
             </IconButton>
-            <IconButton onPress={() => router.push("/settings")}>
+            <IconButton
+              onPress={() => router.push("/settings")}
+              accessibilityLabel="Open settings"
+              accessibilityRole="button"
+            >
               <Settings2 size={18} color={mutedFg} />
             </IconButton>
           </View>
@@ -198,7 +211,7 @@ export default function HomeScreen() {
                 <View className="w-8 h-8 rounded-full items-center justify-center bg-positive/10 dark:bg-positive-dark/10">
                   <ArrowDownLeft
                     size={15}
-                    color={isDark ? "#22c55e" : "#16a34a"}
+                    color={positive}
                     strokeWidth={2}
                   />
                 </View>
@@ -232,15 +245,7 @@ export default function HomeScreen() {
                 >
                   <Wallet
                     size={15}
-                    color={
-                      remaining < 0
-                        ? isDark
-                          ? "#f87171"
-                          : "#dc2626"
-                        : isDark
-                          ? "#22c55e"
-                          : "#16a34a"
-                    }
+                    color={remaining < 0 ? negative : positive}
                     strokeWidth={2}
                   />
                 </View>
@@ -267,6 +272,52 @@ export default function HomeScreen() {
               </View>
             </View>
           </Card>
+        </View>
+
+        {/* Quick access — Wallets/Categories/Budget have no other entry
+            point from Home; without this row they were only reachable two
+            taps deep via Settings, which a first-time user has no reason to
+            open before they've ever tried to add a wallet or category.
+            Each gets its own tinted icon circle (same pattern as the hero
+            card's Income/Remaining rows) so the row reads as three distinct
+            actions rather than one flat gray block. */}
+        <View className="flex-row gap-2.5 mt-4">
+          <AnimatedPressable
+            onPress={() => router.push("/wallets")}
+            wrapperClassName="flex-1"
+            className="items-center py-4 rounded-2xl bg-card dark:bg-card-dark gap-2"
+            accessibilityLabel="Open wallets"
+            accessibilityRole="button"
+          >
+            <View className="w-10 h-10 rounded-full items-center justify-center bg-[#3b82f6]/10 dark:bg-[#3b82f6]/15">
+              <WalletCards size={19} color={brandBlue(isDark)} strokeWidth={2} />
+            </View>
+            <UIText size="xs" variant="heading">Wallets</UIText>
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => router.push("/categories")}
+            wrapperClassName="flex-1"
+            className="items-center py-4 rounded-2xl bg-card dark:bg-card-dark gap-2"
+            accessibilityLabel="Open categories"
+            accessibilityRole="button"
+          >
+            <View className="w-10 h-10 rounded-full items-center justify-center bg-[#f59e0b]/10 dark:bg-[#f59e0b]/15">
+              <Shapes size={19} color="#f59e0b" strokeWidth={2} />
+            </View>
+            <UIText size="xs" variant="heading">Categories</UIText>
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => router.push("/budget-form")}
+            wrapperClassName="flex-1"
+            className="items-center py-4 rounded-2xl bg-card dark:bg-card-dark gap-2"
+            accessibilityLabel="Open budget"
+            accessibilityRole="button"
+          >
+            <View className="w-10 h-10 rounded-full items-center justify-center bg-positive/10 dark:bg-positive-dark/10">
+              <Target size={19} color={positive} strokeWidth={2} />
+            </View>
+            <UIText size="xs" variant="heading">Budget</UIText>
+          </AnimatedPressable>
         </View>
 
         {/* Budget health */}
@@ -368,6 +419,8 @@ export default function HomeScreen() {
           justifyContent: "center",
         }}
         onPress={() => router.push("/scan")}
+        accessibilityLabel="Scan a receipt"
+        accessibilityRole="button"
       >
         <ScanLine size={24} color="#ffffff" strokeWidth={2} />
       </AnimatedPressable>

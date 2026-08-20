@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { View, ScrollView, Alert, Image, ActivityIndicator } from "react-native";
+import { View, ScrollView, Alert, Image, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
@@ -88,7 +88,7 @@ export default function TransactionDetailScreen() {
 
   const header = (
     <View className="flex-row items-center px-4 pt-3 pb-4">
-      <IconButton onPress={() => router.back()} className="mr-3">
+      <IconButton onPress={() => router.back()} className="mr-3" accessibilityLabel="Go back" accessibilityRole="button">
         <ChevronLeft size={20} color={iconColor} />
       </IconButton>
       <UIText size="base" variant="heading" className="flex-1 text-center">Transaction</UIText>
@@ -171,6 +171,11 @@ export default function TransactionDetailScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["top"]}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 44 : 0}
+      >
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 32 }}
@@ -276,6 +281,7 @@ export default function TransactionDetailScreen() {
           </Card>
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

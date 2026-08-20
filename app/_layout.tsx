@@ -2,6 +2,7 @@ import "../global.css";
 import { useEffect } from "react";
 import { View, AppState } from "react-native";
 import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import {
   Inter_400Regular,
@@ -108,6 +109,12 @@ function InnerLayout() {
   // every `dark:*` className in the app silently never activates.
   return (
     <View className={isDark ? "dark flex-1" : "flex-1"}>
+      {/* Edge-to-edge (android/gradle.properties: edgeToEdgeEnabled=true)
+          means the OS status bar is a transparent overlay drawn on top of
+          app content, not a colored native chrome bar — style="auto" then
+          picks light/dark status bar icons to match the current theme so
+          they stay legible against whatever's underneath. */}
+      <StatusBar style="auto" />
       <Stack
         screenOptions={{
           headerShown: false,

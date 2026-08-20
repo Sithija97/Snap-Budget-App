@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { View, ScrollView, RefreshControl } from "react-native";
-import { ChartNoAxesCombined } from "lucide-react-native";
+import { router } from "expo-router";
+import { ChartNoAxesCombined, ChevronLeft } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
@@ -12,7 +13,8 @@ import { Card } from "@/components/ui/Card";
 import { DataState } from "@/components/ui/DataState";
 import { Chip } from "@/components/ui/Chip";
 import { AnimatedBar } from "@/components/ui/AnimatedBar";
-import { useTheme } from "@/context/ThemeContext";
+import { IconButton } from "@/components/ui/IconButton";
+import { useTheme, useThemeColors } from "@/context/ThemeContext";
 import { useRefresh } from "@/hooks/useRefresh";
 import { chartTheme, barRampColor } from "@/constants/chartTheme";
 
@@ -21,6 +23,7 @@ type Period = typeof PERIODS[number];
 
 export default function AnalyticsScreen() {
   const { isDark } = useTheme();
+  const { mutedFg: iconColor } = useThemeColors();
   const [period, setPeriod] = useState<Period>('Monthly');
 
   const transactions = useTransactionStore((s) => s.transactions);
@@ -57,8 +60,11 @@ export default function AnalyticsScreen() {
         }
       >
         {/* Header */}
-        <View className="flex-row items-center justify-between mb-4">
-          <UIText size="xl" variant="heading">Analytics</UIText>
+        <View className="flex-row items-center mb-4 gap-3">
+          <IconButton onPress={() => router.back()} accessibilityLabel="Go back" accessibilityRole="button">
+            <ChevronLeft size={20} color={iconColor} />
+          </IconButton>
+          <UIText size="base" variant="heading" className="flex-1">Analytics</UIText>
           <View className="flex-row gap-4">
             {PERIODS.map((p) => (
               <Chip key={p} variant="underline" label={p} selected={period === p} onPress={() => setPeriod(p)} />

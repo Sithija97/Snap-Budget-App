@@ -10,7 +10,7 @@ import {
   CheckCircle2,
   Camera,
 } from "lucide-react-native";
-import { useTheme, useThemeColors } from "@/context/ThemeContext";
+import { useThemeColors } from "@/context/ThemeContext";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { useWalletStore } from "@/store/useWalletStore";
@@ -63,8 +63,7 @@ const CORNER_POSITIONS = [
 type Stage = "idle" | "analyzing" | "review";
 
 export default function ScanScreen() {
-  const { isDark } = useTheme();
-  const { border: borderColor, card: mutedBg, mutedFg: iconColor, muted } = useThemeColors();
+  const { border: borderColor, card: mutedBg, mutedFg: iconColor, muted, positive } = useThemeColors();
   // Lets other screens (e.g. Home's Income/Total spent tap targets, and the
   // Captured-transactions inbox's "Review" action) deep-link straight into
   // "add a transaction of this type" — optionally pre-filled — instead of
@@ -326,7 +325,7 @@ export default function ScanScreen() {
       >
         {/* Header */}
         <View className="flex-row items-center px-4 pt-3 pb-4">
-          <IconButton onPress={() => router.back()} className="mr-3">
+          <IconButton onPress={() => router.back()} className="mr-3" accessibilityLabel="Go back" accessibilityRole="button">
             <ChevronLeft size={20} color={iconColor} />
           </IconButton>
           <UIText size="base" variant="heading" className="flex-1 text-center">
@@ -543,7 +542,7 @@ export default function ScanScreen() {
                   <View className="w-6 h-6 rounded-full items-center justify-center bg-positive/10 dark:bg-positive-dark/10">
                     <CheckCircle2
                       size={14}
-                      color={isDark ? "#22c55e" : "#16a34a"}
+                      color={positive}
                     />
                   </View>
                   <UIText size="sm" variant="heading">

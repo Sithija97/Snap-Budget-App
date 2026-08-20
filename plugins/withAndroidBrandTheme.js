@@ -34,6 +34,24 @@ function withAndroidBrandStyles(config) {
   return withAndroidStyles(config, (config) => {
     const appTheme = AndroidConfig.Styles.getAppThemeGroup();
 
+    // Expo's own template AppTheme hardcodes android:statusBarColor to
+    // #ffffff (see prebuild-generated styles.xml) — a leftover from before
+    // this project ran edge-to-edge (android/gradle.properties has
+    // edgeToEdgeEnabled=true). Under edge-to-edge the status bar is a
+    // transparent overlay the app draws its own content underneath, so a
+    // hardcoded white statusBarColor has no visual purpose except flashing
+    // as a white sliver at the top of the screen during native push/pop
+    // transitions, before contentStyle's dark-mode background paints over
+    // it — worst in dark mode, where white against the dark background is
+    // obvious. expo-status-bar (rendered in app/_layout.tsx) drives the
+    // status bar's actual appearance (icon color, translucency) from JS
+    // instead, so this native default is just removed, not replaced.
+    config.modResults = AndroidConfig.Styles.removeStylesItem({
+      xml: config.modResults,
+      parent: appTheme,
+      name: 'android:statusBarColor',
+    });
+
     config.modResults = AndroidConfig.Styles.assignStylesValue(config.modResults, {
       add: true,
       parent: appTheme,

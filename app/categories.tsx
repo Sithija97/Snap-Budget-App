@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { View, FlatList, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -35,6 +35,35 @@ export default function CategoriesScreen() {
     [categories, type]
   );
 
+  const renderItem = useCallback(
+    ({ item: c, index }: { item: Category; index: number }) => (
+      <AnimatedPressable onPress={() => router.push(`/category-form?id=${c.id}`)} pressScale={0.98}>
+        <View
+          className={`flex-row items-center gap-3 py-3 mx-4 ${cardRowClass(index, filtered.length)} ${
+            index === filtered.length - 1 ? "" : "border-b"
+          }`}
+        >
+          <View className="w-9 h-9 rounded-lg items-center justify-center bg-muted dark:bg-muted-dark">
+            {TX_ICONS[c.icon] && (() => {
+              const Icon = TX_ICONS[c.icon];
+              return <Icon size={16} color={iconColor} strokeWidth={1.8} />;
+            })()}
+          </View>
+          <View className="flex-1">
+            <UIText size="sm" variant="heading">{c.name}</UIText>
+            {c.parentId && (
+              <UIText size="xs" variant="muted" className="mt-0.5">
+                {categories.find((p) => p.id === c.parentId)?.name ?? "Subcategory"}
+              </UIText>
+            )}
+          </View>
+          <ChevronRight size={16} color={iconColor} />
+        </View>
+      </AnimatedPressable>
+    ),
+    [filtered.length, categories, iconColor]
+  );
+
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["top"]}>
       <FlatList
@@ -47,7 +76,7 @@ export default function CategoriesScreen() {
         ListHeaderComponent={
           <>
             <View className="flex-row items-center px-4 pt-3 pb-4">
-              <IconButton onPress={() => router.back()} className="mr-3">
+              <IconButton onPress={() => router.back()} className="mr-3" accessibilityLabel="Go back" accessibilityRole="button">
                 <ChevronLeft size={20} color={iconColor} />
               </IconButton>
               <UIText size="base" variant="heading" className="flex-1 text-center">Categories</UIText>
@@ -81,33 +110,10 @@ export default function CategoriesScreen() {
             isEmpty={filtered.length === 0}
             onRetry={fetchAll}
             emptyMessage={`No ${type} categories yet`}
+            emptyAction={{ label: "Add a category", onPress: () => router.push(`/category-form?type=${type}`) }}
           />
         }
-        renderItem={({ item: c, index }: { item: Category; index: number }) => (
-          <AnimatedPressable onPress={() => router.push(`/category-form?id=${c.id}`)} pressScale={0.98}>
-            <View
-              className={`flex-row items-center gap-3 py-3 mx-4 ${cardRowClass(index, filtered.length)} ${
-                index === filtered.length - 1 ? "" : "border-b"
-              }`}
-            >
-              <View className="w-9 h-9 rounded-lg items-center justify-center bg-muted dark:bg-muted-dark">
-                {TX_ICONS[c.icon] && (() => {
-                  const Icon = TX_ICONS[c.icon];
-                  return <Icon size={16} color={iconColor} strokeWidth={1.8} />;
-                })()}
-              </View>
-              <View className="flex-1">
-                <UIText size="sm" variant="heading">{c.name}</UIText>
-                {c.parentId && (
-                  <UIText size="xs" variant="muted" className="mt-0.5">
-                    {categories.find((p) => p.id === c.parentId)?.name ?? "Subcategory"}
-                  </UIText>
-                )}
-              </View>
-              <ChevronRight size={16} color={iconColor} />
-            </View>
-          </AnimatedPressable>
-        )}
+        renderItem={renderItem}
       />
     </SafeAreaView>
   );

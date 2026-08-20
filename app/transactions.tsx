@@ -51,6 +51,10 @@ export default function TransactionsScreen() {
 
   const { mutedFg: iconColor } = useThemeColors();
 
+  const openTransaction = useCallback((id: string) => {
+    router.push({ pathname: "/transaction/[id]", params: { id } });
+  }, []);
+
   const renderGroup = useCallback(
     ({ item: g }: { item: TransactionGroup<DisplayTransaction> }) => {
       const net = g.txs.reduce(
@@ -83,19 +87,14 @@ export default function TransactionsScreen() {
                 amount={tx.amount}
                 time={tx.time}
                 icon={tx.categoryIcon}
-                onPress={() =>
-                  router.push({
-                    pathname: "/transaction/[id]",
-                    params: { id: tx.id },
-                  })
-                }
+                onPress={() => openTransaction(tx.id)}
               />
             ))}
           </View>
         </View>
       );
     },
-    [],
+    [openTransaction],
   );
 
   return (
@@ -120,10 +119,10 @@ export default function TransactionsScreen() {
           <>
             {/* Header */}
             <View className="flex-row items-center mb-4 gap-3">
-              <IconButton onPress={() => router.back()}>
+              <IconButton onPress={() => router.back()} accessibilityLabel="Go back" accessibilityRole="button">
                 <ChevronLeft size={20} color={iconColor} />
               </IconButton>
-              <UIText size="xl" variant="heading">
+              <UIText size="base" variant="heading">
                 Transactions
               </UIText>
             </View>
@@ -187,6 +186,11 @@ export default function TransactionsScreen() {
                 : "No transactions yet"
             }
             emptyIcon={Receipt}
+            emptyAction={
+              searchQuery.trim().length > 0
+                ? undefined
+                : { label: "Add a transaction", onPress: () => router.push("/scan") }
+            }
             loadingSkeleton={
               // Mirrors a rendered group: date label, then a stack of item cards
               <View className="mb-4">

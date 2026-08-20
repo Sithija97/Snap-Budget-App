@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { View, FlatList, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -37,6 +38,29 @@ export default function WalletsScreen() {
 
   const { mutedFg: iconColor } = useThemeColors();
 
+  const renderItem = useCallback(
+    ({ item: w, index }: { item: Wallet; index: number }) => (
+      <AnimatedPressable onPress={() => router.push(`/wallet-form?id=${w.id}`)} pressScale={0.98}>
+        <View
+          className={`flex-row items-center gap-3 py-3 mx-4 ${cardRowClass(index, wallets.length)} ${
+            index === wallets.length - 1 ? "" : "border-b"
+          }`}
+        >
+          <View className="flex-1">
+            <UIText size="sm" variant="heading">{w.name}</UIText>
+            {w.balance === null ? (
+              <UIText size="xs" variant="muted" className="mt-0.5">Balance not set</UIText>
+            ) : (
+              <UIText size="xs" variant="muted" className="mt-0.5 font-semibold">{fmt(w.balance)}</UIText>
+            )}
+          </View>
+          <ChevronRight size={16} color={iconColor} />
+        </View>
+      </AnimatedPressable>
+    ),
+    [wallets.length, iconColor]
+  );
+
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["top"]}>
       <FlatList
@@ -48,7 +72,7 @@ export default function WalletsScreen() {
         }
         ListHeaderComponent={
           <View className="flex-row items-center px-4 pt-3 pb-4">
-            <IconButton onPress={() => router.back()} className="mr-3">
+            <IconButton onPress={() => router.back()} className="mr-3" accessibilityLabel="Go back" accessibilityRole="button">
               <ChevronLeft size={20} color={iconColor} />
             </IconButton>
             <UIText size="base" variant="heading" className="flex-1 text-center">Wallets</UIText>
@@ -64,6 +88,7 @@ export default function WalletsScreen() {
             onRetry={fetchAll}
             emptyMessage="No wallets yet"
             emptyIcon={WalletCards}
+            emptyAction={{ label: "Add a wallet", onPress: () => router.push("/wallet-form") }}
             loadingSkeleton={
               <View>
                 {[0, 1, 2].map((i) => (
@@ -73,25 +98,7 @@ export default function WalletsScreen() {
             }
           />
         }
-        renderItem={({ item: w, index }: { item: Wallet; index: number }) => (
-          <AnimatedPressable onPress={() => router.push(`/wallet-form?id=${w.id}`)} pressScale={0.98}>
-            <View
-              className={`flex-row items-center gap-3 py-3 mx-4 ${cardRowClass(index, wallets.length)} ${
-                index === wallets.length - 1 ? "" : "border-b"
-              }`}
-            >
-              <View className="flex-1">
-                <UIText size="sm" variant="heading">{w.name}</UIText>
-                {w.balance === null ? (
-                  <UIText size="xs" variant="muted" className="mt-0.5">Balance not set</UIText>
-                ) : (
-                  <UIText size="xs" variant="muted" className="mt-0.5 font-semibold">{fmt(w.balance)}</UIText>
-                )}
-              </View>
-              <ChevronRight size={16} color={iconColor} />
-            </View>
-          </AnimatedPressable>
-        )}
+        renderItem={renderItem}
       />
     </SafeAreaView>
   );

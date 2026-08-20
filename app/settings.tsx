@@ -1,5 +1,5 @@
 import { useState, ReactNode } from "react";
-import { View, ScrollView, Alert, Switch, Platform } from "react-native";
+import { View, ScrollView, Alert, Switch, Platform, Linking } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import * as Notifications from "expo-notifications";
@@ -17,6 +17,7 @@ import {
   Send,
   BellRing,
   Bell,
+  Shield,
 } from "lucide-react-native";
 import { useUser, useClerk } from "@clerk/clerk-expo";
 import { useTheme, useThemeColors } from "@/context/ThemeContext";
@@ -29,7 +30,6 @@ import { useCaptureStore } from "@/store/useCaptureStore";
 import { useReminderStore } from "@/store/useReminderStore";
 import { isNotificationCaptureSupportedPlatform } from "@/lib/notificationCapture";
 import { syncFinanceReminders } from "@/lib/financeReminders";
-import { exportDataAsExcel } from "@/utils/exportExcel";
 import { api } from "@/lib/api";
 import { BRAND_BLUE } from "@/constants/colors";
 import { UIText } from "@/components/ui/UIText";
@@ -88,13 +88,14 @@ function SettingsRow({
 }
 
 export default function SettingsScreen() {
-  const { theme, setTheme, isDark } = useTheme();
-  const { mutedFg, border, muted } = useThemeColors();
+  const { theme, setTheme } = useTheme();
+  const { mutedFg, border, muted, warning, negative, foreground } = useThemeColors();
   const { user } = useUser();
   const { signOut } = useClerk();
   const [signingOut, setSigningOut] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const wallets = useWalletStore((s) => s.wallets);
   const categories = useCategoryStore((s) => s.categories);
@@ -138,9 +139,58 @@ export default function SettingsScreen() {
     ]);
   };
 
+  const handlePrivacyPolicy = () => {
+    const url = process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL;
+    if (!url) {
+      Alert.alert("Not available yet", "The privacy policy link hasn't been configured.");
+      return;
+    }
+    Linking.openURL(url).catch(() => Alert.alert("Couldn't open link", "Please try again."));
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      "Delete account?",
+      "This permanently deletes your account and every wallet, category, budget, and transaction. You will not be able to sign back in with this account. This can't be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Continue",
+          style: "destructive",
+          onPress: () => {
+            Alert.alert(
+              "Are you absolutely sure?",
+              "There is no way to recover your account or data after this.",
+              [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Delete my account",
+                  style: "destructive",
+                  onPress: async () => {
+                    setDeletingAccount(true);
+                    try {
+                      await api.del("/api/account");
+                      await signOut();
+                    } catch {
+                      Alert.alert("Couldn't delete account", "Please try again.");
+                      setDeletingAccount(false);
+                    }
+                  },
+                },
+              ]
+            );
+          },
+        },
+      ]
+    );
+  };
+
   const handleExport = async () => {
     setExporting(true);
     try {
+      // xlsx (sheetjs) is a large library — loaded on demand so it never
+      // inflates the startup bundle for users who never tap Export.
+      const { exportDataAsExcel } = await import("@/utils/exportExcel");
       await exportDataAsExcel({ wallets, categories, budgets, transactions });
     } catch (e) {
       Alert.alert("Couldn't export data", e instanceof Error ? e.message : "Please try again.");
@@ -230,7 +280,7 @@ export default function SettingsScreen() {
       >
         {/* Header */}
         <View className="flex-row items-center mb-4">
-          <IconButton onPress={() => router.back()} className="mr-3">
+          <IconButton onPress={() => router.back()} className="mr-3" accessibilityLabel="Go back" accessibilityRole="button">
             <ChevronLeft size={20} color={mutedFg} />
           </IconButton>
           <UIText size="base" variant="heading" className="flex-1 text-center">
@@ -311,7 +361,7 @@ export default function SettingsScreen() {
               <Separator className="my-3" />
               <View className="flex-row items-center gap-3 mb-3">
                 <View className="w-8 h-8 rounded-full items-center justify-center bg-warning/10 dark:bg-warning-dark/10">
-                  <Sunrise size={15} color={isDark ? "#fbbf24" : "#d97706"} strokeWidth={2} />
+                  <Sunrise size={15} color={warning} strokeWidth={2} />
                 </View>
                 <UIText size="sm" variant="default" className="flex-1">Morning</UIText>
                 <View style={{ width: 130 }}>
@@ -324,8 +374,8 @@ export default function SettingsScreen() {
                 </View>
               </View>
               <View className="flex-row items-center gap-3">
-                <View className="w-8 h-8 rounded-full items-center justify-center bg-indigo-100 dark:bg-indigo-900/30">
-                  <Sunset size={15} color={isDark ? "#a5b4fc" : "#4f46e5"} strokeWidth={2} />
+                <View className="w-8 h-8 rounded-full items-center justify-center bg-muted dark:bg-muted-dark">
+                  <Sunset size={15} color={mutedFg} strokeWidth={2} />
                 </View>
                 <UIText size="sm" variant="default" className="flex-1">Evening</UIText>
                 <View style={{ width: 130 }}>
@@ -390,6 +440,13 @@ export default function SettingsScreen() {
           />
           <Separator />
           <SettingsRow
+            icon={<Shield size={16} color={iconColor} strokeWidth={1.8} />}
+            label="Privacy policy"
+            onPress={handlePrivacyPolicy}
+            iconColor={iconColor}
+          />
+          <Separator />
+          <SettingsRow
             icon={<Download size={16} color={iconColor} strokeWidth={1.8} />}
             label={exporting ? "Preparing Excel file..." : "Export data (Excel)"}
             onPress={handleExport}
@@ -398,7 +455,7 @@ export default function SettingsScreen() {
           />
           <Separator />
           <SettingsRow
-            icon={<Trash2 size={16} color={isDark ? "#f87171" : "#dc2626"} strokeWidth={1.8} />}
+            icon={<Trash2 size={16} color={negative} strokeWidth={1.8} />}
             iconBgClassName="bg-negative/10 dark:bg-negative-dark/10"
             label={clearing ? "Clearing..." : "Clear all data"}
             labelClassName="text-destructive"
@@ -414,9 +471,17 @@ export default function SettingsScreen() {
         <Button
           label={signingOut ? "Signing out..." : "Sign out"}
           variant="outline"
-          icon={<LogOut size={16} color={isDark ? "#fafafa" : "#09090b"} strokeWidth={1.8} />}
+          icon={<LogOut size={16} color={foreground} strokeWidth={1.8} />}
           disabled={signingOut}
           onPress={handleSignOut}
+        />
+        <Button
+          label={deletingAccount ? "Deleting account..." : "Delete account"}
+          variant="destructive"
+          className="mt-2"
+          icon={<Trash2 size={16} color="#ffffff" strokeWidth={1.8} />}
+          disabled={deletingAccount}
+          onPress={handleDeleteAccount}
         />
 
         {/* Version */}

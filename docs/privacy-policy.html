@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SnapBudget Privacy Policy</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; max-width: 760px; margin: 0 auto; padding: 32px 20px 80px; line-height: 1.6; color: #18181b; }
+  h1 { font-size: 1.7rem; margin-bottom: 4px; }
+  h2 { font-size: 1.15rem; margin-top: 2.2em; }
+  .updated { color: #71717a; font-size: 0.9rem; margin-bottom: 2em; }
+  ul { padding-left: 1.3em; }
+  li { margin-bottom: 0.4em; }
+  code { background: #f4f4f5; padding: 1px 5px; border-radius: 4px; font-size: 0.9em; }
+  .contact { background: #f4f4f5; border-radius: 10px; padding: 16px 20px; margin-top: 2em; }
+</style>
+</head>
+<body>
+
+<h1>SnapBudget Privacy Policy</h1>
+<p class="updated">Last updated: [FILL IN DATE BEFORE PUBLISHING]</p>
+
+<p>SnapBudget ("the app", "we", "us") is a personal budgeting app. This page explains what data the app collects, why, and who it's shared with. It applies to the SnapBudget Android app and its backend services.</p>
+
+<h2>Data we collect</h2>
+<ul>
+  <li><strong>Account information</strong> — your email address and authentication identity, handled by our authentication provider, Clerk. We don't see or store your password.</li>
+  <li><strong>Financial data you enter</strong> — wallets, categories, budgets, and transactions (merchant, amount, date, category) that you create manually or via receipt scanning.</li>
+  <li><strong>Receipt photos</strong> — when you scan a receipt, the photo is sent to Google's Gemini API to read the merchant, amount, date, and category, then stored privately (not publicly accessible) so you can view it again from the transaction it created.</li>
+  <li><strong>Notification content (Android only, opt-in)</strong> — if you turn on Automatic capture and choose which apps to watch, the app reads the text of notifications from those specific apps only, looking for payment amounts. Nothing is saved as a transaction without your review and approval. This is off by default and only reads notifications from apps you explicitly select.</li>
+  <li><strong>Usage data sent to our AI features</strong> — text you type into the chat assistant, and computed spending totals (never your raw transaction list) are sent to Gemini to generate a reply or a spending recap.</li>
+  <li><strong>Telegram link (optional)</strong> — if you connect a Telegram account, we store the chat ID needed to deliver messages to you there.</li>
+</ul>
+
+<h2>Who we share data with</h2>
+<ul>
+  <li><strong>Clerk</strong> — authentication (sign-in/sign-up, session management).</li>
+  <li><strong>Google Gemini API</strong> — receipt OCR, chat assistant replies, and recap phrasing. Gemini receives only what's needed to perform each specific task, as described above.</li>
+  <li><strong>Cloudinary</strong> — private storage for receipt photos. Images are not publicly accessible; the app only shows them to you via an authenticated request.</li>
+  <li><strong>Neon (Postgres database)</strong> and <strong>Cloudflare Workers</strong> — our backend infrastructure, which stores and serves your financial data.</li>
+  <li><strong>Telegram</strong> — only if you choose to link a Telegram account, to deliver spending recaps and answer questions there.</li>
+</ul>
+<p>We do not sell your data, and we do not share it with advertisers.</p>
+
+<h2>Notification access permission</h2>
+<p>On Android, SnapBudget can optionally request the special "notification access" permission so it can automatically detect payment notifications from apps you choose (e.g. your bank's app or SMS app) and suggest them as transactions. This is:</p>
+<ul>
+  <li><strong>Off by default</strong> — you turn it on yourself, per app, in the app's Automatic capture settings.</li>
+  <li><strong>Scoped</strong> — only notifications from apps you've explicitly added to the watch list are read.</li>
+  <li><strong>Review-gated</strong> — a detected notification becomes a suggestion only; nothing is saved as a real transaction until you review and confirm it.</li>
+  <li><strong>Never used for advertising, tracking, or any purpose beyond suggesting transactions.</strong></li>
+</ul>
+
+<h2>Data retention and deletion</h2>
+<p>Your data is kept for as long as your account exists. You can:</p>
+<ul>
+  <li><strong>Export your data</strong> at any time as an Excel file, from Settings.</li>
+  <li><strong>Clear all data</strong> from Settings, which wipes your financial records and resets the app while keeping your account.</li>
+  <li><strong>Delete your account</strong> from Settings, which permanently deletes your account and all associated data (wallets, categories, budgets, transactions) and cannot be undone.</li>
+</ul>
+
+<h2>Children's privacy</h2>
+<p>SnapBudget is not directed at children under 13 (or the relevant minimum age in your country), and we do not knowingly collect data from children.</p>
+
+<h2>Changes to this policy</h2>
+<p>We may update this policy from time to time. Material changes will be reflected by updating the "Last updated" date above.</p>
+
+<div class="contact">
+  <strong>Contact us</strong><br>
+  Questions about this policy or your data can be sent to: <code>[FILL IN SUPPORT EMAIL BEFORE PUBLISHING]</code>
+</div>
+
+</body>
+</html>
