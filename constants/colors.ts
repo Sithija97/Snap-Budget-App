@@ -1,10 +1,11 @@
-// Brand blue sampled from assets/icon.png — the app's single accent color.
-export const BRAND_BLUE = "#1073F5";
+// Brand blue accent color, shared by light and dark mode.
+export const BRAND_BLUE = "#3b82f6";
 
-// Brand blue lightened for dark surfaces — #1073F5 at full saturation reads
-// muddy against near-black cards, so dark mode uses this instead everywhere
-// the light-mode UI would reach for BRAND_BLUE (charts, selection states).
-export const BRAND_BLUE_DARK = "#3b8bff";
+// Intentionally identical to BRAND_BLUE right now — kept as a separate
+// constant (and brandBlue() keeps its isDark param) so a future dark-mode-
+// specific tuning pass has a place to land without touching every call site
+// (Button, Chip, Input, tab bar, chart ramp, etc.) again.
+export const BRAND_BLUE_DARK = "#3b82f6";
 
 export function brandBlue(isDark: boolean): string {
   return isDark ? BRAND_BLUE_DARK : BRAND_BLUE;

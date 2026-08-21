@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { View, FlatList, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { Search, X, Receipt } from "lucide-react-native";
+import { Search, X, Receipt, ChevronLeft } from "lucide-react-native";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { useDisplayTransactions } from "@/hooks/useDisplayTransactions";
 import {
@@ -15,18 +15,17 @@ import { DisplayTransaction } from "@/hooks/useDisplayTransactions";
 import { TxType } from "@/types";
 import TransactionItem from "@/components/ui/TransactionItem";
 import { UIText } from "@/components/ui/UIText";
-import { Card } from "@/components/ui/Card";
 import { DataState } from "@/components/ui/DataState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { TransactionItemSkeleton } from "@/components/ui/TransactionItemSkeleton";
 import { Chip } from "@/components/ui/Chip";
 import { Input } from "@/components/ui/Input";
+import { IconButton } from "@/components/ui/IconButton";
 import { AnimatedPressable } from "@/components/ui/AnimatedPressable";
-import { useTheme } from "@/context/ThemeContext";
+import { useThemeColors } from "@/context/ThemeContext";
 import { useRefresh } from "@/hooks/useRefresh";
 
 export default function TransactionsScreen() {
-  const { isDark } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const transactions = useDisplayTransactions();
   const status = useTransactionStore((s) => s.status);
@@ -50,7 +49,11 @@ export default function TransactionsScreen() {
     [setFilter],
   );
 
-  const iconColor = isDark ? "#a1a1aa" : "#71717a";
+  const { mutedFg: iconColor } = useThemeColors();
+
+  const openTransaction = useCallback((id: string) => {
+    router.push({ pathname: "/transaction/[id]", params: { id } });
+  }, []);
 
   const renderGroup = useCallback(
     ({ item: g }: { item: TransactionGroup<DisplayTransaction> }) => {
@@ -68,37 +71,32 @@ export default function TransactionsScreen() {
             <UIText
               size="xs"
               variant="unstyled"
-              className={`font-mono ${net < 0 ? "text-negative dark:text-negative-dark" : "text-positive dark:text-positive-dark"}`}
+              className={`font-semibold ${net < 0 ? "text-negative dark:text-negative-dark" : "text-positive dark:text-positive-dark"}`}
             >
               {net < 0 ? "−" : "+"}
               {Math.abs(net).toLocaleString("en-US")}
             </UIText>
           </View>
-          <Card className="p-0 overflow-hidden">
+          <View>
             {g.txs.map((tx, i) => (
-              <View key={tx.id} className="px-4">
-                <TransactionItem
-                  merchant={tx.merchant}
-                  categoryName={tx.categoryName}
-                  txType={tx.txType}
-                  amount={tx.amount}
-                  time={tx.time}
-                  icon={tx.categoryIcon}
-                  isLast={i === g.txs.length - 1}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/transaction/[id]",
-                      params: { id: tx.id },
-                    })
-                  }
-                />
-              </View>
+              <TransactionItem
+                key={tx.id}
+                merchant={tx.merchant}
+                categoryName={tx.categoryName}
+                txType={tx.txType}
+                amount={tx.amount}
+                time={tx.time}
+                icon={tx.categoryIcon}
+                isFirst={i === 0}
+                isLast={i === g.txs.length - 1}
+                onPress={() => openTransaction(tx.id)}
+              />
             ))}
-          </Card>
+          </View>
         </View>
       );
     },
-    [],
+    [openTransaction],
   );
 
   return (
@@ -122,9 +120,14 @@ export default function TransactionsScreen() {
         ListHeaderComponent={
           <>
             {/* Header */}
-            <UIText size="xl" variant="heading" className="mb-4">
-              Transactions
-            </UIText>
+            <View className="flex-row items-center mb-4 gap-3">
+              <IconButton onPress={() => router.back()} accessibilityLabel="Go back" accessibilityRole="button">
+                <ChevronLeft size={20} color={iconColor} />
+              </IconButton>
+              <UIText size="base" variant="heading">
+                Transactions
+              </UIText>
+            </View>
 
             {/* Search bar */}
             <View className="relative justify-center">
@@ -185,17 +188,22 @@ export default function TransactionsScreen() {
                 : "No transactions yet"
             }
             emptyIcon={Receipt}
+            emptyAction={
+              searchQuery.trim().length > 0
+                ? undefined
+                : { label: "Add a transaction", onPress: () => router.push("/scan") }
+            }
             loadingSkeleton={
-              // Mirrors a rendered group: date label, then a card of rows
+              // Mirrors a rendered group: date label, then a flat-row stack
               <View className="mb-4">
                 <View className="py-2">
                   <Skeleton width={60} height={11} />
                 </View>
-                <Card className="p-0 px-4 overflow-hidden">
+                <View>
                   {[0, 1, 2, 3, 4].map((i) => (
-                    <TransactionItemSkeleton key={i} />
+                    <TransactionItemSkeleton key={i} isFirst={i === 0} isLast={i === 4} />
                   ))}
-                </Card>
+                </View>
               </View>
             }
           />

@@ -2,7 +2,7 @@ import { View, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { ChevronLeft, Sparkles, ScanLine, MessageCircle, Bell, Radio } from "lucide-react-native";
-import { useTheme } from "@/context/ThemeContext";
+import { useThemeColors } from "@/context/ThemeContext";
 import { UIText } from "@/components/ui/UIText";
 import { IconButton } from "@/components/ui/IconButton";
 import { Card } from "@/components/ui/Card";
@@ -32,14 +32,13 @@ const FEATURES = [
 ];
 
 export default function AiDisclosureScreen() {
-  const { isDark } = useTheme();
-  const iconColor = isDark ? "#a1a1aa" : "#71717a";
+  const { mutedFg: iconColor, muted } = useThemeColors();
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["top"]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
         <View className="flex-row items-center px-4 pt-3 pb-4">
-          <IconButton onPress={() => router.back()} className="mr-3">
+          <IconButton onPress={() => router.back()} className="mr-3" accessibilityLabel="Go back" accessibilityRole="button">
             <ChevronLeft size={20} color={iconColor} />
           </IconButton>
           <UIText size="base" variant="heading" className="flex-1 text-center">AI & data</UIText>
@@ -50,7 +49,7 @@ export default function AiDisclosureScreen() {
           <View className="flex-row items-center gap-3 mb-3">
             <View
               className="w-10 h-10 rounded-full items-center justify-center"
-              style={{ backgroundColor: isDark ? "#27272a" : "#f4f4f5" }}
+              style={{ backgroundColor: muted }}
             >
               <Sparkles size={18} color={iconColor} strokeWidth={1.8} />
             </View>
@@ -70,7 +69,7 @@ export default function AiDisclosureScreen() {
               <View className="flex-row items-start gap-3">
                 <View
                   className="w-8 h-8 rounded-full items-center justify-center mt-0.5"
-                  style={{ backgroundColor: isDark ? "#27272a" : "#f4f4f5" }}
+                  style={{ backgroundColor: muted }}
                 >
                   <f.icon size={15} color={iconColor} strokeWidth={1.8} />
                 </View>

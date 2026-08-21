@@ -15,7 +15,7 @@ interface ChartThemeShape {
 
 export const CHART_THEME: Record<"light" | "dark", ChartThemeShape> = {
   light: { track: "#e4e4e7", axisText: "#71717a" },
-  dark:  { track: "#27272a", axisText: "#a1a1aa" },
+  dark:  { track: "#374151", axisText: "#9ca3af" },
 };
 
 // Recency ramp for the monthly/weekly spend bar chart — older bars are a

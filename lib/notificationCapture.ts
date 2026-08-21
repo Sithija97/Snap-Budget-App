@@ -67,7 +67,11 @@ async function handleNotification(event: CapturedNotification) {
 
   let amount = parsed?.amount ?? null;
   let merchant = parsed?.merchant ?? null;
-  let categoryName: string | null = null;
+  // The on-device regex templates don't attempt category classification (only
+  // the Gemini fallback below does) — fall back to "Other" so a regex-parsed
+  // suggestion still pre-fills a valid, savable category instead of forcing
+  // the user to type one before Save unlocks; they can still change it.
+  let categoryName: string | null = parsed ? "Other" : null;
   let txType: TxType = parsed?.txType ?? TxType.Expense;
   let source: CapturedSuggestion["source"] = parsed ? "regex" : "gemini";
   // Prefer the date printed in the notification text (e.g. a card

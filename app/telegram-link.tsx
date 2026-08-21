@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import * as Linking from "expo-linking";
 import { ChevronLeft, Send } from "lucide-react-native";
-import { useTheme } from "@/context/ThemeContext";
+import { useThemeColors } from "@/context/ThemeContext";
 import { useMessagingStore } from "@/store/useMessagingStore";
 import { UIText } from "@/components/ui/UIText";
 import { IconButton } from "@/components/ui/IconButton";
@@ -19,7 +19,6 @@ import { Skeleton } from "@/components/ui/Skeleton";
 const POLL_INTERVAL_MS = 3000;
 
 export default function TelegramLinkScreen() {
-  const { isDark } = useTheme();
   const telegram = useMessagingStore((s) => s.telegram);
   const status = useMessagingStore((s) => s.status);
   const fetchStatus = useMessagingStore((s) => s.fetchStatus);
@@ -31,7 +30,7 @@ export default function TelegramLinkScreen() {
   const [disconnecting, setDisconnecting] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const iconColor = isDark ? "#a1a1aa" : "#71717a";
+  const { mutedFg: iconColor } = useThemeColors();
 
   const stopPolling = useCallback(() => {
     if (pollRef.current) {
@@ -128,7 +127,7 @@ export default function TelegramLinkScreen() {
         contentContainerStyle={{ paddingBottom: 32 }}
       >
         <View className="flex-row items-center px-4 pt-3 pb-4">
-          <IconButton onPress={() => router.back()} className="mr-3">
+          <IconButton onPress={() => router.back()} className="mr-3" accessibilityLabel="Go back" accessibilityRole="button">
             <ChevronLeft size={20} color={iconColor} />
           </IconButton>
           <UIText size="base" variant="heading" className="flex-1 text-center">Connect Telegram</UIText>

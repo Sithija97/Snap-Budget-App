@@ -152,7 +152,7 @@ export async function classifyIntent(env: Bindings, question: string, todayISO: 
 Decide which of these safe operations applies:
 - "query": any question about how much was spent/earned, optionally filtered by date range, category, or merchant, and optionally grouped by category (for "breakdown"/"top categories"/"where did my money go" style questions). This covers almost every spending/income question — fill in querySpec with whatever the question implies (e.g. "last 6 months" → startDate 6 months before ${todayISO}, endDate ${todayISO}; "on food" → categoryName "Food"; "at Uber" → merchantContains "Uber"; a breakdown/top-categories question → groupBy "category"). Only set fields the question actually implies; leave the rest null.
 - "survival_estimate": whether their remaining balance will last until their next payday/salary.
-- "budget_status": how they're doing against their set budgets (over/under, remaining) — optionally for a specific month.
+- "budget_status": how they're doing against their one monthly budget (over/under, remaining) — optionally for a specific month.
 - "add_transaction": a statement logging money spent or received, e.g. "spent 500 on lunch", "paid 2000 for electricity", "got 50000 salary", "300 for coffee yesterday". Fill in draft: merchant (what/who for), amount, categoryName (your best guess, e.g. "Food", "Transport", "Utilities", "Salary"), txType ("exp" unless it's clearly income like salary/refund/received money), and date (resolve "yesterday"/"on Monday"/etc. relative to ${todayISO}; default to ${todayISO} if no date is mentioned).
 - "unsupported": things that are not a financial-data question or a spend/income statement at all (e.g. small talk, unrelated topics), or a request to edit/delete an existing transaction, budget, category, or wallet (this assistant can add new transactions from chat, but can't edit or delete anything).
 
@@ -234,7 +234,7 @@ const NOTIFICATION_DRAFT_SCHEMA = {
       properties: {
         merchant: { type: "STRING", description: 'Who the payment was to/from, e.g. "Keells Super", "John Doe". If unknown, use the bank/app name.' },
         amount: { type: "NUMBER" },
-        categoryName: { type: "STRING", description: 'Best-guess category, e.g. "Food", "Transport", "Utilities", "Salary"' },
+        categoryName: { type: "STRING", description: 'Best-guess category, e.g. "Food", "Transport", "Utilities", "Salary". Use "Other" if you cannot confidently guess one.' },
         txType: { type: "STRING", enum: ["inc", "exp"] },
         date: { type: "STRING", description: 'ISO "YYYY-MM-DD"' },
       },

@@ -3,7 +3,7 @@ import { View, ScrollView, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { ChevronLeft, Bell, BellOff } from "lucide-react-native";
-import { useTheme } from "@/context/ThemeContext";
+import { useThemeColors } from "@/context/ThemeContext";
 import { useRecapStore } from "@/store/useRecapStore";
 import { useRefresh } from "@/hooks/useRefresh";
 import { markRecapsSeen } from "@/hooks/useUnseenRecaps";
@@ -16,13 +16,12 @@ import { DataState } from "@/components/ui/DataState";
 import { Skeleton } from "@/components/ui/Skeleton";
 
 export default function RecapsScreen() {
-  const { isDark } = useTheme();
   const recaps = useRecapStore((s) => s.recaps);
   const status = useRecapStore((s) => s.status);
   const fetchAll = useRecapStore((s) => s.fetchAll);
   const { refreshing, onRefresh } = useRefresh(fetchAll);
 
-  const iconColor = isDark ? "#a1a1aa" : "#71717a";
+  const { mutedFg: iconColor } = useThemeColors();
 
   useEffect(() => {
     if (status === "idle" && recaps.length === 0) fetchAll().catch(() => {});
@@ -34,7 +33,7 @@ export default function RecapsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["top"]}>
       <View className="flex-row items-center px-4 pt-3 pb-4">
-        <IconButton onPress={() => router.back()} className="mr-3">
+        <IconButton onPress={() => router.back()} className="mr-3" accessibilityLabel="Go back" accessibilityRole="button">
           <ChevronLeft size={20} color={iconColor} />
         </IconButton>
         <UIText size="base" variant="heading" className="flex-1 text-center">Recaps</UIText>

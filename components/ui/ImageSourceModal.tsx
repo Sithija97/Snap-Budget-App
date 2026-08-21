@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import { Camera, Image as ImageIcon } from 'lucide-react-native';
-import { useTheme } from '@/context/ThemeContext';
+import { useThemeColors } from '@/context/ThemeContext';
 import { BRAND_BLUE } from '@/constants/colors';
 import { UIText } from './UIText';
 import { AnimatedPressable } from './AnimatedPressable';
@@ -52,7 +52,7 @@ function SourceOption({
         {icon}
       </View>
       <View style={{ flex: 1 }}>
-        <UIText size="sm" variant="unstyled" style={{ color: textColor, fontWeight: '600' }}>
+        <UIText size="sm" variant="unstyled" className="font-semibold" style={{ color: textColor }}>
           {label}
         </UIText>
         <UIText size="xs" variant="unstyled" style={{ color: mutedColor, marginTop: 1 }}>
@@ -68,10 +68,7 @@ function SourceOption({
 // through the same Gemini Vision pipeline as a fresh camera photo, instead
 // of only supporting live capture.
 export function ImageSourceModal({ visible, onClose, onSelectCamera, onSelectGallery }: ImageSourceModalProps) {
-  const { isDark } = useTheme();
-  const borderColor = isDark ? '#27272a' : '#e4e4e7';
-  const textColor = isDark ? '#fafafa' : '#09090b';
-  const mutedColor = isDark ? '#a1a1aa' : '#71717a';
+  const { border: borderColor, foreground: textColor, mutedFg: mutedColor } = useThemeColors();
 
   return (
     <PickerModal visible={visible} title="Add receipt" onClose={onClose} onConfirm={onClose}>
