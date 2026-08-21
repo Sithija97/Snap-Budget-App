@@ -139,7 +139,7 @@ export async function answerQuestion(env: Env["Bindings"], db: Db, userId: strin
     db.select({ id: categories.id, name: categories.name }).from(categories).where(eq(categories.userId, userId)),
     db.select({ balance: wallets.balance }).from(wallets).where(eq(wallets.userId, userId)),
     db
-      .select({ categoryId: budgets.categoryId, limitAmount: budgets.limitAmount, month: budgets.month })
+      .select({ limitAmount: budgets.limitAmount, month: budgets.month })
       .from(budgets)
       .where(eq(budgets.userId, userId)),
   ]);
@@ -154,7 +154,7 @@ export async function answerQuestion(env: Env["Bindings"], db: Db, userId: strin
       data = runQuery(txs, categoryNamesById, intentResult.querySpec ?? {});
       break;
     case "budget_status":
-      data = budgetStatusForMonth(txs, budgetRowsTyped, categoryNamesById, intentResult.month ?? currentMonth());
+      data = budgetStatusForMonth(txs, budgetRowsTyped, intentResult.month ?? currentMonth());
       break;
     case "survival_estimate": {
       // null balances count as 0 toward the total, matching useWalletStore's

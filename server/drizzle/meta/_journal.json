@@ -43,6 +43,13 @@
       "when": 1784502400996,
       "tag": "0005_colorful_captain_cross",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787220618937,
+      "tag": "0006_skinny_tarantula",
+      "breakpoints": true
     }
   ]
 }

@@ -254,44 +254,37 @@ export function recapForPeriod(
 }
 
 export interface BudgetRow {
-  categoryId: string;
   limitAmount: number;
   month: string; // "YYYY-MM"
 }
 
 export interface BudgetStatusEntry {
-  categoryName: string;
   limitAmount: number;
   spent: number;
   remaining: number;
   overBudget: boolean;
 }
 
-// Actual spend vs. each set budget for a given month — the natural
-// "how am I doing against my budgets" question, previously answerable only
-// visually on the Budget screen, not through the assistant.
+// Actual total expense spend vs. the one set budget for a given month, if
+// any — the natural "how am I doing against my budget" question. Returns an
+// array of 0 or 1 entries (rather than BudgetStatusEntry | null) to keep the
+// assistant.ts call site's diff small; there is at most one budget per month.
 export function budgetStatusForMonth(
   txs: TxRow[],
   budgets: BudgetRow[],
-  categoryNamesById: Map<string, string>,
   month: string
 ): BudgetStatusEntry[] {
-  const spentByCategory = new Map<string, number>();
-  for (const t of txs) {
-    if (t.txType !== "exp" || !t.date.startsWith(month)) continue;
-    spentByCategory.set(t.categoryId, (spentByCategory.get(t.categoryId) ?? 0) + t.amount);
-  }
+  const budget = budgets.find((b) => b.month === month);
+  if (!budget) return [];
 
-  return budgets
-    .filter((b) => b.month === month)
-    .map((b) => {
-      const spent = spentByCategory.get(b.categoryId) ?? 0;
-      return {
-        categoryName: categoryNamesById.get(b.categoryId) ?? "Uncategorized",
-        limitAmount: b.limitAmount,
-        spent,
-        remaining: b.limitAmount - spent,
-        overBudget: spent > b.limitAmount,
-      };
-    });
+  const spent = txs
+    .filter((t) => t.txType === "exp" && t.date.startsWith(month))
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  return [{
+    limitAmount: budget.limitAmount,
+    spent,
+    remaining: budget.limitAmount - spent,
+    overBudget: spent > budget.limitAmount,
+  }];
 }

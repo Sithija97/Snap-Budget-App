@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Platform, View } from 'react-native';
 import { ChevronUp, ChevronDown, Clock } from 'lucide-react-native';
-import { useTheme } from '@/context/ThemeContext';
+import { useThemeColors } from '@/context/ThemeContext';
 import { BRAND_BLUE } from '@/constants/colors';
 import { UIText } from './UIText';
 import { AnimatedPressable } from './AnimatedPressable';
@@ -47,7 +47,7 @@ function Stepper({
         <ChevronUp size={20} color={BRAND_BLUE} />
       </AnimatedPressable>
       <View style={{ minWidth: 64, alignItems: 'center', paddingVertical: 6 }}>
-        <UIText size="2xl" variant="unstyled" style={{ color, fontWeight: '600', fontVariant: ['tabular-nums'] }}>
+        <UIText size="2xl" variant="unstyled" className="font-semibold" style={{ color, fontVariant: ['tabular-nums'] }}>
           {value}
         </UIText>
       </View>
@@ -70,9 +70,7 @@ export function TimeField({ hour, minute, onChange, disabled = false }: TimeFiel
   const [draftHour, setDraftHour] = useState(hour);
   const [draftMinute, setDraftMinute] = useState(minute);
   const iconColor = usePickerFieldIconColor();
-  const { isDark } = useTheme();
-  const textColor = isDark ? '#fafafa' : '#09090b';
-  const dividerColor = isDark ? '#27272a' : '#e4e4e7';
+  const { foreground: textColor, border: dividerColor } = useThemeColors();
 
   const openPicker = () => {
     setDraftHour(hour);
@@ -115,7 +113,7 @@ export function TimeField({ hour, minute, onChange, disabled = false }: TimeFiel
               onIncrement={() => setDraftHour((h) => wrap(h + 1, 24))}
               onDecrement={() => setDraftHour((h) => wrap(h - 1, 24))}
             />
-            <UIText size="2xl" variant="unstyled" style={{ color: textColor, fontWeight: '600' }}>:</UIText>
+            <UIText size="2xl" variant="unstyled" className="font-semibold" style={{ color: textColor }}>:</UIText>
             <Stepper
               value={String(draftMinute).padStart(2, '0')}
               label="Minute"
@@ -141,7 +139,7 @@ export function TimeField({ hour, minute, onChange, disabled = false }: TimeFiel
                       borderColor: active ? BRAND_BLUE : dividerColor,
                     }}
                   >
-                    <UIText size="sm" variant="unstyled" style={{ color: active ? '#ffffff' : textColor, fontWeight: '600' }}>
+                    <UIText size="sm" variant="unstyled" className="font-semibold" style={{ color: active ? '#ffffff' : textColor }}>
                       {period}
                     </UIText>
                   </AnimatedPressable>

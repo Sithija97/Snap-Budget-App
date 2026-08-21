@@ -1,22 +1,26 @@
 import { useMemo } from "react";
-import {
-  ScrollView,
-  View,
-  RefreshControl,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { ScrollView, View, RefreshControl } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
-import { Plus, ArrowDownLeft, Wallet, Sparkles, Bell, ChevronRight } from "lucide-react-native";
-import { useTheme } from "@/context/ThemeContext";
-import { brandBlue } from "@/constants/colors";
-import { heroShadow } from "@/constants/shadows";
-import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import {
-  useTransactionStore,
-  totalsForMonth,
-  spentByCategoryInMonth,
-} from "@/store/useTransactionStore";
+  Plus,
+  ArrowDownLeft,
+  Wallet,
+  Sparkles,
+  Bell,
+  Settings,
+  ScanLine,
+  ChevronRight,
+  WalletCards,
+  Shapes,
+  Target,
+} from "lucide-react-native";
+import { useTheme, useThemeColors } from "@/context/ThemeContext";
+import { brandBlue } from "@/constants/colors";
+import { heroShadow, fabShadow } from "@/constants/shadows";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+import { useTransactionStore, totalsForMonth } from "@/store/useTransactionStore";
 import { useBudgetStore, budgetsForMonth } from "@/store/useBudgetStore";
 import { budgetHealth } from "@/utils/budgetHealth";
 import { BudgetHealthCard } from "@/components/BudgetHealthCard";
@@ -43,6 +47,8 @@ function greeting(hour: number): string {
 
 export default function HomeScreen() {
   const { isDark } = useTheme();
+  const { mutedFg, card, positive, negative } = useThemeColors();
+  const insets = useSafeAreaInsets();
   const { user } = useUser();
   const hasUnseenRecaps = useUnseenRecaps();
   const transactions = useTransactionStore((s) => s.transactions);
@@ -71,13 +77,13 @@ export default function HomeScreen() {
     [displayTransactions],
   );
 
+  const monthBudget = useMemo(
+    () => budgetsForMonth(budgets, month)[0],
+    [budgets, month],
+  );
   const health = useMemo(
-    () =>
-      budgetHealth(
-        budgetsForMonth(budgets, month),
-        spentByCategoryInMonth(transactions, month),
-      ),
-    [budgets, transactions, month],
+    () => budgetHealth(monthBudget, spent),
+    [monthBudget, spent],
   );
   const healthLoading =
     isFirstLoad || (budgetStatus === "loading" && budgets.length === 0);
@@ -92,7 +98,9 @@ export default function HomeScreen() {
   );
 
   const firstName = user?.firstName?.trim();
-  const headline = firstName ? `${greeting(new Date().getHours())}, ${firstName}` : greeting(new Date().getHours());
+  const headline = firstName
+    ? `${greeting(new Date().getHours())}, ${firstName}`
+    : greeting(new Date().getHours());
 
   return (
     <SafeAreaView
@@ -122,17 +130,36 @@ export default function HomeScreen() {
             </UIText>
           </View>
           <View className="flex-row items-center gap-2">
-            <IconButton onPress={() => router.push("/assistant")}>
-              <Sparkles size={18} color={isDark ? "#a1a1aa" : "#71717a"} />
+            <IconButton
+              onPress={() => router.push("/assistant")}
+              accessibilityLabel="Open AI assistant"
+              accessibilityRole="button"
+            >
+              <Sparkles size={18} color={mutedFg} />
             </IconButton>
-            <IconButton onPress={() => router.push("/recaps")} className="relative">
-              <Bell size={18} color={isDark ? "#a1a1aa" : "#71717a"} />
+            <IconButton
+              onPress={() => router.push("/recaps")}
+              className="relative"
+              accessibilityLabel={hasUnseenRecaps ? "Open recaps, new recap available" : "Open recaps"}
+              accessibilityRole="button"
+            >
+              <Bell size={18} color={mutedFg} />
               {hasUnseenRecaps && (
                 <View
                   className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-negative dark:bg-negative-dark"
-                  style={{ borderWidth: 1.5, borderColor: isDark ? "#18181b" : "#ffffff" }}
+                  style={{
+                    borderWidth: 1.5,
+                    borderColor: card,
+                  }}
                 />
               )}
+            </IconButton>
+            <IconButton
+              onPress={() => router.push("/settings")}
+              accessibilityLabel="Open settings"
+              accessibilityRole="button"
+            >
+              <Settings size={18} color={mutedFg} />
             </IconButton>
           </View>
         </View>
@@ -149,7 +176,7 @@ export default function HomeScreen() {
             >
               <View>
                 <UIText size="xs" variant="label">
-                  Total spent
+                  Total Spent
                 </UIText>
                 {isFirstLoad ? (
                   <Skeleton width={140} height={36} className="mt-1.5" />
@@ -158,7 +185,7 @@ export default function HomeScreen() {
                     value={spent}
                     format={fmt}
                     size="3xl"
-                    className="font-mono font-semibold mt-1"
+                    className="font-black tracking-tight mt-1"
                   />
                 )}
               </View>
@@ -184,7 +211,7 @@ export default function HomeScreen() {
                 <View className="w-8 h-8 rounded-full items-center justify-center bg-positive/10 dark:bg-positive-dark/10">
                   <ArrowDownLeft
                     size={15}
-                    color={isDark ? "#22c55e" : "#16a34a"}
+                    color={positive}
                     strokeWidth={2}
                   />
                 </View>
@@ -198,7 +225,7 @@ export default function HomeScreen() {
                     <UIText
                       size="base"
                       variant="heading"
-                      className="mt-0.5 font-mono"
+                      className="mt-0.5 font-semibold"
                     >
                       {fmt(income)}
                     </UIText>
@@ -218,11 +245,7 @@ export default function HomeScreen() {
                 >
                   <Wallet
                     size={15}
-                    color={
-                      remaining < 0
-                        ? isDark ? "#f87171" : "#dc2626"
-                        : isDark ? "#22c55e" : "#16a34a"
-                    }
+                    color={remaining < 0 ? negative : positive}
                     strokeWidth={2}
                   />
                 </View>
@@ -234,9 +257,9 @@ export default function HomeScreen() {
                     <Skeleton width={70} height={18} className="mt-1" />
                   ) : (
                     <UIText
-                      size="lg"
+                      size="base"
                       variant="unstyled"
-                      className={`mt-0.5 font-medium font-mono ${
+                      className={`mt-0.5 font-semibold ${
                         remaining < 0
                           ? "text-negative dark:text-negative-dark"
                           : "text-positive dark:text-positive-dark"
@@ -251,20 +274,63 @@ export default function HomeScreen() {
           </Card>
         </View>
 
+        {/* Quick access — Wallets/Categories/Budget have no other entry
+            point from Home; without this row they were only reachable two
+            taps deep via Settings, which a first-time user has no reason to
+            open before they've ever tried to add a wallet or category. Three
+            separate cards with real gaps (not one strip with thin dividers)
+            — a single connected card with 1px internal dividers read as a
+            segmented control rather than three independently tappable
+            buttons, which wasn't obvious enough at a glance. Still compact
+            (py-3, not full square tiles) so it doesn't compete with the hero
+            card or the budget gauge just below for vertical space. */}
+        <View className="flex-row gap-2 mt-4">
+          <AnimatedPressable
+            onPress={() => router.push("/wallets")}
+            wrapperClassName="flex-1"
+            className="flex-row items-center justify-center gap-1.5 py-3 rounded-2xl bg-card dark:bg-card-dark"
+            accessibilityLabel="Open wallets"
+            accessibilityRole="button"
+          >
+            <WalletCards size={15} color={mutedFg} strokeWidth={1.8} />
+            <UIText size="xs" variant="heading">Wallets</UIText>
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => router.push("/categories")}
+            wrapperClassName="flex-1"
+            className="flex-row items-center justify-center gap-1.5 py-3 rounded-2xl bg-card dark:bg-card-dark"
+            accessibilityLabel="Open categories"
+            accessibilityRole="button"
+          >
+            <Shapes size={15} color={mutedFg} strokeWidth={1.8} />
+            <UIText size="xs" variant="heading">Categories</UIText>
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => router.push("/budget-form")}
+            wrapperClassName="flex-1"
+            className="flex-row items-center justify-center gap-1.5 py-3 rounded-2xl bg-card dark:bg-card-dark"
+            accessibilityLabel="Open budget"
+            accessibilityRole="button"
+          >
+            <Target size={15} color={mutedFg} strokeWidth={1.8} />
+            <UIText size="xs" variant="heading">Budget</UIText>
+          </AnimatedPressable>
+        </View>
+
         {/* Budget health */}
         <View className="flex-row items-center justify-between mt-4 mb-3">
-          <UIText size="sm" variant="heading">
+          <UIText size="lg" variant="heading">
             Budget health
           </UIText>
           <AnimatedPressable
-            onPress={() => router.push("/(tabs)/analytics")}
+            onPress={() => router.push("/analytics")}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             className="flex-row items-center gap-0.5"
           >
             <UIText size="xs" variant="muted">
               See more
             </UIText>
-            <ChevronRight size={13} color={isDark ? "#a1a1aa" : "#71717a"} />
+            <ChevronRight size={13} color={mutedFg} />
           </AnimatedPressable>
         </View>
 
@@ -272,27 +338,27 @@ export default function HomeScreen() {
 
         {/* Recent transactions */}
         <View className="flex-row items-center justify-between mt-4 mb-3">
-          <UIText size="sm" variant="heading">
+          <UIText size="lg" variant="heading">
             Recent transactions
           </UIText>
           <AnimatedPressable
-            onPress={() => router.push("/(tabs)/transactions")}
+            onPress={() => router.push("/transactions")}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             className="flex-row items-center gap-0.5"
           >
             <UIText size="xs" variant="muted">
               See all
             </UIText>
-            <ChevronRight size={13} color={isDark ? "#a1a1aa" : "#71717a"} />
+            <ChevronRight size={13} color={mutedFg} />
           </AnimatedPressable>
         </View>
 
         {isFirstLoad ? (
-          <Card className="p-0 px-1 overflow-hidden">
+          <View>
             {[0, 1, 2, 3, 4].map((i) => (
-              <TransactionItemSkeleton key={i} />
+              <TransactionItemSkeleton key={i} isFirst={i === 0} isLast={i === 4} />
             ))}
-          </Card>
+          </View>
         ) : recent.length === 0 ? (
           <DataState
             status={status}
@@ -301,31 +367,62 @@ export default function HomeScreen() {
             emptyMessage="No transactions yet"
           />
         ) : (
-          <Card className="p-0 overflow-hidden">
+          <View>
             {recent.map((tx, i) => (
-              <View key={tx.id} className="px-1">
-                <TransactionItem
-                  merchant={tx.merchant}
-                  categoryName={tx.categoryName}
-                  subtitle={formatFullDate(tx.date)}
-                  separator={false}
-                  txType={tx.txType}
-                  amount={tx.amount}
-                  time={tx.time}
-                  icon={tx.categoryIcon}
-                  isLast={i === recent.length - 1}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/transaction/[id]",
-                      params: { id: tx.id },
-                    })
-                  }
-                />
-              </View>
+              <TransactionItem
+                key={tx.id}
+                merchant={tx.merchant}
+                categoryName={tx.categoryName}
+                subtitle={formatFullDate(tx.date)}
+                txType={tx.txType}
+                amount={tx.amount}
+                time={tx.time}
+                icon={tx.categoryIcon}
+                isFirst={i === 0}
+                isLast={i === recent.length - 1}
+                onPress={() =>
+                  router.push({
+                    pathname: "/transaction/[id]",
+                    params: { id: tx.id },
+                  })
+                }
+              />
             ))}
-          </Card>
+          </View>
         )}
       </ScrollView>
+
+      {/* Single floating action button — replaces the removed bottom tab
+          bar's center Scan button. Absolutely positioned as a sibling to the
+          ScrollView (not inside scrollable content) so it stays fixed while
+          the page scrolls. */}
+      <AnimatedPressable
+        pressScale={0.92}
+        style={[
+          {
+            position: "absolute",
+            right: 16,
+            bottom: insets.bottom + 16,
+            width: 56,
+            height: 56,
+            borderRadius: 28,
+          },
+          fabShadow(isDark),
+        ]}
+        contentStyle={{
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          backgroundColor: brandBlue(isDark),
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+        onPress={() => router.push("/scan")}
+        accessibilityLabel="Scan a receipt"
+        accessibilityRole="button"
+      >
+        <ScanLine size={24} color="#ffffff" strokeWidth={2} />
+      </AnimatedPressable>
     </SafeAreaView>
   );
 }

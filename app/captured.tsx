@@ -3,7 +3,7 @@ import { View, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { ChevronLeft, Inbox, Sparkles, Cpu } from "lucide-react-native";
-import { useTheme } from "@/context/ThemeContext";
+import { useThemeColors } from "@/context/ThemeContext";
 import { useCaptureStore } from "@/store/useCaptureStore";
 import { CaptureSource } from "@/types/capture";
 import { TxType } from "@/types";
@@ -23,11 +23,10 @@ const SOURCE_LABEL: Record<CaptureSource, string> = {
 };
 
 export default function CapturedScreen() {
-  const { isDark } = useTheme();
   const suggestions = useCaptureStore((s) => s.suggestions);
   const dismissSuggestion = useCaptureStore((s) => s.dismissSuggestion);
 
-  const iconColor = isDark ? "#a1a1aa" : "#71717a";
+  const { mutedFg: iconColor } = useThemeColors();
 
   const pending = useMemo(() => suggestions.filter((s) => s.status === "pending"), [suggestions]);
 
@@ -53,7 +52,7 @@ export default function CapturedScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["top"]}>
       <View className="flex-row items-center px-4 pt-3 pb-4">
-        <IconButton onPress={() => router.back()} className="mr-3">
+        <IconButton onPress={() => router.back()} className="mr-3" accessibilityLabel="Go back" accessibilityRole="button">
           <ChevronLeft size={20} color={iconColor} />
         </IconButton>
         <UIText size="base" variant="heading" className="flex-1 text-center">Captured transactions</UIText>
@@ -90,7 +89,7 @@ export default function CapturedScreen() {
                   <UIText
                     size="lg"
                     variant="unstyled"
-                    className={`font-mono font-semibold ${isIncome ? "text-positive dark:text-positive-dark" : "text-negative dark:text-negative-dark"}`}
+                    className={`font-semibold ${isIncome ? "text-positive dark:text-positive-dark" : "text-negative dark:text-negative-dark"}`}
                   >
                     {isIncome ? "+" : "−"}Rs {s.amount.toLocaleString("en-US")}
                   </UIText>

@@ -2,13 +2,16 @@ import "../global.css";
 import { useEffect } from "react";
 import { View, AppState } from "react-native";
 import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import {
-  DMSans_400Regular,
-  DMSans_500Medium,
-  DMSans_600SemiBold,
-} from "@expo-google-fonts/dm-sans";
-import { DMMono_400Regular } from "@expo-google-fonts/dm-mono";
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  Inter_800ExtraBold,
+  Inter_900Black,
+} from "@expo-google-fonts/inter";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
 import { ClerkProvider, ClerkLoaded, useAuth } from "@clerk/clerk-expo";
@@ -106,10 +109,30 @@ function InnerLayout() {
   // every `dark:*` className in the app silently never activates.
   return (
     <View className={isDark ? "dark flex-1" : "flex-1"}>
-      <Stack screenOptions={{ headerShown: false }}>
+      {/* Edge-to-edge (android/gradle.properties: edgeToEdgeEnabled=true)
+          means the OS status bar is a transparent overlay drawn on top of
+          app content, not a colored native chrome bar — style="auto" then
+          picks light/dark status bar icons to match the current theme so
+          they stay legible against whatever's underneath. */}
+      <StatusBar style="auto" />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          // Native screen transitions briefly reveal this container's own
+          // background at the edge before the incoming screen's content
+          // paints — without an explicit dark value here it defaults to
+          // white, showing as a flash/sliver during push/pop in dark mode.
+          // Values match tailwind.config.js's background token.
+          contentStyle: { backgroundColor: isDark ? "#0b0f19" : "#f1f5f9" },
+        }}
+      >
         <Stack.Protected guard={!!isSignedIn}>
-          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="index" />
           <Stack.Screen name="scan" options={{ presentation: "modal" }} />
+          <Stack.Screen name="budget-form" options={{ presentation: "modal" }} />
+          <Stack.Screen name="wallet-form" options={{ presentation: "modal" }} />
+          <Stack.Screen name="category-form" options={{ presentation: "modal" }} />
+          <Stack.Screen name="transaction/[id]" options={{ presentation: "modal" }} />
           <Stack.Screen name="captured" />
           <Stack.Screen name="notification-capture" />
         </Stack.Protected>
@@ -122,19 +145,21 @@ function InnerLayout() {
 }
 
 export default function RootLayout() {
-  // Blocks first render — DM Sans is used everywhere (headings, body text),
-  // so it must be ready before anything paints. DM Mono is split into its
-  // own non-blocking call below: it's only used for money amounts, which
-  // are never shown before real data arrives (skeletons cover that gap on
-  // every screen), and it's unused on the login screen entirely — loading it
-  // here would otherwise serialize font-loading in front of Clerk's own
-  // (larger) init instead of letting the two overlap.
+  // Blocks first render — 400/500/600/700 cover every UIText variant used
+  // app-wide, so they must be ready before anything paints. Stands in for
+  // SF Pro Display/Rounded (iOS system font): Apple's license doesn't permit
+  // bundling the actual SF Pro font files in a cross-platform app, so Inter
+  // is used as the closest open-license match on both platforms.
   const [loaded] = useFonts({
-    DMSans_400Regular,
-    DMSans_500Medium,
-    DMSans_600SemiBold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
   });
-  useFonts({ DMMono_400Regular });
+  // 800/900 are only reached for the one Home-screen hero number — split out
+  // non-blocking (same reasoning DM Mono used to get) so first paint isn't
+  // gated on two extra, heavier font files that most screens never touch.
+  useFonts({ Inter_800ExtraBold, Inter_900Black });
 
   // Registered once at the root (not sign-in-gated) so a tap that arrives
   // while the app is cold-starting isn't missed — Stack.Protected still

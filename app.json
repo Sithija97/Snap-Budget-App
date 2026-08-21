@@ -12,7 +12,7 @@
     "android": {
       "package": "com.sithija.snapbudget",
       "adaptiveIcon": {
-        "backgroundColor": "#1070F8",
+        "backgroundColor": "#3b82f6",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -39,7 +39,7 @@
           "backgroundColor": "#ffffff",
           "dark": {
             "image": "./assets/splash-icon.png",
-            "backgroundColor": "#09090b"
+            "backgroundColor": "#0b0f19"
           }
         }
       ],
@@ -66,10 +66,11 @@
       [
         "expo-notifications",
         {
-          "color": "#1070F8"
+          "color": "#3b82f6"
         }
       ],
-      "./plugins/withAndroidBrandTheme.js"
+      "./plugins/withAndroidBrandTheme.js",
+      "./plugins/withAndroidPermissionCleanup.js"
     ],
     "extra": {
       "router": {},

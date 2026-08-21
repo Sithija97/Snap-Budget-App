@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { View, ScrollView, RefreshControl } from "react-native";
-import { ChartNoAxesCombined } from "lucide-react-native";
+import { router } from "expo-router";
+import { ChartNoAxesCombined, ChevronLeft } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
@@ -12,7 +13,9 @@ import { Card } from "@/components/ui/Card";
 import { DataState } from "@/components/ui/DataState";
 import { Chip } from "@/components/ui/Chip";
 import { AnimatedBar } from "@/components/ui/AnimatedBar";
-import { useTheme } from "@/context/ThemeContext";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+import { IconButton } from "@/components/ui/IconButton";
+import { useTheme, useThemeColors } from "@/context/ThemeContext";
 import { useRefresh } from "@/hooks/useRefresh";
 import { chartTheme, barRampColor } from "@/constants/chartTheme";
 
@@ -21,6 +24,7 @@ type Period = typeof PERIODS[number];
 
 export default function AnalyticsScreen() {
   const { isDark } = useTheme();
+  const { mutedFg: iconColor } = useThemeColors();
   const [period, setPeriod] = useState<Period>('Monthly');
 
   const transactions = useTransactionStore((s) => s.transactions);
@@ -40,6 +44,11 @@ export default function AnalyticsScreen() {
   const chartData   = isMonthly ? monthlySpending : weeklySpending;
   const chartMax    = Math.max(...chartData.map(m => m.amount), 1);
   const chartLabel  = isMonthly ? 'Spending — last 6 months' : 'Spending — last 6 weeks';
+  // Current period's total — the same value as the chart's most recent bar,
+  // given a hero-number anchor (matching Home's "Total spent") so this
+  // screen isn't only relative bars/percentages with no headline figure.
+  const currentPeriodSpent = chartData[chartData.length - 1]?.amount ?? 0;
+  const heroLabel = isMonthly ? 'Spent this month' : 'Spent this week';
 
   const { track: barTrack, axisText: textMuted } = chartTheme(isDark);
 
@@ -57,8 +66,11 @@ export default function AnalyticsScreen() {
         }
       >
         {/* Header */}
-        <View className="flex-row items-center justify-between mb-4">
-          <UIText size="xl" variant="heading">Analytics</UIText>
+        <View className="flex-row items-center mb-4 gap-3">
+          <IconButton onPress={() => router.back()} accessibilityLabel="Go back" accessibilityRole="button">
+            <ChevronLeft size={20} color={iconColor} />
+          </IconButton>
+          <UIText size="base" variant="heading" className="flex-1">Analytics</UIText>
           <View className="flex-row gap-4">
             {PERIODS.map((p) => (
               <Chip key={p} variant="underline" label={p} selected={period === p} onPress={() => setPeriod(p)} />
@@ -76,6 +88,19 @@ export default function AnalyticsScreen() {
           />
         ) : (
           <>
+            {/* Hero total — same typographic anchor as Home's "Total spent"
+                (3xl/AnimatedNumber), so this screen leads with a confident
+                headline figure instead of only relative bars/percentages. */}
+            <View className="mb-4">
+              <UIText size="xs" variant="label">{heroLabel}</UIText>
+              <AnimatedNumber
+                value={currentPeriodSpent}
+                format={fmt}
+                size="3xl"
+                className="font-black tracking-tight mt-1"
+              />
+            </View>
+
             {/* Bar chart */}
             <Card>
               <UIText size="xs" variant="label" className="mb-3">{chartLabel}</UIText>
@@ -120,8 +145,8 @@ export default function AnalyticsScreen() {
                   >
                     <View style={{ width: 8, height: 8, borderRadius: 99, backgroundColor: c.color }} />
                     <UIText size="sm" className="flex-1">{c.category}</UIText>
-                    <UIText size="sm" variant="unstyled" className="font-mono text-mutedFg dark:text-mutedFg-dark">{c.pct}%</UIText>
-                    <UIText size="sm" className="font-mono">{fmt(c.amount)}</UIText>
+                    <UIText size="sm" variant="unstyled" className="font-sans text-mutedFg dark:text-mutedFg-dark">{c.pct}%</UIText>
+                    <UIText size="sm" className="font-semibold">{fmt(c.amount)}</UIText>
                   </View>
                 ))
               )}

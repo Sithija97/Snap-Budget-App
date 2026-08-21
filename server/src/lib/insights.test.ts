@@ -137,35 +137,40 @@ describe("survivalEstimate", () => {
 });
 
 describe("budgetStatusForMonth", () => {
-  const budget = (categoryId: string, limitAmount: number, month = "2026-07"): BudgetRow => ({
-    categoryId,
+  const budget = (limitAmount: number, month = "2026-07"): BudgetRow => ({
     limitAmount,
     month,
   });
 
   it("reports remaining budget when under the limit", () => {
     const txs = [exp("2026-07-01", 300, "cat-food")];
-    const status = budgetStatusForMonth(txs, [budget("cat-food", 1000)], categoryNames, "2026-07");
-    expect(status[0]).toEqual({ categoryName: "Food", limitAmount: 1000, spent: 300, remaining: 700, overBudget: false });
+    const status = budgetStatusForMonth(txs, [budget(1000)], "2026-07");
+    expect(status[0]).toEqual({ limitAmount: 1000, spent: 300, remaining: 700, overBudget: false });
   });
 
   it("flags overBudget when spend exceeds the limit", () => {
     const txs = [exp("2026-07-01", 1200, "cat-food")];
-    const status = budgetStatusForMonth(txs, [budget("cat-food", 1000)], categoryNames, "2026-07");
+    const status = budgetStatusForMonth(txs, [budget(1000)], "2026-07");
     expect(status[0].overBudget).toBe(true);
     expect(status[0].remaining).toBe(-200);
   });
 
-  it("only includes budgets for the requested month", () => {
+  it("only includes the budget for the requested month", () => {
     const txs = [exp("2026-07-01", 300, "cat-food")];
-    const status = budgetStatusForMonth(txs, [budget("cat-food", 1000, "2026-06")], categoryNames, "2026-07");
+    const status = budgetStatusForMonth(txs, [budget(1000, "2026-06")], "2026-07");
     expect(status).toEqual([]);
   });
 
-  it("reports zero spent for a budgeted category with no transactions yet", () => {
-    const status = budgetStatusForMonth([], [budget("cat-food", 1000)], categoryNames, "2026-07");
+  it("reports zero spent when there are no transactions yet", () => {
+    const status = budgetStatusForMonth([], [budget(1000)], "2026-07");
     expect(status[0].spent).toBe(0);
     expect(status[0].remaining).toBe(1000);
+  });
+
+  it("sums spend across all expense categories against the one budget", () => {
+    const txs = [exp("2026-07-01", 300, "cat-food"), exp("2026-07-02", 200, "cat-transport")];
+    const status = budgetStatusForMonth(txs, [budget(1000)], "2026-07");
+    expect(status[0].spent).toBe(500);
   });
 });
 

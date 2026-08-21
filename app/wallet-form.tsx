@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { View, ScrollView, Alert } from "react-native";
+import { View, ScrollView, Alert, KeyboardAvoidingView, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
-import { useTheme } from "@/context/ThemeContext";
+import { useThemeColors } from "@/context/ThemeContext";
 import { useWalletStore } from "@/store/useWalletStore";
 import { parseAmount } from "@/utils/format";
 import { UIText } from "@/components/ui/UIText";
@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
 export default function WalletFormScreen() {
-  const { isDark } = useTheme();
   const { id } = useLocalSearchParams<{ id?: string }>();
 
   const wallets = useWalletStore((s) => s.wallets);
@@ -29,7 +28,7 @@ export default function WalletFormScreen() {
   );
   const [saving, setSaving] = useState(false);
 
-  const iconColor   = isDark ? "#a1a1aa" : "#71717a";
+  const { mutedFg: iconColor } = useThemeColors();
 
   const canSave = name.trim().length > 0 && !saving;
 
@@ -78,6 +77,11 @@ export default function WalletFormScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["top"]}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 44 : 0}
+      >
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 32 }}
@@ -85,7 +89,7 @@ export default function WalletFormScreen() {
       >
         {/* Header */}
         <View className="flex-row items-center px-4 pt-3 pb-4">
-          <IconButton onPress={() => router.back()} className="mr-3">
+          <IconButton onPress={() => router.back()} className="mr-3" accessibilityLabel="Go back" accessibilityRole="button">
             <ChevronLeft size={20} color={iconColor} />
           </IconButton>
           <UIText size="base" variant="heading" className="flex-1 text-center">
@@ -103,20 +107,27 @@ export default function WalletFormScreen() {
             autoCapitalize="words"
             returnKeyType="next"
           />
+        </Card>
 
-          <UIText size="xs" variant="label" className="mt-2">Balance (optional)</UIText>
+        {/* Balance — its own card, matching the emphasis a money figure
+            gets elsewhere in the app (budget-form's limit, Home's hero
+            number) rather than a second same-weight field under Name. */}
+        <Card className="mx-4 mt-3 gap-3">
+          <UIText size="xs" variant="label">Balance (optional)</UIText>
           <Input
             placeholder="Leave blank if not set"
             value={balance}
             onChangeText={(v) => setBalance(v.replace(/[^0-9.]/g, ""))}
             keyboardType="numeric"
             returnKeyType="done"
+            style={{ fontSize: 24, height: 56 }}
           />
+        </Card>
 
+        <View className="mx-4 mt-4 gap-2">
           <Button
             label={saving ? "Saving..." : "Save Wallet"}
             variant="default"
-            className="mt-2"
             disabled={!canSave}
             onPress={handleSave}
           />
@@ -128,8 +139,9 @@ export default function WalletFormScreen() {
               onPress={handleDelete}
             />
           )}
-        </Card>
+        </View>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

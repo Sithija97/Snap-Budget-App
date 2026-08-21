@@ -1,5 +1,6 @@
 import { UIText } from './UIText';
-import { useTheme } from '@/context/ThemeContext';
+import { useTheme, useThemeColors } from '@/context/ThemeContext';
+import { brandBlue } from '@/constants/colors';
 import { AnimatedPressable } from './AnimatedPressable';
 
 type Variant = 'default' | 'outline' | 'ghost' | 'destructive';
@@ -7,7 +8,7 @@ type Variant = 'default' | 'outline' | 'ghost' | 'destructive';
 const base = 'h-11 rounded-lg px-4 items-center justify-center flex-row gap-2';
 
 const containerStyles: Record<Variant, string> = {
-  default:     `${base} bg-accent dark:bg-accent-dark`,
+  default:     base,
   outline:     `${base} border border-border dark:border-border-dark`,
   ghost:       base,
   destructive: `${base} bg-destructive`,
@@ -24,15 +25,21 @@ interface ButtonProps {
 
 export function Button({ label, variant = 'default', onPress, icon, className = '', disabled = false }: ButtonProps) {
   const { isDark } = useTheme();
+  const { foreground } = useThemeColors();
 
   const textColor = (() => {
     switch (variant) {
-      case 'default':     return isDark ? '#18181b' : '#ffffff';
+      case 'default':     return '#ffffff';
       case 'destructive': return '#ffffff';
       case 'outline':
-      case 'ghost':       return isDark ? '#fafafa' : '#09090b';
+      case 'ghost':       return foreground;
     }
   })();
+
+  // default (primary) is the app's single brand blue in both themes,
+  // matching Chip's selected-pill fill — set via style since it's not one
+  // of the paired DEFAULT/dark tailwind tokens (see constants/colors.ts).
+  const containerBg = variant === 'default' ? { backgroundColor: brandBlue(isDark) } : undefined;
 
   return (
     <AnimatedPressable
@@ -43,11 +50,12 @@ export function Button({ label, variant = 'default', onPress, icon, className = 
       // child its sibling elements actually lay out against.
       wrapperClassName={className}
       className={`${containerStyles[variant]} ${disabled ? 'opacity-50' : ''}`}
+      contentStyle={containerBg}
       onPress={onPress}
       disabled={disabled}
     >
       {icon}
-      <UIText size="sm" variant="unstyled" style={{ fontWeight: '500', color: textColor }}>
+      <UIText size="sm" variant="unstyled" className="font-medium" style={{ color: textColor }}>
         {label}
       </UIText>
     </AnimatedPressable>

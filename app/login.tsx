@@ -93,11 +93,13 @@ export default function LoginScreen() {
       // e.g. 2FA or other additional factors — not implemented in this build
       const factors =
         attempt.supportedFirstFactors?.map((f) => f.strategy).join(", ") || "none";
-      console.log("Sign-in incomplete", {
-        status: attempt.status,
-        supportedFirstFactors: attempt.supportedFirstFactors,
-        supportedSecondFactors: attempt.supportedSecondFactors,
-      });
+      if (__DEV__) {
+        console.warn("Sign-in incomplete", {
+          status: attempt.status,
+          supportedFirstFactors: attempt.supportedFirstFactors,
+          supportedSecondFactors: attempt.supportedSecondFactors,
+        });
+      }
       Alert.alert(
         "Additional verification required",
         `This account needs a sign-in step not supported here.\n\nstatus: ${attempt.status}\nfirst factors: ${factors}`
@@ -251,7 +253,7 @@ export default function LoginScreen() {
   const handleGoogleAuth = useCallback(async () => {
     try {
       const { createdSessionId, setActive } = await startOAuthFlow({
-        redirectUrl: Linking.createURL("/(tabs)"),
+        redirectUrl: Linking.createURL("/"),
       });
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });

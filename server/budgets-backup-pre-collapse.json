@@ -1,0 +1,26 @@
+[
+  {
+    "id": "0a67771e-82a6-46bc-b58d-4b9ea18a970f",
+    "user_id": "user_3GDKQqYZmlm23qhl2SFL4CRsWTU",
+    "category_id": "eea65816-624d-4eab-8382-bdcb92692202",
+    "limit_amount": "12000",
+    "month": "2026-08",
+    "repeat": false
+  },
+  {
+    "id": "800b7e4b-3bba-4445-8aa8-c907a3e83071",
+    "user_id": "user_3GDKQqYZmlm23qhl2SFL4CRsWTU",
+    "category_id": "3e0d4517-b8b7-4d64-917d-0eed87d3c596",
+    "limit_amount": "10000",
+    "month": "2026-08",
+    "repeat": false
+  },
+  {
+    "id": "8783a253-e5d7-467e-866b-576a85c6dd80",
+    "user_id": "user_3GDKQqYZmlm23qhl2SFL4CRsWTU",
+    "category_id": "c752fdf7-c450-4d23-8985-b9178c50791b",
+    "limit_amount": "10000",
+    "month": "2026-08",
+    "repeat": false
+  }
+]

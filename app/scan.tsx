@@ -10,7 +10,7 @@ import {
   CheckCircle2,
   Camera,
 } from "lucide-react-native";
-import { useTheme } from "@/context/ThemeContext";
+import { useThemeColors } from "@/context/ThemeContext";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { useWalletStore } from "@/store/useWalletStore";
@@ -63,7 +63,7 @@ const CORNER_POSITIONS = [
 type Stage = "idle" | "analyzing" | "review";
 
 export default function ScanScreen() {
-  const { isDark } = useTheme();
+  const { border: borderColor, card: mutedBg, mutedFg: iconColor, muted, positive } = useThemeColors();
   // Lets other screens (e.g. Home's Income/Total spent tap targets, and the
   // Captured-transactions inbox's "Review" action) deep-link straight into
   // "add a transaction of this type" — optionally pre-filled — instead of
@@ -79,7 +79,9 @@ export default function ScanScreen() {
     captureId?: string;
   }>();
   const [stage, setStage] = useState<Stage>("idle");
-  const [showManual, setShowManual] = useState(params.manual === "false");
+  const [showManual, setShowManual] = useState(
+    params.manual === "true" || !!params.captureId,
+  );
   const [saving, setSaving] = useState(false);
   const [showSourcePicker, setShowSourcePicker] = useState(false);
 
@@ -313,12 +315,6 @@ export default function ScanScreen() {
     await processPickedImage(result.assets[0]);
   };
 
-  const borderColor = isDark ? "#27272a" : "#e4e4e7";
-  // Viewfinder surface: card-level, not muted — the old #f4f4f5 is nearly
-  // invisible against the slate-100 page background
-  const mutedBg = isDark ? "#18181b" : "#ffffff";
-  const iconColor = isDark ? "#a1a1aa" : "#71717a";
-
   return (
     <SafeAreaView
       className="flex-1 bg-background dark:bg-background-dark"
@@ -331,7 +327,7 @@ export default function ScanScreen() {
       >
         {/* Header */}
         <View className="flex-row items-center px-4 pt-3 pb-4">
-          <IconButton onPress={() => router.back()} className="mr-3">
+          <IconButton onPress={() => router.back()} className="mr-3" accessibilityLabel="Go back" accessibilityRole="button">
             <ChevronLeft size={20} color={iconColor} />
           </IconButton>
           <UIText size="base" variant="heading" className="flex-1 text-center">
@@ -346,7 +342,7 @@ export default function ScanScreen() {
           <View
             className="flex-row mx-4 mb-2"
             style={{
-              backgroundColor: isDark ? "#09090b" : "#f4f4f5",
+              backgroundColor: muted,
               borderRadius: 8,
               padding: 3,
             }}
@@ -516,7 +512,7 @@ export default function ScanScreen() {
                   icon={
                     <Camera
                       size={16}
-                      color={isDark ? "#18181b" : "#ffffff"}
+                      color="#ffffff"
                       strokeWidth={2}
                     />
                   }
@@ -548,7 +544,7 @@ export default function ScanScreen() {
                   <View className="w-6 h-6 rounded-full items-center justify-center bg-positive/10 dark:bg-positive-dark/10">
                     <CheckCircle2
                       size={14}
-                      color={isDark ? "#22c55e" : "#16a34a"}
+                      color={positive}
                     />
                   </View>
                   <UIText size="sm" variant="heading">

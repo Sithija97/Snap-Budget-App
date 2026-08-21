@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { and, eq, count, sql, ne } from "drizzle-orm";
-import { categories, transactions, budgets } from "../db/schema";
+import { categories, transactions } from "../db/schema";
 import type { Env } from "../types";
 
 const categoryInput = z.object({
@@ -129,17 +129,6 @@ categoriesRoute.delete("/:id", async (c) => {
 
   if (txCount > 0) {
     return c.json({ error: "Category is used by existing transactions" }, 400);
-  }
-
-  // budgets.categoryId cascades on delete — without this guard, deleting a
-  // category would silently wipe out any budget set for it with no warning.
-  const [{ value: budgetCount }] = await db
-    .select({ value: count() })
-    .from(budgets)
-    .where(and(eq(budgets.categoryId, id), eq(budgets.userId, userId)));
-
-  if (budgetCount > 0) {
-    return c.json({ error: "Category has a budget set. Delete the budget first." }, 400);
   }
 
   await db.delete(categories).where(and(eq(categories.id, id), eq(categories.userId, userId)));
