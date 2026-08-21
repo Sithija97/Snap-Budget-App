@@ -234,7 +234,7 @@ const NOTIFICATION_DRAFT_SCHEMA = {
       properties: {
         merchant: { type: "STRING", description: 'Who the payment was to/from, e.g. "Keells Super", "John Doe". If unknown, use the bank/app name.' },
         amount: { type: "NUMBER" },
-        categoryName: { type: "STRING", description: 'Best-guess category, e.g. "Food", "Transport", "Utilities", "Salary"' },
+        categoryName: { type: "STRING", description: 'Best-guess category, e.g. "Food", "Transport", "Utilities", "Salary". Use "Other" if you cannot confidently guess one.' },
         txType: { type: "STRING", enum: ["inc", "exp"] },
         date: { type: "STRING", description: 'ISO "YYYY-MM-DD"' },
       },

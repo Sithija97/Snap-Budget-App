@@ -79,7 +79,9 @@ export default function ScanScreen() {
     captureId?: string;
   }>();
   const [stage, setStage] = useState<Stage>("idle");
-  const [showManual, setShowManual] = useState(params.manual === "false");
+  const [showManual, setShowManual] = useState(
+    params.manual === "true" || !!params.captureId,
+  );
   const [saving, setSaving] = useState(false);
   const [showSourcePicker, setShowSourcePicker] = useState(false);
 
